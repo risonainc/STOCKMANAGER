@@ -1,1 +1,46 @@
-<!-- HTML content with two pages: Item Details & Packing and Putaway -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Manager App</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <h1>Stock Manager App</h1>
+
+  <!-- Page 1: Item Details & Packing -->
+  <section id="item-details">
+    <h2>Validate Item Details & Packing</h2>
+    <input type="text" id="upc-input" placeholder="Scan or enter UPC" />
+    <button id="scan-upc">Scan UPC</button>
+    <input type="text" placeholder="Brand" />
+    <input type="text" placeholder="Gender" />
+    <input type="text" placeholder="COO" />
+    <input type="text" placeholder="C/D" />
+    <input type="text" placeholder="Weight" />
+    <input type="text" placeholder="Dimensions" />
+    <input type="number" placeholder="Expected Quantity" />
+    <input type="number" placeholder="Subtotal Quantity" />
+    <button id="next-to-putaway">Next</button>
+  </section>
+
+  <!-- Page 2: Putaway -->
+  <section id="putaway" style="display:none;">
+    <h2>Putaway Locations</h2>
+    <input type="text" placeholder="Scan Location QR" />
+    <input type="number" placeholder="Location Quantity 1" />
+    <input type="number" placeholder="Location Quantity 2" />
+    <input type="number" placeholder="Location Quantity 3" />
+    <input type="number" placeholder="Location Quantity 4" />
+    <input type="number" placeholder="Location Quantity 5" />
+    <input type="number" placeholder="Location Quantity 6" />
+    <input type="number" placeholder="Location Quantity 7" />
+    <input type="number" placeholder="Location Quantity 8" />
+    <input type="number" placeholder="Location Quantity 9" />
+    <button id="back-to-details">Back</button>
+    <button id="submit">Submit & Next</button>
+  </section>
+</body>
+</html>
