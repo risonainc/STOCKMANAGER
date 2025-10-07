@@ -3,44 +3,125 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stock Manager App</title>
+  <title>StockManagerApp</title>
   <link rel="stylesheet" href="style.css" />
   <script src="script.js" defer></script>
 </head>
 <body>
-  <h1>Stock Manager App</h1>
+  <header>
+    <h1>StockManagerApp</h1>
+    <div id="user-info">
+      <span id="login-info">Logged in as: <strong>user@example.com</strong></span>
+      <span id="datetime"></span>
+    </div>
+  </header>
 
-  <!-- Page 1: Item Details & Packing -->
-  <section id="item-details">
-    <h2>Validate Item Details & Packing</h2>
-    <input type="text" id="upc-input" placeholder="Scan or enter UPC" />
-    <button id="scan-upc">Scan UPC</button>
-    <input type="text" placeholder="Brand" />
-    <input type="text" placeholder="Gender" />
-    <input type="text" placeholder="COO" />
-    <input type="text" placeholder="C/D" />
-    <input type="text" placeholder="Weight" />
-    <input type="text" placeholder="Dimensions" />
-    <input type="number" placeholder="Expected Quantity" />
-    <input type="number" placeholder="Subtotal Quantity" />
-    <button id="next-to-putaway">Next</button>
-  </section>
+  <main>
+    <!-- Page Indicator -->
+    <div id="page-indicator">Page 1 of 2</div>
 
-  <!-- Page 2: Putaway -->
-  <section id="putaway" style="display:none;">
-    <h2>Putaway Locations</h2>
-    <input type="text" placeholder="Scan Location QR" />
-    <input type="number" placeholder="Location Quantity 1" />
-    <input type="number" placeholder="Location Quantity 2" />
-    <input type="number" placeholder="Location Quantity 3" />
-    <input type="number" placeholder="Location Quantity 4" />
-    <input type="number" placeholder="Location Quantity 5" />
-    <input type="number" placeholder="Location Quantity 6" />
-    <input type="number" placeholder="Location Quantity 7" />
-    <input type="number" placeholder="Location Quantity 8" />
-    <input type="number" placeholder="Location Quantity 9" />
-    <button id="back-to-details">Back</button>
-    <button id="submit">Submit & Next</button>
-  </section>
+    <!-- Screen 1: Item Details & Packing -->
+    <section id="screen1">
+      <h2>Item Details & Packing</h2>
+      <div class="form-group">
+        <label for="upc">UPC <span class="required">*</span></label>
+        <input type="text" id="upc" required />
+        <button id="scan-upc">Scan UPC</button>
+        <button id="generate-upc">Generate UPC</button>
+      </div>
+
+      <div class="form-group">
+        <label for="brand">Brand</label>
+        <input type="text" id="brand" />
+      </div>
+
+      <div class="form-group">
+        <label for="gender">Gender</label>
+        <input type="text" id="gender" />
+      </div>
+
+      <div class="form-group">
+        <label for="coo">Country of Origin</label>
+        <input type="text" id="coo" />
+      </div>
+
+      <div class="form-group">
+        <label for="cd">C/D</label>
+        <input type="text" id="cd" />
+      </div>
+
+      <div class="form-group">
+        <label for="weight">Weight (kg)</label>
+        <input type="number" id="weight" step="0.01" />
+      </div>
+
+      <div class="form-group">
+        <label for="dimensions">Dimensions (L×W×H cm)</label>
+        <input type="text" id="dimensions" placeholder="e.g. 30×20×10" />
+      </div>
+
+      <div class="form-group">
+        <label for="expected-qty">Expected Quantity</label>
+        <input type="number" id="expected-qty" />
+      </div>
+
+      <h3>Box Style Breakdown</h3>
+      <div id="box-breakdown">
+        <div class="box-style">
+          <label>Style A Qty</label>
+          <input type="number" class="box-qty" data-style="A" />
+          <input type="text" class="box-dim" placeholder="Dimensions (L×W×H)" />
+        </div>
+        <div class="box-style">
+          <label>Style B Qty</label>
+          <input type="number" class="box-qty" data-style="B" />
+          <input type="text" class="box-dim" placeholder="Dimensions (L×W×H)" />
+        </div>
+        <div class="box-style">
+          <label>Style C Qty</label>
+          <input type="number" class="box-qty" data-style="C" />
+          <input type="text" class="box-dim" placeholder="Dimensions (L×W×H)" />
+        </div>
+        <div id="subtotal-display">Subtotal: <span id="subtotal">0</span></div>
+        <div id="quantity-feedback"></div>
+      </div>
+
+      <button id="next-btn">Next</button>
+    </section>
+
+    <!-- Screen 2: Putaway -->
+    <section id="screen2" style="display:none;">
+      <h2>Putaway</h2>
+      <div class="form-group">
+        <label for="location-scan">Scan Location QR</label>
+        <input type="text" id="location-scan" />
+        <button id="scan-location">Scan</button>
+      </div>
+
+      <div id="location-entries">
+        <h3>Location Entries</h3>
+        <div class="location-entry">
+          <label>Location 1 Qty</label>
+          <input type="number" class="location-qty" />
+        </div>
+        <div class="location-entry">
+          <label>Location 2 Qty</label>
+          <input type="number" class="location-qty" />
+        </div>
+        <div class="location-entry">
+          <label>Location 3 Qty</label>
+          <input type="number" class="location-qty" />
+        </div>
+        <!-- Add more as needed -->
+      </div>
+
+      <button id="back-btn">Back</button>
+      <button id="submit-btn">Submit</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2024 StockManagerApp</p>
+  </footer>
 </body>
 </html>
