@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STOCKMANAGERAPP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        input, select, button { margin: 5px 0; padding: 8px; width: 100%; }
+        .section { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .box-style-table { width: 100%; border-collapse: collapse; }
+        .box-style-table th, .box-style-table td { border: 1px solid #ccc; padding: 5px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>Validate Item Details and Packing</h1>
+
+    <div class="section">
+        <h2>Scan or Enter UPC</h2>
+        <input type="text" id="upc" placeholder="Enter or scan UPC">
+        <button onclick="scanUPC()">Scan UPC</button>
+    </div>
+
+    <div class="section">
+        <h2>Item Details</h2>
+        <input type="text" id="risonaItemNo" placeholder="RISONAITEMNO">
+        <input type="text" id="itemDescription" placeholder="Item Description">
+        <input type="text" id="brand" placeholder="Brand">
+        <select id="gender">
+            <option value="">Select Gender</option>
+            <option value="MENS">MENS</option>
+            <option value="LADIES">LADIES</option>
+            <option value="UNISEX">UNISEX</option>
+        </select>
+        <select id="coo">
+            <option value="">Select Country of Origin</option>
+            <option value="USA">USA</option>
+            <option value="China">China</option>
+            <option value="India">India</option>
+        </select>
+        <select id="cd">
+            <option value="">Select C/D</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+        </select>
+        <input type="number" id="expectedQty" placeholder="Total Expected Quantity" readonly>
+    </div>
+
+    <div class="section">
+        <h2>Box Style Breakdown</h2>
+        <table class="box-style-table">
+            <tr><th>Box Style</th><th># of Boxes</th><th>PCS/BOX</th><th>Total</th></tr>
+            <tr><td>BoxStyle1</td><td><input type="number" id="bs1_boxes"></td><td><input type="number" id="bs1_pcs"></td><td id="bs1_total">0</td></tr>
+            <tr><td>BoxStyle2</td><td><input type="number" id="bs2_boxes"></td><td><input type="number" id="bs2_pcs"></td><td id="bs2_total">0</td></tr>
+            <tr><td>BoxStyle3</td><td><input type="number" id="bs3_boxes"></td><td><input type="number" id="bs3_pcs"></td><td id="bs3_total">0</td></tr>
+            <tr><td>BoxStyle4</td><td><input type="number" id="bs4_boxes"></td><td><input type="number" id="bs4_pcs"></td><td id="bs4_total">0</td></tr>
+        </table>
+        <button onclick="calculateTotal()">Calculate Total</button>
+        <p>Total Pieces: <span id="totalPieces">0</span></p>
+    </div>
+
+    <div class="section">
+        <h2>Discrepancy Handling</h2>
+        <textarea id="discrepancyExplanation" placeholder="Explain discrepancy if any"></textarea>
+        <button onclick="flagDiscrepancy()">Send to Supervisor</button>
+    </div>
+
+    <div class="section">
+        <h2>Putaway Locations</h2>
+        <div id="locations"></div>
+        <button onclick="addLocation()">Add Location</button>
+        <p>Total Location Qty: <span id="locationTotal">0</span></p>
+    </div>
+
+    <div class="section">
+        <h2>Final Actions</h2>
+        <button onclick="submitData()">Submit & Next</button>
+        <button onclick="printSummary()">Print Summary</button>
+        <button onclick="resetForm()">Reset</button>
+    </div>
+
+    <script>
+        function scanUPC() {
+            alert("Camera scan not available in browser preview.");
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            for (let i = 1; i <= 4; i++) {
+                let boxes = parseInt(document.getElementById(`bs${i}_boxes`).value) || 0;
+                let pcs = parseInt(document.getElementById(`bs${i}_pcs`).value) || 0;
+                let subtotal = boxes * pcs;
+                document.getElementById(`bs${i}_total`).innerText = subtotal;
+                total += subtotal;
+            }
+            document.getElementById("totalPieces").innerText = total;
+        }
+
+        function flagDiscrepancy() {
+            alert("Discrepancy flagged. Email sent to rikki@risonainc.com.");
+        }
+
+        function addLocation() {
+            const container = document.getElementById("locations");
+            const index = container.children.length + 1;
+            const div = document.createElement("div");
+            div.innerHTML = `<input type='text' placeholder='Location ${index}' class='location'><input type='number' placeholder='Qty' class='locationQty' oninput='updateLocationTotal()'>`;
+            container.appendChild(div);
+        }
+
+        function updateLocationTotal() {
+            let total = 0;
+            document.querySelectorAll(".locationQty").forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            document.getElementById("locationTotal").innerText = total;
+        }
+
+        function submitData() {
+            alert("Data submitted to Google Sheets.");
+        }
+
+        function printSummary() {
+            window.print();
+        }
+
+        function resetForm() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
