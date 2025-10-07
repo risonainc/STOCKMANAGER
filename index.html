@@ -10,118 +10,52 @@
 <body>
   <header>
     <h1>StockManagerApp</h1>
-    <div id="user-info">
-      <span id="login-info">Logged in as: <strong>user@example.com</strong></span>
-      <span id="datetime"></span>
-    </div>
+    <div id="page-indicator">Page 1 of 2</div>
+    <div id="user-info">User: <span id="login-name">rikki</span> | <span id="timestamp"></span></div>
   </header>
 
-  <main>
-    <!-- Page Indicator -->
-    <div id="page-indicator">Page 1 of 2</div>
+  <!-- Screen 1: Item Details & Packing -->
+  <section id="screen1">
+    <h2>Item Details & Packing</h2>
+    <label>UPC: <input type="text" id="upc" required /></label>
+    <button id="scan-upc">Scan UPC</button>
+    <label>Brand: <input type="text" id="brand" /></label>
+    <label>Gender: <input type="text" id="gender" /></label>
+    <label>COO: <input type="text" id="coo" /></label>
+    <label>C/D: <input type="text" id="cd" /></label>
+    <label>Weight (kg): <input type="number" id="weight" step="0.01" /></label>
+    <label>Length (cm): <input type="number" id="length" step="0.1" /></label>
+    <label>Width (cm): <input type="number" id="width" step="0.1" /></label>
+    <label>Height (cm): <input type="number" id="height" step="0.1" /></label>
 
-    <!-- Screen 1: Item Details & Packing -->
-    <section id="screen1">
-      <h2>Item Details & Packing</h2>
-      <div class="form-group">
-        <label for="upc">UPC <span class="required">*</span></label>
-        <input type="text" id="upc" required />
-        <button id="scan-upc">Scan UPC</button>
-        <button id="generate-upc">Generate UPC</button>
-      </div>
+    <h3>Box Style Breakdown</h3>
+    <div id="box-breakdown">
+      <label>Style A Qty: <input type="number" class="box-style" data-style="A" /></label>
+      <label>Style B Qty: <input type="number" class="box-style" data-style="B" /></label>
+      <label>Style C Qty: <input type="number" class="box-style" data-style="C" /></label>
+      <label>Expected Total Qty: <input type="number" id="expected-total" /></label>
+      <div id="subtotal-feedback"></div>
+    </div>
 
-      <div class="form-group">
-        <label for="brand">Brand</label>
-        <input type="text" id="brand" />
-      </div>
+    <button id="next-button">Next</button>
+  </section>
 
-      <div class="form-group">
-        <label for="gender">Gender</label>
-        <input type="text" id="gender" />
-      </div>
-
-      <div class="form-group">
-        <label for="coo">Country of Origin</label>
-        <input type="text" id="coo" />
-      </div>
-
-      <div class="form-group">
-        <label for="cd">C/D</label>
-        <input type="text" id="cd" />
-      </div>
-
-      <div class="form-group">
-        <label for="weight">Weight (kg)</label>
-        <input type="number" id="weight" step="0.01" />
-      </div>
-
-      <div class="form-group">
-        <label for="dimensions">Dimensions (L×W×H cm)</label>
-        <input type="text" id="dimensions" placeholder="e.g. 30×20×10" />
-      </div>
-
-      <div class="form-group">
-        <label for="expected-qty">Expected Quantity</label>
-        <input type="number" id="expected-qty" />
-      </div>
-
-      <h3>Box Style Breakdown</h3>
-      <div id="box-breakdown">
-        <div class="box-style">
-          <label>Style A Qty</label>
-          <input type="number" class="box-qty" data-style="A" />
-          <input type="text" class="box-dim" placeholder="Dimensions (L×W×H)" />
-        </div>
-        <div class="box-style">
-          <label>Style B Qty</label>
-          <input type="number" class="box-qty" data-style="B" />
-          <input type="text" class="box-dim" placeholder="Dimensions (L×W×H)" />
-        </div>
-        <div class="box-style">
-          <label>Style C Qty</label>
-          <input type="number" class="box-qty" data-style="C" />
-          <input type="text" class="box-dim" placeholder="Dimensions (L×W×H)" />
-        </div>
-        <div id="subtotal-display">Subtotal: <span id="subtotal">0</span></div>
-        <div id="quantity-feedback"></div>
-      </div>
-
-      <button id="next-btn">Next</button>
-    </section>
-
-    <!-- Screen 2: Putaway -->
-    <section id="screen2" style="display:none;">
-      <h2>Putaway</h2>
-      <div class="form-group">
-        <label for="location-scan">Scan Location QR</label>
-        <input type="text" id="location-scan" />
-        <button id="scan-location">Scan</button>
-      </div>
-
-      <div id="location-entries">
-        <h3>Location Entries</h3>
-        <div class="location-entry">
-          <label>Location 1 Qty</label>
-          <input type="number" class="location-qty" />
-        </div>
-        <div class="location-entry">
-          <label>Location 2 Qty</label>
-          <input type="number" class="location-qty" />
-        </div>
-        <div class="location-entry">
-          <label>Location 3 Qty</label>
-          <input type="number" class="location-qty" />
-        </div>
-        <!-- Add more as needed -->
-      </div>
-
-      <button id="back-btn">Back</button>
-      <button id="submit-btn">Submit</button>
-    </section>
-  </main>
+  <!-- Screen 2: Putaway -->
+  <section id="screen2" style="display:none;">
+    <h2>Putaway</h2>
+    <label>Scan Location QR: <input type="text" id="location-scan" /></label>
+    <div id="locations">
+      <label>Location 1 Qty: <input type="number" /></label>
+      <label>Location 2 Qty: <input type="number" /></label>
+      <label>Location 3 Qty: <input type="number" /></label>
+      <!-- up to 9 locations -->
+    </div>
+    <button id="back-button">Back</button>
+    <button id="submit-button">Submit</button>
+  </section>
 
   <footer>
-    <p>&copy; 2024 StockManagerApp</p>
+    <p>© 2024 StockManagerApp</p>
   </footer>
 </body>
 </html>
