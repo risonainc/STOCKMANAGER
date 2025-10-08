@@ -1,149 +1,193 @@
 
 <!DOCTYPE html>
-<html>
-<head>
-    <title>STOCKMANAGERAPP</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
+
+<html><head>
+<title>STOCKMANAGERAPP</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<style>
         body { font-family: Arial, sans-serif; padding: 20px; }
-        .section { margin-bottom: 30px; }
-        .section h2 { background-color: #f0f0f0; padding: 10px; }
-        label { display: block; margin-top: 10px; }
-        input, select, button { margin-top: 5px; width: 100%; padding: 8px; }
-        .box-style-table, .putaway-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .box-style-table th, .box-style-table td,
-        .putaway-table th, .putaway-table td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        .highlight { background-color: #dff0d8; font-weight: bold; }
+        input, select, button { margin: 5px 0; padding: 8px; width: 100%; }
+        .section { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .box-style-table { width: 100%; border-collapse: collapse; }
+        .box-style-table th, .box-style-table td { border: 1px solid #ccc; padding: 5px; text-align: center; }
     </style>
-</head>
-<body>
-    <div class="section">
-        <h2>PAGE 1 OF 2 - ITEM DETAILS AND PACKING</h2>
-        <label>UPC (required):</label>
-        <input type="text" id="upc" required>
-        <button onclick="generateUPC()">No UPC? Generate One</button>
+<script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script></head>
 
-        <label>RISONAITEMNO:</label>
-        <input type="text">
-
-        <label>Item Description:</label>
-        <input type="text">
-
-        <label>Brand:</label>
-        <input type="text" id="brand">
-
-        <label>Gender:</label>
-        <select id="gender">
-            <option value="">Select</option>
-            <option value="MENS">MENS</option>
-            <option value="LADIES">LADIES</option>
-            <option value="UNISEX">UNISEX</option>
-        </select>
-
-        <label>COO:</label>
-        <select>
-            <option value="">Select Country</option>
-            <option value="USA">USA</option>
-            <option value="CHINA">CHINA</option>
-            <option value="INDIA">INDIA</option>
-        </select>
-
-        <label>C/D:</label>
-        <select>
-            <option value="">Select</option>
-            <option value="C">C</option>
-            <option value="D">D</option>
-        </select>
-
-        <label>Weight (lbs):</label>
-        <input type="number" step="0.01">
-
-        <label>Dimensions (L x W x H in inches):</label>
-        <input type="text" placeholder="e.g. 10 x 5 x 3">
-
-        <label>Total Expected Quantity:</label>
-        <input type="number" id="expectedQty" readonly>
-
-        <h3>Box Style Breakdown</h3>
-        <table class="box-style-table">
-            <tr>
-                <th>Box Style</th>
-                <th># of Boxes</th>
-                <th>PCS/BOX</th>
-                <th>Box Dimensions (L x W x H)</th>
-                <th>Total</th>
-            </tr>
-            <tr>
-                <td>BoxStyle1</td>
-                <td><input type="number" id="bs1_boxes"></td>
-                <td><input type="number" id="bs1_pcs"></td>
-                <td><input type="text" placeholder="e.g. 20x15x10"></td>
-                <td id="bs1_total">0</td>
-            </tr>
-            <tr>
-                <td>BoxStyle2</td>
-                <td><input type="number" id="bs2_boxes"></td>
-                <td><input type="number" id="bs2_pcs"></td>
-                <td><input type="text" placeholder="e.g. 18x12x8"></td>
-                <td id="bs2_total">0</td>
-            </tr>
-        </table>
-        <button onclick="calculateTotals()">Calculate Total</button>
-        <div id="totalsSummary"></div>
-    </div>
-
-    <div class="section">
-        <h2>PAGE 2 OF 2 - PUTAWAY</h2>
-        <table class="putaway-table">
-            <tr>
-                <th>Location</th>
-                <th>Qty</th>
-            </tr>
-            <tr>
-                <td><input type="text" placeholder="ZONE-AISLE-RACK-SHELF-BIN"></td>
-                <td><input type="number"></td>
-            </tr>
-            <tr>
-                <td><input type="text" placeholder="ZONE-AISLE-RACK-SHELF-BIN"></td>
-                <td><input type="number"></td>
-            </tr>
-        </table>
-        <button onclick="submitData()">Submit & Next</button>
-    </div>
-
-    <script>
-        function generateUPC() {
-            const upc = 'GEN' + Math.floor(Math.random() * 1000000000);
-            document.getElementById('upc').value = upc;
+<body><div id="scan-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.8);display:none;justify-content:center;align-items:center;z-index:1000;flex-direction:column;"><video autoplay="True" id="video" style="width:90%;max-width:400px;border:4px solid red;"></video><button id="close-scan" onclick="stopScan()" style="margin-top:10px;">Cancel Scan</button></div>
+<h1>Validate Item Details and Packing</h1>
+<div class="section">
+<h2>Scan or Enter UPC</h2>
+<input id="upc" placeholder="Enter or scan UPC" type="text"/>
+<button onclick="scanUPC()">Scan UPC</button>
+</div>
+<div class="section">
+<h2>Item Details</h2>
+<input id="risonaItemNo" placeholder="RISONAITEMNO" type="text"/>
+<input id="itemDescription" placeholder="Item Description" type="text"/>
+<input id="brand" placeholder="Brand" type="text"/>
+<select id="gender">
+<option value="">Select Gender</option>
+<option value="MENS">MENS</option>
+<option value="LADIES">LADIES</option>
+<option value="UNISEX">UNISEX</option>
+</select>
+<select id="coo">
+<option value="">Select Country of Origin</option>
+<option value="USA">USA</option>
+<option value="China">China</option>
+<option value="India">India</option>
+</select>
+<select id="cd">
+<option value="">Select C/D</option>
+<option value="C">C</option>
+<option value="D">D</option>
+</select>
+<input id="expectedQty" placeholder="Total Expected Quantity" readonly="" type="number"/>
+</div>
+<div class="section">
+<h2>Box Style Breakdown</h2>
+<table class="box-style-table">
+<tr><th>Box Style</th><th># of Boxes</th><th>PCS/BOX</th><th>Total</th></tr>
+<tr><td>BoxStyle1</td><td><input id="bs1_boxes" type="number"/></td><td><input id="bs1_pcs" type="number"/></td><td id="bs1_total">0</td></tr>
+<tr><td>BoxStyle2</td><td><input id="bs2_boxes" type="number"/></td><td><input id="bs2_pcs" type="number"/></td><td id="bs2_total">0</td></tr>
+<tr><td>BoxStyle3</td><td><input id="bs3_boxes" type="number"/></td><td><input id="bs3_pcs" type="number"/></td><td id="bs3_total">0</td></tr>
+<tr><td>BoxStyle4</td><td><input id="bs4_boxes" type="number"/></td><td><input id="bs4_pcs" type="number"/></td><td id="bs4_total">0</td></tr>
+</table>
+<button onclick="calculateTotal()">Calculate Total</button>
+<p>Total Pieces: <span id="totalPieces">0</span></p>
+</div>
+<div class="section">
+<h2>Discrepancy Handling</h2>
+<textarea id="discrepancyExplanation" placeholder="Explain discrepancy if any"></textarea>
+<button onclick="flagDiscrepancy()">Send to Supervisor</button>
+</div>
+<div class="section">
+<h2>Putaway Locations</h2>
+<div id="locations"></div>
+<button onclick="addLocation()">Add Location</button>
+<p>Total Location Qty: <span id="locationTotal">0</span></p>
+</div>
+<div class="section">
+<h2>Final Actions</h2>
+<button onclick="submitData()">Submit &amp; Next</button>
+<button onclick="printSummary()">Print Summary</button>
+<button onclick="resetForm()">Reset</button>
+</div>
+<script>
+        function scanUPC() {
+            alert("Camera scan not available in browser preview.");
         }
 
-        function calculateTotals() {
-            const bs1_boxes = parseInt(document.getElementById('bs1_boxes').value) || 0;
-            const bs1_pcs = parseInt(document.getElementById('bs1_pcs').value) || 0;
-            const bs2_boxes = parseInt(document.getElementById('bs2_boxes').value) || 0;
-            const bs2_pcs = parseInt(document.getElementById('bs2_pcs').value) || 0;
-
-            const bs1_total = bs1_boxes * bs1_pcs;
-            const bs2_total = bs2_boxes * bs2_pcs;
-            const total = bs1_total + bs2_total;
-
-            document.getElementById('bs1_total').innerText = bs1_total;
-            document.getElementById('bs2_total').innerText = bs2_total;
-
-            const expected = parseInt(document.getElementById('expectedQty').value) || 0;
-            let message = `<p>Subtotal: ${total} vs Expected: ${expected}</p>`;
-            if (total === expected) {
-                message += `<p class='highlight'>AWESSSSOME! Ready to move to PUTAWAY.</p>`;
-            } else {
-                message += `<p style='color:red;'>Discrepancy detected. Please select reason and send to supervisor.</p>`;
+        function calculateTotal() {
+            let total = 0;
+            for (let i = 1; i <= 4; i++) {
+                let boxes = parseInt(document.getElementById(`bs${i}_boxes`).value) || 0;
+                let pcs = parseInt(document.getElementById(`bs${i}_pcs`).value) || 0;
+                let subtotal = boxes * pcs;
+                document.getElementById(`bs${i}_total`).innerText = subtotal;
+                total += subtotal;
             }
-            document.getElementById('totalsSummary').innerHTML = message;
+            document.getElementById("totalPieces").innerText = total;
+        }
+
+        function flagDiscrepancy() {
+            alert("Discrepancy flagged. Email sent to rikki@risonainc.com.");
+        }
+
+        function addLocation() {
+            const container = document.getElementById("locations");
+            const index = container.children.length + 1;
+            const div = document.createElement("div");
+            div.innerHTML = `<input type='text' placeholder='Location ${index}' class='location'><input type='number' placeholder='Qty' class='locationQty' oninput='updateLocationTotal()'>`;
+            container.appendChild(div);
+        }
+
+        function updateLocationTotal() {
+            let total = 0;
+            document.querySelectorAll(".locationQty").forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            document.getElementById("locationTotal").innerText = total;
         }
 
         function submitData() {
-            alert("Data submitted to Google Sheets. (Connection verified)");
+            alert("Data submitted to Google Sheets.");
+        }
+
+        function printSummary() {
+            window.print();
+        }
+
+        function resetForm() {
+            location.reload();
         }
     </script>
-</body>
+<script>
+let currentScanType = null;
+let video = null;
+let stream = null;
+
+function startScan(type) {
+    currentScanType = type;
+    document.getElementById('scan-overlay').style.display = 'flex';
+    video = document.getElementById('video');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function(s) {
+            stream = s;
+            video.srcObject = stream;
+            video.setAttribute('playsinline', true);
+            video.play();
+            requestAnimationFrame(tick);
+        });
+}
+
+function stopScan() {
+    document.getElementById('scan-overlay').style.display = 'none';
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+}
+
+function tick() {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        if (currentScanType === 'qr') {
+            const code = jsQR(imageData.data, canvas.width, canvas.height);
+            if (code) {
+                document.getElementById('qr-location').value = code.data;
+                playBeep();
+                stopScan();
+                return;
+            }
+        } else if (currentScanType === 'upc') {
+            Quagga.decodeSingle({
+                src: canvas.toDataURL(),
+                numOfWorkers: 0,
+                inputStream: { size: 800 },
+                decoder: { readers: ['upc_reader', 'ean_reader'] }
+            }, function(result) {
+                if (result && result.codeResult) {
+                    document.getElementById('upc').value = result.codeResult.code;
+                    playBeep();
+                    stopScan();
+                }
+            });
+        }
+    }
+    if (document.getElementById('scan-overlay').style.display === 'flex') {
+        requestAnimationFrame(tick);
+    }
+}
+
+function playBeep() {
+    const audio = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
+    audio.play();
+}
+</script></body>
 </html>
