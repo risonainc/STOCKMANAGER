@@ -1,193 +1,305 @@
-
 <!DOCTYPE html>
-
-<html><head>
-<title>STOCKMANAGERAPP</title>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STOCKMANAGERAPP · Mobile Inventory (Validated)</title>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
 <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        input, select, button { margin: 5px 0; padding: 8px; width: 100%; }
-        .section { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        .box-style-table { width: 100%; border-collapse: collapse; }
-        .box-style-table th, .box-style-table td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-    </style>
-<script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script></head>
+  :root{ --bg:#0b1220; --panel:#111a2b; --ink:#e8eef9; --muted:#97a6c3; --acc:#3dbb8e; --warn:#ffb02e; --err:#ff6363; --line:#24314e; --gap:12px; --radius:12px }
+  html,body{height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  *{box-sizing:border-box}
+  .app{max-width:1080px;margin:0 auto;padding:16px}
+  header{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .title{font-weight:800;font-size:20px}
+  .badge{background:#16233b;border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:#9fb3d7}
+  .spacer{flex:1}
+  .status-strip{display:flex;gap:8px;align-items:center;color:#9fb3d7;font-size:12px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
+  .row{display:flex;gap:var(--gap);flex-wrap:wrap}
+  label{display:block;font-size:12px;color:#9fb3d7;margin-bottom:6px}
+  input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0f1830;color:var(--ink)}
+  input[readonly]{opacity:.85}
+  textarea{min-height:72px;resize:vertical}
+  h2{margin:0 0 10px;font-size:16px}
+  h3{margin:8px 0;font-size:14px;color:#9fb3d7}
+  .btn{background:linear-gradient(180deg,#2ac28b,#22a173);color:#001b12;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer}
+  .btn.secondary{background:#1b2b4a;color:var(--ink);border:1px solid var(--line)}
+  .btn.warn{background:#3b2a12;color:#ffd39c;border:1px solid #6b4a1b}
+  .kpi{display:flex;gap:10px;flex-wrap:wrap}
+  .kpi .pill{background:#11253c;border:1px solid var(--line);color:#b7c5e6;padding:8px 12px;border-radius:999px;font-size:12px}
+  .ok{color:#65d6a6}
+  .no{color:var(--err)}
+  .warn-text{color:var(--warn)}
+  .footer-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:10px}
+  dialog#scanner{border:none;border-radius:14px;padding:0;max-width:min(640px,96vw);width:100%;background:#0a1428}
+  .scan-wrap{position:relative}
+  video{width:100%;height:auto;border-bottom:1px solid var(--line);background:#000}
+  .overlay{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
+  .reticle{width:min(75vw,420px);height:min(50vh,260px);border:2px solid rgba(61,187,142,.9);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.45) inset, 0 0 16px rgba(61,187,142,.35)}
+  .scan-hud{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:center;justify-content:space-between;color:#cfe7ff;font-size:12px}
+  .chip{background:#0c1a33;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#b7c5e6}
+  .close-x{position:absolute;top:8px;right:8px;background:#142748;border:1px solid var(--line);color:#cfe7ff;border-radius:10px;padding:6px 10px;cursor:pointer}
+  @media (max-width:880px){ .grid{grid-template-columns:1fr} .grid-3{grid-template-columns:1fr} .grid-4{grid-template-columns:1fr 1fr} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">STOCKMANAGERAPP · Mobile Inventory</div>
+    <span class="badge" id="pageIndicator">Page 1 of 2</span>
+    <div class="spacer"></div>
+    <div class="status-strip">
+      <span id="now"></span>
+      <span>•</span>
+      <span>Logged in as:</span>
+      <input id="loginName" placeholder="Your name" style="width:150px"/>
+      <button class="btn secondary" id="saveLogin">Save</button>
+    </div>
+  </header>
 
-<body><div id="scan-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.8);display:none;justify-content:center;align-items:center;z-index:1000;flex-direction:column;"><video autoplay="True" id="video" style="width:90%;max-width:400px;border:4px solid red;"></video><button id="close-scan" onclick="stopScan()" style="margin-top:10px;">Cancel Scan</button></div>
-<h1>Validate Item Details and Packing</h1>
-<div class="section">
-<h2>Scan or Enter UPC</h2>
-<input id="upc" placeholder="Enter or scan UPC" type="text"/>
-<button onclick="scanUPC()">Scan UPC</button>
+  <section id="screen1" class="panel">
+    <h2>Validate Item Details &amp; Packing</h2>
+
+    <div class="grid">
+      <div>
+        <label>UPC <span class="warn-text">*</span></label>
+        <div class="row">
+          <input id="upc" inputmode="numeric" placeholder="Scan or enter UPC" autocomplete="off"/>
+          <button class="btn" id="scanUPC">Scan UPC/Barcode</button>
+          <button class="btn secondary" id="genUPC">Generate UPC</button>
+        </div>
+        <small id="upcMsg" style="color:#9fb3d7"></small>
+      </div>
+      <div class="grid-3">
+        <div>
+          <label>Brand</label>
+          <input id="brand" placeholder="Auto-filled from base list"/>
+        </div>
+        <div>
+          <label>Gender</label>
+          <input id="gender" placeholder="Auto-filled from base list"/>
+        </div>
+        <div>
+          <label>Master Item Description</label>
+          <input id="desc" placeholder="Auto-filled from base list"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="grid-4">
+        <div>
+          <label>COO</label>
+          <input id="coo" placeholder="Country of Origin"/>
+        </div>
+        <div>
+          <label>C/D</label>
+          <input id="cd" placeholder="Clean/Decoded"/>
+        </div>
+        <div>
+          <label>Expected Quantity</label>
+          <input id="expectedQty" inputmode="numeric" placeholder="From base list (optional)"/>
+        </div>
+        <div>
+          <label>Entered Quantity (Subtotal)</label>
+          <input id="enteredQty" inputmode="numeric" placeholder="Auto-calculated" readonly/>
+        </div>
+      </div>
+      <div>
+        <div class="kpi">
+          <span class="pill">Sheet ID: <code id="sheetId"></code></span>
+          <span class="pill">Scan: <span id="scanStatus">Ready</span></span>
+          <span class="pill">Camera: <select id="cameraFacing"><option value="environment">Back</option><option value="user">Front</option></select></span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Box Breakdown (Styles 1–4)</h3>
+    <div class="grid-4">
+      <div class="panel">
+        <strong>Box Style 1</strong>
+        <div class="grid-3">
+          <div><label>Boxes</label><input id="bs1_boxes" inputmode="numeric" placeholder="10"></div>
+          <div><label>Qty/Box</label><input id="bs1_qty" inputmode="numeric" placeholder="20"></div>
+          <div><label>Pcs (auto)</label><input id="bs1_pcs" readonly></div>
+        </div>
+        <div class="grid-4">
+          <div><label>L (in)</label><input id="bs1_l" inputmode="decimal"></div>
+          <div><label>W (in)</label><input id="bs1_w" inputmode="decimal"></div>
+          <div><label>H (in)</label><input id="bs1_h" inputmode="decimal"></div>
+          <div><label>Weight (lb)</label><input id="bs1_wt" inputmode="decimal"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <strong>Box Style 2</strong>
+        <div class="grid-3">
+          <div><label>Boxes</label><input id="bs2_boxes" inputmode="numeric"></div>
+          <div><label>Qty/Box</label><input id="bs2_qty" inputmode="numeric"></div>
+          <div><label>Pcs (auto)</label><input id="bs2_pcs" readonly></div>
+        </div>
+        <div class="grid-4">
+          <div><label>L (in)</label><input id="bs2_l" inputmode="decimal"></div>
+          <div><label>W (in)</label><input id="bs2_w" inputmode="decimal"></div>
+          <div><label>H (in)</label><input id="bs2_h" inputmode="decimal"></div>
+          <div><label>Weight (lb)</label><input id="bs2_wt" inputmode="decimal"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <strong>Box Style 3</strong>
+        <div class="grid-3">
+          <div><label>Boxes</label><input id="bs3_boxes" inputmode="numeric"></div>
+          <div><label>Qty/Box</label><input id="bs3_qty" inputmode="numeric"></div>
+          <div><label>Pcs (auto)</label><input id="bs3_pcs" readonly></div>
+        </div>
+        <div class="grid-4">
+          <div><label>L (in)</label><input id="bs3_l" inputmode="decimal"></div>
+          <div><label>W (in)</label><input id="bs3_w" inputmode="decimal"></div>
+          <div><label>H (in)</label><input id="bs3_h" inputmode="decimal"></div>
+          <div><label>Weight (lb)</label><input id="bs3_wt" inputmode="decimal"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <strong>Box Style 4</strong>
+        <div class="grid-3">
+          <div><label>Boxes</label><input id="bs4_boxes" inputmode="numeric"></div>
+          <div><label>Qty/Box</label><input id="bs4_qty" inputmode="numeric"></div>
+          <div><label>Pcs (auto)</label><input id="bs4_pcs" readonly></div>
+        </div>
+        <div class="grid-4">
+          <div><label>L (in)</label><input id="bs4_l" inputmode="decimal"></div>
+          <div><label>W (in)</label><input id="bs4_w" inputmode="decimal"></div>
+          <div><label>H (in)</label><input id="bs4_h" inputmode="decimal"></div>
+          <div><label>Weight (lb)</label><input id="bs4_wt" inputmode="decimal"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div class="kpi">
+        <span class="pill">Subtotal Pcs: <strong id="subtotalPcs">0</strong></span>
+        <span class="pill">Match Status: <strong id="matchStatus">—</strong></span>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="checkDiscrepancy">Check Discrepancy</button>
+    </div>
+
+    <div class="footer-actions">
+      <button class="btn secondary" id="toScreen2">Next → Putaway (Page 2)</button>
+    </div>
+  </section>
+
+  <section id="screen2" class="panel" style="display:none">
+    <h2>Putaway</h2>
+
+    <div class="grid-3">
+      <div>
+        <label>Putaway Instructions / Notes</label>
+        <textarea id="notes" placeholder="Optional"></textarea>
+      </div>
+      <div class="panel">
+        <strong>Scan Controls</strong>
+        <div class="row" style="margin-top:6px">
+          <button class="btn secondary" id="scanLocation">Scan Location QR</button>
+          <button class="btn secondary" id="toggleCamera">Toggle Camera</button>
+        </div>
+        <small>Tip: Use the front camera if it’s easier to align shelf/bin QR codes.</small>
+      </div>
+      <div class="panel">
+        <strong>Totals</strong>
+        <div class="kpi" style="margin-top:6px">
+          <span class="pill">Entered Qty: <strong id="enteredQty2">0</strong></span>
+          <span class="pill">Putaway Total: <strong id="putawayTotal">0</strong></span>
+          <span class="pill">OK to Submit: <strong id="okToSubmit">No</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Locations (up to 9)</h3>
+    <div id="locRows" class="grid"></div>
+
+    <div class="footer-actions">
+      <button class="btn secondary" id="backTo1">← Back</button>
+      <button class="btn warn" id="downloadJson" style="display:none">Download JSON (offline)</button>
+      <button class="btn" id="submitSheet">Submit & Next</button>
+    </div>
+  </section>
 </div>
-<div class="section">
-<h2>Item Details</h2>
-<input id="risonaItemNo" placeholder="RISONAITEMNO" type="text"/>
-<input id="itemDescription" placeholder="Item Description" type="text"/>
-<input id="brand" placeholder="Brand" type="text"/>
-<select id="gender">
-<option value="">Select Gender</option>
-<option value="MENS">MENS</option>
-<option value="LADIES">LADIES</option>
-<option value="UNISEX">UNISEX</option>
-</select>
-<select id="coo">
-<option value="">Select Country of Origin</option>
-<option value="USA">USA</option>
-<option value="China">China</option>
-<option value="India">India</option>
-</select>
-<select id="cd">
-<option value="">Select C/D</option>
-<option value="C">C</option>
-<option value="D">D</option>
-</select>
-<input id="expectedQty" placeholder="Total Expected Quantity" readonly="" type="number"/>
-</div>
-<div class="section">
-<h2>Box Style Breakdown</h2>
-<table class="box-style-table">
-<tr><th>Box Style</th><th># of Boxes</th><th>PCS/BOX</th><th>Total</th></tr>
-<tr><td>BoxStyle1</td><td><input id="bs1_boxes" type="number"/></td><td><input id="bs1_pcs" type="number"/></td><td id="bs1_total">0</td></tr>
-<tr><td>BoxStyle2</td><td><input id="bs2_boxes" type="number"/></td><td><input id="bs2_pcs" type="number"/></td><td id="bs2_total">0</td></tr>
-<tr><td>BoxStyle3</td><td><input id="bs3_boxes" type="number"/></td><td><input id="bs3_pcs" type="number"/></td><td id="bs3_total">0</td></tr>
-<tr><td>BoxStyle4</td><td><input id="bs4_boxes" type="number"/></td><td><input id="bs4_pcs" type="number"/></td><td id="bs4_total">0</td></tr>
-</table>
-<button onclick="calculateTotal()">Calculate Total</button>
-<p>Total Pieces: <span id="totalPieces">0</span></p>
-</div>
-<div class="section">
-<h2>Discrepancy Handling</h2>
-<textarea id="discrepancyExplanation" placeholder="Explain discrepancy if any"></textarea>
-<button onclick="flagDiscrepancy()">Send to Supervisor</button>
-</div>
-<div class="section">
-<h2>Putaway Locations</h2>
-<div id="locations"></div>
-<button onclick="addLocation()">Add Location</button>
-<p>Total Location Qty: <span id="locationTotal">0</span></p>
-</div>
-<div class="section">
-<h2>Final Actions</h2>
-<button onclick="submitData()">Submit &amp; Next</button>
-<button onclick="printSummary()">Print Summary</button>
-<button onclick="resetForm()">Reset</button>
-</div>
+
+<dialog id="scanner">
+  <div class="scan-wrap">
+    <video id="video" autoplay muted playsinline></video>
+    <div class="overlay"><div class="reticle"></div></div>
+    <div class="scan-hud">
+      <div class="chip" id="scanTypeLabel">Scanning…</div>
+      <div class="row" style="gap:8px">
+        <button class="btn secondary" id="flipFacing">Flip</button>
+        <button class="btn" id="closeScanner">Done</button>
+      </div>
+    </div>
+    <button class="close-x" id="xClose">✕</button>
+  </div>
+</dialog>
+
 <script>
-        function scanUPC() {
-            alert("Camera scan not available in browser preview.");
-        }
-
-        function calculateTotal() {
-            let total = 0;
-            for (let i = 1; i <= 4; i++) {
-                let boxes = parseInt(document.getElementById(`bs${i}_boxes`).value) || 0;
-                let pcs = parseInt(document.getElementById(`bs${i}_pcs`).value) || 0;
-                let subtotal = boxes * pcs;
-                document.getElementById(`bs${i}_total`).innerText = subtotal;
-                total += subtotal;
-            }
-            document.getElementById("totalPieces").innerText = total;
-        }
-
-        function flagDiscrepancy() {
-            alert("Discrepancy flagged. Email sent to rikki@risonainc.com.");
-        }
-
-        function addLocation() {
-            const container = document.getElementById("locations");
-            const index = container.children.length + 1;
-            const div = document.createElement("div");
-            div.innerHTML = `<input type='text' placeholder='Location ${index}' class='location'><input type='number' placeholder='Qty' class='locationQty' oninput='updateLocationTotal()'>`;
-            container.appendChild(div);
-        }
-
-        function updateLocationTotal() {
-            let total = 0;
-            document.querySelectorAll(".locationQty").forEach(input => {
-                total += parseInt(input.value) || 0;
-            });
-            document.getElementById("locationTotal").innerText = total;
-        }
-
-        function submitData() {
-            alert("Data submitted to Google Sheets.");
-        }
-
-        function printSummary() {
-            window.print();
-        }
-
-        function resetForm() {
-            location.reload();
-        }
-    </script>
-<script>
-let currentScanType = null;
-let video = null;
-let stream = null;
-
-function startScan(type) {
-    currentScanType = type;
-    document.getElementById('scan-overlay').style.display = 'flex';
-    video = document.getElementById('video');
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(function(s) {
-            stream = s;
-            video.srcObject = stream;
-            video.setAttribute('playsinline', true);
-            video.play();
-            requestAnimationFrame(tick);
-        });
-}
-
-function stopScan() {
-    document.getElementById('scan-overlay').style.display = 'none';
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-    }
-}
-
-function tick() {
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-        if (currentScanType === 'qr') {
-            const code = jsQR(imageData.data, canvas.width, canvas.height);
-            if (code) {
-                document.getElementById('qr-location').value = code.data;
-                playBeep();
-                stopScan();
-                return;
-            }
-        } else if (currentScanType === 'upc') {
-            Quagga.decodeSingle({
-                src: canvas.toDataURL(),
-                numOfWorkers: 0,
-                inputStream: { size: 800 },
-                decoder: { readers: ['upc_reader', 'ean_reader'] }
-            }, function(result) {
-                if (result && result.codeResult) {
-                    document.getElementById('upc').value = result.codeResult.code;
-                    playBeep();
-                    stopScan();
-                }
-            });
-        }
-    }
-    if (document.getElementById('scan-overlay').style.display === 'flex') {
-        requestAnimationFrame(tick);
-    }
-}
-
-function playBeep() {
-    const audio = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
-    audio.play();
-}
-</script></body>
+const CONFIG = {
+  SHEET_WEBAPP_URL: 'https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec',
+  SHEET_ID: '1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA',
+  REQUIRE_UPC: true
+};
+const $ = (id)=>document.getElementById(id);
+const val = (id)=>$(id).value?.trim();
+const setVal = (id,v)=>($(id).value = v ?? '');
+const num = (id)=>{const x = val(id); const n = Number(x); return isNaN(n)?0:n};
+const nowFmt = ()=> new Date().toLocaleString();
+let ctx; function beep(){ try{ ctx = ctx || new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.type='sine'; o.frequency.value=880; o.start(); g.gain.setValueAtTime(0.001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.12); o.stop(ctx.currentTime+0.13);}catch(e){} }
+function loadPrefs(){ setVal('loginName', localStorage.getItem('loginName')||''); $('cameraFacing').value = localStorage.getItem('cameraFacing')||'environment'; }
+function savePrefs(){ localStorage.setItem('loginName', val('loginName')); localStorage.setItem('cameraFacing', $('cameraFacing').value); }
+function tick(){ $('now').textContent = nowFmt(); setTimeout(tick, 1000); }
+function onlyDigits(s){ return (s||'').replace(/\D+/g,''); }
+function normalizeUPC(s){ return onlyDigits(s); }
+function upcCheckDigit11(ups11){ let sum=0; for(let i=0;i<11;i++){ const d = Number(ups11[i]); sum += (i%2===0) ? d*3 : d; } return (10 - (sum % 10)) % 10; }
+function generateUPC(){ let base=''; for(let i=0;i<11;i++){ base += Math.floor(Math.random()*10); } return base + upcCheckDigit11(base); }
+[1,2,3,4].forEach(i=>{ ['bs'+i+'_boxes','bs'+i+'_qty'].forEach(id=> $(id).addEventListener('input', recomputeTotals)); });
+function calcStylePcs(i){ const pcs = (num(`bs${i}_boxes`) * num(`bs${i}_qty`)) || 0; setVal(`bs${i}_pcs`, pcs); return pcs; }
+function recomputeTotals(){ let total=0; [1,2,3,4].forEach(i=> total += calcStylePcs(i)); $('subtotalPcs').textContent = String(total); setVal('enteredQty', total); $('enteredQty2').textContent = String(total); validatePutaway(); }
+function checkDiscrepancy(){ const expected = Number(val('expectedQty')||'0'); const entered = Number(val('enteredQty')||'0'); if(!expected){ $('matchStatus').innerHTML = '<span class="warn-text">No expected qty</span>'; return; } if(entered===expected){ $('matchStatus').innerHTML = '<span class="ok">Match</span>'; } else { const diff = entered-expected; const msg = diff>0? `Over by ${diff}` : `Short by ${Math.abs(diff)}`; $('matchStatus').innerHTML = `<span class="no">Mismatch – ${msg}</span>`; } }
+$('checkDiscrepancy').addEventListener('click', checkDiscrepancy);
+let currentCtrl = { target:null, type:'UPC' }; let codeReader, previewStream; const scannerDialog = $('scanner'); const videoEl = $('video');
+async function startScan(targetId, type){ currentCtrl = { target: targetId, type }; const facing = $('cameraFacing').value; localStorage.setItem('cameraFacing', facing); $('scanStatus').textContent = (facing==='user'?'Front':'Back'); if(!codeReader){ codeReader = new ZXingBrowser.BrowserMultiFormatReader(); } try{ scannerDialog.showModal(); const constraints = { video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }; previewStream = await navigator.mediaDevices.getUserMedia(constraints); videoEl.srcObject = previewStream; await codeReader.decodeFromVideoDevice(undefined, videoEl, (result, err)=>{ if(result){ const text = String(result.getText()).trim(); onScanSuccess(text); } }); }catch(e){ alert('Camera access failed. Please allow camera permissions and try again.'); closeScanner(); } }
+function onScanSuccess(text){ beep(); const tgt = $(currentCtrl.target); if(currentCtrl.type==='UPC'){ const digits = normalizeUPC(text); if(!digits) return; tgt.value = digits; $('upcMsg').textContent = `Scanned: ${digits}`; fetchBaseItem(digits); } else { tgt.value = text; } closeScanner(); }
+function stopStream(){ try{ if(previewStream){ previewStream.getTracks().forEach(t=>t.stop()); } }catch(_){} try{ if(codeReader){ codeReader.reset(); } }catch(_){} }
+function closeScanner(){ stopStream(); if(scannerDialog.open) scannerDialog.close(); }
+$('xClose').addEventListener('click', closeScanner); $('closeScanner').addEventListener('click', closeScanner); $('flipFacing').addEventListener('click', ()=>{ $('cameraFacing').value = $('cameraFacing').value==='environment'?'user':'environment'; closeScanner(); startScan(currentCtrl.target, currentCtrl.type); });
+async function fetchBaseItem(upc){ if(!CONFIG.SHEET_WEBAPP_URL){ return; } try{ const url = `${CONFIG.SHEET_WEBAPP_URL}?action=getItem&upc=${encodeURIComponent(upc)}`; const res = await fetch(url); const data = await res.json(); if(data && data.item){ applyBaseItem(data.item); } else { $('upcMsg').textContent = 'No base item found in sheet'; } }catch(e){ $('upcMsg').textContent = 'Base item lookup failed'; } }
+function applyBaseItem(item){ setVal('brand', item.brand||''); setVal('gender', item.gender||''); setVal('desc', item.desc||''); setVal('coo', item.coo||''); setVal('cd', item.cd||''); setVal('expectedQty', item.expectedQty||''); lockBrandGender(); }
+function lockBrandGender(){ const lock=(id)=>{ const el=$(id); if(val(id)){ el.setAttribute('readonly','readonly'); el.title='Locked (from base list)'; } else { el.removeAttribute('readonly'); el.title='Editable (empty)'; } }; ['brand','gender'].forEach(lock); }
+['brand','gender'].forEach(id=> $(id).addEventListener('input', lockBrandGender));
+function makeLocRow(i){ const wrap=document.createElement('div'); wrap.className='panel'; wrap.dataset.idx=i; wrap.innerHTML=`<div class="grid-4"><div><label>ZONE</label><input id="loc${i}_zone" placeholder="A"></div><div><label>AISLE</label><input id="loc${i}_aisle" placeholder="05"></div><div><label>RACK</label><input id="loc${i}_rack" placeholder="02"></div><div><label>SHELF</label><input id="loc${i}_shelf" placeholder="3"></div></div><div class="grid-4" style="margin-top:8px"><div><label>BIN</label><input id="loc${i}_bin" placeholder="B"></div><div><label>Location Code (QR)</label><input id="loc${i}_code" placeholder="Scan or paste"></div><div><label>Qty</label><input id="loc${i}_qty" inputmode="numeric" placeholder="0"></div><div style="display:flex;align-items:flex-end;gap:8px"><button class="btn secondary" onclick="startScan('loc${i}_code','QR');return false;">Scan</button><button class="btn secondary" onclick="parseLoc(${i});return false;">Parse</button></div></div>`; return wrap; }
+function buildLocRows(){ const host=$('locRows'); host.innerHTML=''; for(let i=1;i<=9;i++){ host.appendChild(makeLocRow(i)); } }
+function parseLoc(i){ const code=val(`loc${i}_code`); if(!code) return; const k={ZONE:'',AISLE:'',RACK:'',SHELF:'',BIN:''}; code.split(/[\|,;]+/).forEach(p=>{ const m=p.match(/(ZONE|AISLE|RACK|SHELF|BIN)\s*[:=]\s*([A-Za-z0-9-]+)/i); if(m){ k[m[1].toUpperCase()]=m[2]; }}); if(!k.ZONE){ const parts=code.split(/[-_/]/); if(parts.length>=5){ [k.ZONE,k.AISLE,k.RACK,k.SHELF,k.BIN]=parts.slice(0,5); } } setVal(`loc${i}_zone`,k.ZONE); setVal(`loc${i}_aisle`,k.AISLE); setVal(`loc${i}_rack`,k.RACK); setVal(`loc${i}_shelf`,k.SHELF); setVal(`loc${i}_bin`,k.BIN); }
+function validatePutaway(){ let sum=0; for(let i=1;i<=9;i++){ sum += Number(val(`loc${i}_qty`)||'0'); } $('putawayTotal').textContent = String(sum); const entered = Number(val('enteredQty')||'0'); const ok = (sum>0 && sum===entered); $('okToSubmit').textContent = ok? 'Yes':'No'; return ok; }
+for(let i=1;i<=9;i++){ document.addEventListener('input', (e)=>{ if(e.target && e.target.id===`loc${i}_qty`) validatePutaway(); }); }
+function buildPayload(){ const locs=[]; for(let i=1;i<=9;i++){ const qty = Number(val(`loc${i}_qty`)||'0'); if(qty>0){ locs.push({ zone:val(`loc${i}_zone`), aisle:val(`loc${i}_aisle`), rack:val(`loc${i}_rack`), shelf:val(`loc${i}_shelf`), bin:val(`loc${i}_bin`), code:val(`loc${i}_code`), qty }); } } return { timestamp:new Date().toISOString(), login:val('loginName')||'', upc:normalizeUPC(val('upc')), brand:val('brand'), gender:val('gender'), desc:val('desc'), coo:val('coo'), cd:val('cd'), expectedQty:Number(val('expectedQty')||'0'), boxStyles:[1,2,3,4].map(i=>({ boxes:Number(val(`bs${i}_boxes`)||'0'), qtyPerBox:Number(val(`bs${i}_qty`)||'0'), pcs:Number(val(`bs${i}_pcs`)||'0'), l:val(`bs${i}_l`), w:val(`bs${i}_w`), h:val(`bs${i}_h`), weight:val(`bs${i}_wt`) })), subtotalPcs:Number(val('enteredQty')||'0'), locations:locs, notes:val('notes')||'' }; }
+async function submit(){ if(CONFIG.REQUIRE_UPC && !val('upc')){ alert('UPC is required. Scan or enter a UPC.'); return; } if(!validatePutaway()){ alert('Putaway total must equal Entered Quantity.'); return; } const payload = buildPayload(); if(CONFIG.SHEET_WEBAPP_URL){ try{ const res = await fetch(CONFIG.SHEET_WEBAPP_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'submit', payload }) }); const data=await res.json(); if(data && data.ok){ alert('Submitted to Google Sheet ✔'); resetForm(); } else { throw new Error('Bad response'); } }catch(e){ alert('Submit failed. You can download the JSON and upload later.'); $('downloadJson').style.display='inline-flex'; } } else { $('downloadJson').style.display='inline-flex'; alert('No Google Sheets endpoint configured.'); } }
+function downloadJson(){ const blob = new Blob([JSON.stringify(buildPayload(), null, 2)], {type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='stockmanagerapp_submit_'+Date.now()+'.json'; a.click(); }
+function resetForm(){ const keep=['loginName']; document.querySelectorAll('input,textarea,select').forEach(el=>{ if(!keep.includes(el.id)) el.value=''; }); $('cameraFacing').value = localStorage.getItem('cameraFacing')||'environment'; lockBrandGender(); recomputeTotals(); buildLocRows(); $('pageIndicator').textContent='Page 1 of 2'; $('screen1').style.display='block'; $('screen2').style.display='none'; }
+$('saveLogin').addEventListener('click', savePrefs);
+$('cameraFacing').addEventListener('change', savePrefs);
+$('scanUPC').addEventListener('click', ()=> startScan('upc','UPC'));
+$('genUPC').addEventListener('click', ()=>{ const u=generateUPC(); setVal('upc', u); $('upcMsg').textContent = `Generated: ${u}`; });
+$('submitSheet').addEventListener('click', submit);
+$('downloadJson').addEventListener('click', downloadJson);
+$('scanLocation').addEventListener('click', ()=> startScan('loc1_code','QR'));
+$('toggleCamera').addEventListener('click', ()=>{ $('cameraFacing').value = $('cameraFacing').value==='environment'?'user':'environment'; savePrefs(); });
+$('toScreen2').addEventListener('click', ()=>{ $('screen1').style.display='none'; $('screen2').style.display='block'; $('pageIndicator').textContent='Page 2 of 2'; validatePutaway(); });
+$('backTo1').addEventListener('click', ()=>{ $('screen2').style.display='none'; $('screen1').style.display='block'; $('pageIndicator').textContent='Page 1 of 2'; });
+$('upc').addEventListener('change', ()=>{ const d=normalizeUPC(val('upc')); setVal('upc', d); if(d) fetchBaseItem(d); });
+(function init(){ setVal('loginName', localStorage.getItem('loginName')||''); $('cameraFacing').value = localStorage.getItem('cameraFacing')||'environment'; (function tick(){ document.getElementById('now').textContent = new Date().toLocaleString(); setTimeout(tick,1000); })(); buildLocRows(); recomputeTotals(); lockBrandGender(); document.getElementById('sheetId').textContent = '…'+CONFIG.SHEET_ID.slice(-6); })();
+</script>
+</body>
 </html>
