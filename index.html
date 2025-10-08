@@ -1,61 +1,108 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StockManagerApp</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="script.js" defer></script>
+    <meta charset="UTF-8">
+    <title>StockManagerApp</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
-  <header>
-    <h1>StockManagerApp</h1>
-    <div id="page-indicator">Page 1 of 2</div>
-    <div id="user-info">User: <span id="login-name">rikki</span> | <span id="timestamp"></span></div>
-  </header>
-
-  <!-- Screen 1: Item Details & Packing -->
-  <section id="screen1">
-    <h2>Item Details & Packing</h2>
-    <label>UPC: <input type="text" id="upc" required /></label>
-    <button id="scan-upc">Scan UPC</button>
-    <label>Brand: <input type="text" id="brand" /></label>
-    <label>Gender: <input type="text" id="gender" /></label>
-    <label>COO: <input type="text" id="coo" /></label>
-    <label>C/D: <input type="text" id="cd" /></label>
-    <label>Weight (kg): <input type="number" id="weight" step="0.01" /></label>
-    <label>Length (cm): <input type="number" id="length" step="0.1" /></label>
-    <label>Width (cm): <input type="number" id="width" step="0.1" /></label>
-    <label>Height (cm): <input type="number" id="height" step="0.1" /></label>
-
-    <h3>Box Style Breakdown</h3>
-    <div id="box-breakdown">
-      <label>Style A Qty: <input type="number" class="box-style" data-style="A" /></label>
-      <label>Style B Qty: <input type="number" class="box-style" data-style="B" /></label>
-      <label>Style C Qty: <input type="number" class="box-style" data-style="C" /></label>
-      <label>Expected Total Qty: <input type="number" id="expected-total" /></label>
-      <div id="subtotal-feedback"></div>
+    <div id="login-info">
+        User: Rikki | Date: <span id="current-date"></span> | Time: <span id="current-time"></span>
     </div>
 
-    <button id="next-button">Next</button>
-  </section>
+    <!-- Screen 1: Item Details & Packing -->
+    <section id="screen1">
+        <h2>PAGE 1 OF 2 - ITEM DETAILS AND PACKING</h2>
+        <label>UPC (required):</label>
+        <input type="text" id="upc">
+        <button id="scan-upc">Scan UPC</button><br>
 
-  <!-- Screen 2: Putaway -->
-  <section id="screen2" style="display:none;">
-    <h2>Putaway</h2>
-    <label>Scan Location QR: <input type="text" id="location-scan" /></label>
-    <div id="locations">
-      <label>Location 1 Qty: <input type="number" /></label>
-      <label>Location 2 Qty: <input type="number" /></label>
-      <label>Location 3 Qty: <input type="number" /></label>
-      <!-- up to 9 locations -->
-    </div>
-    <button id="back-button">Back</button>
-    <button id="submit-button">Submit</button>
-  </section>
+        <label>RISONAITEMNO:</label>
+        <input type="text"><br>
 
-  <footer>
-    <p>© 2024 StockManagerApp</p>
-  </footer>
+        <label>Item Description:</label>
+        <input type="text"><br>
+
+        <label>Brand:</label>
+        <input type="text" id="brand"><br>
+
+        <label>Gender:</label>
+        <input type="text" id="gender"><br>
+
+        <label>COO:</label>
+        <select id="coo">
+            <option>ITALY</option>
+            <option>UAE</option>
+            <option>FRANCE</option>
+            <option>CHINA</option>
+            <option>GERMANY</option>
+            <option>SPAIN</option>
+            <option>USA</option>
+            <option>MEXICO</option>
+            <option>SWITZERLAND</option>
+            <option>POLAND</option>
+            <option>UK</option>
+            <option>INDIA</option>
+        </select><br>
+
+        <label>C/D:</label>
+        <input type="text"><br>
+
+        <label>Weight (lbs):</label>
+        <input type="number"><br>
+
+        <label>Length (in):</label>
+        <input type="number"><br>
+        <label>Width (in):</label>
+        <input type="number"><br>
+        <label>Height (in):</label>
+        <input type="number"><br>
+
+        <label>Total Expected Quantity:</label>
+        <input type="number" id="expected-qty"><br>
+
+        <h3>Box Style Breakdown</h3>
+        <table id="box-breakdown" border="1">
+            <tr>
+                <th>Box Style</th>
+                <th># of Boxes</th>
+                <th>PCS/BOX</th>
+                <th>Box Length</th>
+                <th>Box Width</th>
+                <th>Box Height</th>
+                <th>Weight/Box</th>
+                <th>Total</th>
+            </tr>
+            <tr><td>BoxStyle1</td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td></tr>
+            <tr><td>BoxStyle2</td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td></tr>
+            <tr><td>BoxStyle3</td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td></tr>
+            <tr><td>BoxStyle4</td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td></tr>
+        </table>
+
+        <div id="box-summary">Summary: Total Pieces: 0 | Total Weight: 0 lbs</div>
+        <div id="discrepancy-check">Discrepancy Check: Subtotal vs Expected</div>
+
+        <button onclick="goToScreen2()">Go to Page 2</button>
+    </section>
+
+    <!-- Screen 2: Putaway -->
+    <section id="screen2" style="display:none;">
+        <h2>PAGE 2 OF 2 - PUTAWAY</h2>
+        <label>Scan Location QR:</label>
+        <input type="text" id="location-qr"><br>
+
+        <table id="putaway-table" border="1">
+            <tr><th>Location</th><th>Qty</th></tr>
+            <tr><td><input type="text"></td><td><input type="number"></td></tr>
+            <tr><td><input type="text"></td><td><input type="number"></td></tr>
+            <tr><td><input type="text"></td><td><input type="number"></td></tr>
+        </table>
+
+        <div>Google Sheets Sync: Pending</div>
+        <button onclick="goToScreen1()">Back to Page 1</button>
+        <button id="submit">Submit</button>
+    </section>
 </body>
 </html>
