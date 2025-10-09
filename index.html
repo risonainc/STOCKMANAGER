@@ -6,70 +6,7 @@
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>STOCKMANAGERAPP · Mobile Inventory (Validated)</title>
 <link crossorigin="" href="https://unpkg.com" rel="preconnect"/>
-<script src="https://unpkg.com/@zxing/browser@0.1.5">
-// CONFIG section
-const CONFIG = {
-  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
-};
-
-// UPC scan auto-fill logic
-function handleUPCScan(upc) {
-  if (upc === "123456789012") {
-    document.getElementById("brand").value = "SampleBrand";
-    document.getElementById("gender").value = "Unisex";
-    document.getElementById("masterItemDesc").value = "Sample Master Item Description";
-  }
-}
-
-// QR scan parsing logic
-function handleQRScanResult(qrString) {
-  const parts = qrString.split("-");
-  if (parts.length === 4) {
-    document.getElementById("zone").value = parts[0];
-    document.getElementById("aisle").value = parts[1];
-    document.getElementById("rack").value = parts[2];
-    document.getElementById("shelf").value = parts[3];
-    document.getElementById("locationCode").value = qrString;
-  }
-}
-
-// Submit & Next logic
-function handleSubmit() {
-  const payload = {
-    upc: document.getElementById("upc").value,
-    brand: document.getElementById("brand").value,
-    gender: document.getElementById("gender").value,
-    masterItemDesc: document.getElementById("masterItemDesc").value,
-    locationCode: document.getElementById("locationCode").value,
-    zone: document.getElementById("zone").value,
-    aisle: document.getElementById("aisle").value,
-    rack: document.getElementById("rack").value,
-    shelf: document.getElementById("shelf").value,
-    notes: document.getElementById("notes") ? document.getElementById("notes").value : ""
-  };
-
-  fetch(CONFIG.POST_URL, {
-    method: "POST",
-    body: JSON.stringify(payload),
-    headers: { "Content-Type": "application/json" }
-  })
-  .then(response => response.text())
-  .then(data => {
-    alert("Submit successful!");
-  })
-  .catch(error => {
-    alert("Submit failed. Use Download JSON.");
-  });
-}
-
-// Attach event listener to Submit button
-document.addEventListener("DOMContentLoaded", function() {
-  const submitBtn = document.getElementById("submitBtn");
-  if (submitBtn) {
-    submitBtn.addEventListener("click", handleSubmit);
-  }
-});
-</script>
+<script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
 <style>
   :root{ --bg:#0b1220; --panel:#111a2b; --ink:#e8eef9; --muted:#97a6c3; --acc:#3dbb8e; --warn:#ffb02e; --err:#ff6363; --line:#24314e; --gap:12px; --radius:12px }
   html,body{height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
@@ -679,6 +616,69 @@ document.getElementById("scanUPCBtn").addEventListener("click", function () {
     document.querySelector("[name='brand']").value = "SampleBrand";
     document.querySelector("[name='gender']").value = "Unisex";
     document.querySelector("[name='masterItemDesc']").value = "Sample Master Item Description";
+  }
+});
+</script><script>
+const CONFIG = {
+  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
+};
+</script><script>
+function handleQRScanResult(qrString) {
+  const parts = qrString.split("-");
+  if (parts.length === 4) {
+    document.getElementById("zone").value = parts[0];
+    document.getElementById("aisle").value = parts[1];
+    document.getElementById("rack").value = parts[2];
+    document.getElementById("shelf").value = parts[3];
+    document.getElementById("locationCode").value = qrString;
+  }
+}
+
+function handleUPCScan(upc) {
+  if (upc === "123456789012") {
+    document.getElementById("brand").value = "SampleBrand";
+    document.getElementById("gender").value = "Unisex";
+    document.getElementById("masterItemDesc").value = "Sample Master Item Description";
+  }
+}
+
+function collectFormData() {
+  return {
+    upc: document.getElementById("upc").value,
+    brand: document.getElementById("brand").value,
+    gender: document.getElementById("gender").value,
+    masterItemDesc: document.getElementById("masterItemDesc").value,
+    zone: document.getElementById("zone").value,
+    aisle: document.getElementById("aisle").value,
+    rack: document.getElementById("rack").value,
+    shelf: document.getElementById("shelf").value,
+    locationCode: document.getElementById("locationCode").value,
+    notes: document.getElementById("notes") ? document.getElementById("notes").value : ""
+  };
+}
+
+function submitForm() {
+  const data = collectFormData();
+  fetch(CONFIG.POST_URL, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then(response => response.text())
+  .then(result => {
+    alert("Submit successful!");
+  })
+  .catch(error => {
+    alert("Submit failed. Use Download JSON.");
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  const submitBtn = document.getElementById("submitBtn");
+  if (submitBtn) {
+    submitBtn.addEventListener("click", submitForm);
   }
 });
 </script></body>
