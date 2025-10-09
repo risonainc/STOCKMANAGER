@@ -335,80 +335,25 @@ $('upc').addEventListener('change', ()=>{ const d=normalizeUPC(val('upc')); setV
 (function init(){ loadPrefs(); tick(); buildLocRows(); recomputeTotals(); lockBrandGender(); $('sheetId').textContent = '…'+CONFIG.SHEET_ID.slice(-6); })();
 </script>
 <script>
-const CONFIG = {
-  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
-};
-</script><script>
-function collectFormData() {
-  const data = {
-    upc: document.getElementById("upc")?.value || "",
-    brand: document.getElementById("brand")?.value || "",
-    gender: document.getElementById("gender")?.value || "",
-    description: document.getElementById("description")?.value || "",
-    coo: document.getElementById("coo")?.value || "",
-    cd: document.getElementById("cd")?.value || "",
-    expectedQty: document.getElementById("expectedQty")?.value || "",
-    enteredQty: document.getElementById("enteredQty")?.value || "",
-    itemWeight: document.getElementById("itemWeight")?.value || "",
-    itemLength: document.getElementById("itemLength")?.value || "",
-    itemWidth: document.getElementById("itemWidth")?.value || "",
-    itemHeight: document.getElementById("itemHeight")?.value || "",
-    notes: document.getElementById("notes")?.value || "",
-    boxes: []
-  };
+document.addEventListener("DOMContentLoaded", function () {
+  const qrInput = document.getElementById("locationCodeQR");
+  const zoneField = document.getElementById("zone");
+  const aisleField = document.getElementById("aisle");
+  const rackField = document.getElementById("rack");
+  const shelfField = document.getElementById("shelf");
 
-  for (let i = 1; i <= 4; i++) {
-    data.boxes.push({
-      style: i,
-      boxCount: document.getElementById(`box${i}`)?.value || "",
-      qtyPerBox: document.getElementById(`qty${i}`)?.value || "",
-      boxLength: document.getElementById(`length${i}`)?.value || "",
-      boxWidth: document.getElementById(`width${i}`)?.value || "",
-      boxHeight: document.getElementById(`height${i}`)?.value || "",
-      boxWeight: document.getElementById(`weight${i}`)?.value || ""
+  if (qrInput) {
+    qrInput.addEventListener("change", function () {
+      const scanned = qrInput.value.trim();
+      const parts = scanned.split("-");
+      if (parts.length === 4) {
+        zoneField.value = parts[0];
+        aisleField.value = parts[1];
+        rackField.value = parts[2];
+        shelfField.value = parts[3];
+      }
     });
   }
-
-  data.locations = [];
-  for (let i = 1; i <= 9; i++) {
-    const loc = document.getElementById(`location${i}`);
-    const qty = document.getElementById(`locQty${i}`);
-    if (loc && qty) {
-      data.locations.push({
-        location: loc.value || "",
-        quantity: qty.value || ""
-      });
-    }
-  }
-
-  return data;
-}
-
-function submitData() {
-  const payload = collectFormData();
-  fetch(CONFIG.POST_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  }).then(() => {
-    alert("Submitted successfully!");
-  }).catch(() => {
-    alert("Submit failed. Use Download JSON.");
-  });
-}
-
-function downloadJSON() {
-  const payload = collectFormData();
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "inventory_data.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
+});
 </script></body>
 </html>
