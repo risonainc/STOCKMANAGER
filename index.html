@@ -132,7 +132,7 @@
 <input id="itemDimH" inputmode="decimal" placeholder="0.0"/>
 </div>
 </div>
-<label for="masterItemDesc">Master Item Description</label><input id="masterItemDesc" name="masterItemDesc" placeholder="Enter full item description" style="width: 100%;" type="text"/><h3>Box Breakdown (Styles 1–4)</h3>
+<h3>Box Breakdown (Styles 1–4)</h3>
 <div class="grid-4">
 <div class="panel">
 <strong>Box Style 1</strong>
@@ -466,5 +466,157 @@ function handleQRScan(result) {
     alert("Invalid QR code format. Expected format: ZONE-AISLE-RACK-SHELF");
   }
 }
+</script><script>
+const CONFIG = {
+  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
+};
+</script><script>
+document.getElementById("submitBtn")?.addEventListener("click", function () {
+  const payload = {
+    upc: document.getElementById("upc")?.value || "",
+    brand: document.getElementById("brand")?.value || "",
+    gender: document.getElementById("gender")?.value || "",
+    masterItemDesc: document.getElementById("masterItemDesc")?.value || "",
+    coo: document.getElementById("coo")?.value || "",
+    cd: document.getElementById("cd")?.value || "",
+    notes: document.getElementById("notes")?.value || "",
+    location1: document.getElementById("location1")?.value || "",
+    zone: document.getElementById("zone")?.value || "",
+    aisle: document.getElementById("aisle")?.value || "",
+    rack: document.getElementById("rack")?.value || "",
+    shelf: document.getElementById("shelf")?.value || ""
+  };
+
+  fetch(CONFIG.POST_URL, {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: { "Content-Type": "application/json" }
+  })
+    .then((res) => res.text())
+    .then((data) => {
+      alert("Submit successful!");
+    })
+    .catch((err) => {
+      alert("Submit failed. Use Download JSON.");
+    });
+});
+
+// QR scan parsing logic
+function handleQRScanResult(qrString) {
+  const parts = qrString.split("-");
+  if (parts.length === 4) {
+    document.getElementById("zone").value = parts[0];
+    document.getElementById("aisle").value = parts[1];
+    document.getElementById("rack").value = parts[2];
+    document.getElementById("shelf").value = parts[3];
+    document.getElementById("location1").value = qrString;
+  }
+}
+</script><script>
+document.getElementById("scanUPCBtn").addEventListener("click", function() {
+    const upcInput = document.getElementById("upcInput");
+    const upc = upcInput.value.trim();
+    if (upc === "123456789012") {
+        document.getElementById("brandInput").value = "SampleBrand";
+        document.getElementById("genderInput").value = "Unisex";
+        document.getElementById("masterItemDesc").value = "Sample Item Description";
+    }
+});
+
+document.getElementById("scanLocationBtn").addEventListener("click", function() {
+    const qrInput = document.getElementById("locationQRInput");
+    const qr = qrInput.value.trim();
+    const parts = qr.split("-");
+    if (parts.length === 4) {
+        document.getElementById("zoneInput").value = parts[0];
+        document.getElementById("aisleInput").value = parts[1];
+        document.getElementById("rackInput").value = parts[2];
+        document.getElementById("shelfInput").value = parts[3];
+        document.getElementById("location1Input").value = qr;
+    }
+});
+
+document.getElementById("submitBtn").addEventListener("click", function() {
+    const payload = {
+        upc: document.getElementById("upcInput").value,
+        brand: document.getElementById("brandInput").value,
+        gender: document.getElementById("genderInput").value,
+        description: document.getElementById("masterItemDesc").value,
+        zone: document.getElementById("zoneInput").value,
+        aisle: document.getElementById("aisleInput").value,
+        rack: document.getElementById("rackInput").value,
+        shelf: document.getElementById("shelfInput").value,
+        location1: document.getElementById("location1Input").value
+    };
+    fetch("https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then(response => {
+        if (response.ok) {
+            alert("Submit successful!");
+        } else {
+            alert("Submit failed. Use Download JSON.");
+        }
+    }).catch(error => {
+        alert("Submit failed. Use Download JSON.");
+    });
+});
+</script><script>
+const CONFIG = {
+  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
+};
+</script><script>
+document.getElementById("submitBtn").addEventListener("click", function () {
+  const payload = {
+    upc: document.querySelector("[name='upc']").value,
+    brand: document.querySelector("[name='brand']").value,
+    gender: document.querySelector("[name='gender']").value,
+    masterItemDesc: document.querySelector("[name='masterItemDesc']").value,
+    locationCode: document.querySelector("[name='locationCode']").value,
+    zone: document.querySelector("[name='zone']").value,
+    aisle: document.querySelector("[name='aisle']").value,
+    rack: document.querySelector("[name='rack']").value,
+    shelf: document.querySelector("[name='shelf']").value,
+    notes: document.querySelector("[name='notes']").value
+  };
+
+  fetch(CONFIG.POST_URL, {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: { "Content-Type": "application/json" }
+  })
+    .then(response => response.text())
+    .then(data => {
+      alert("Submit successful!");
+    })
+    .catch(error => {
+      alert("Submit failed. Use Download JSON.");
+    });
+});
+
+// QR scan parsing logic
+function handleQRScanResult(scannedValue) {
+  const parts = scannedValue.split("-");
+  if (parts.length === 4) {
+    document.querySelector("[name='zone']").value = parts[0];
+    document.querySelector("[name='aisle']").value = parts[1];
+    document.querySelector("[name='rack']").value = parts[2];
+    document.querySelector("[name='shelf']").value = parts[3];
+    document.querySelector("[name='locationCode']").value = scannedValue;
+  }
+}
+
+// Simulated UPC autofill logic
+document.getElementById("scanUPCBtn").addEventListener("click", function () {
+  const upc = document.querySelector("[name='upc']").value;
+  if (upc === "123456789012") {
+    document.querySelector("[name='brand']").value = "SampleBrand";
+    document.querySelector("[name='gender']").value = "Unisex";
+    document.querySelector("[name='masterItemDesc']").value = "Sample Master Item Description";
+  }
+});
 </script></body>
 </html>
