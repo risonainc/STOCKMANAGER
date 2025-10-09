@@ -82,7 +82,7 @@
 </div>
 <div>
 <label>Master Item Description</label>
-<input id="desc" placeholder="Auto-filled from base list"/>
+<input id="desc" placeholder="Auto-filled from base list" style="width: 100%;"/>
 </div>
 </div>
 </div>
@@ -355,5 +355,116 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+</script>
+<script>
+// CONFIG: Google Apps Script Web App URL
+const POST_URL = "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec";
+
+// Submit & Next logic
+document.getElementById("submitBtn")?.addEventListener("click", function () {
+    const payload = {
+        upc: document.getElementById("upc")?.value || "",
+        brand: document.getElementById("brand")?.value || "",
+        gender: document.getElementById("gender")?.value || "",
+        masterItemDesc: document.getElementById("masterItemDesc")?.value || "",
+        coo: document.getElementById("coo")?.value || "",
+        cd: document.getElementById("cd")?.value || "",
+        expectedQty: document.getElementById("expectedQty")?.value || "",
+        enteredQty: document.getElementById("enteredQty")?.value || "",
+        itemWeight: document.getElementById("itemWeight")?.value || "",
+        itemLength: document.getElementById("itemLength")?.value || "",
+        itemWidth: document.getElementById("itemWidth")?.value || "",
+        itemHeight: document.getElementById("itemHeight")?.value || "",
+        notes: document.getElementById("notes")?.value || "",
+        locations: []
+    };
+
+    for (let i = 1; i <= 9; i++) {
+        const loc = document.getElementById("location" + i)?.value || "";
+        if (loc) payload.locations.push(loc);
+    }
+
+    fetch(POST_URL, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(res => res.ok ? alert("Submitted successfully!") : alert("Submit failed. Use Download JSON."))
+    .catch(() => alert("Submit failed. Use Download JSON."));
+});
+
+// QR Scan logic: parse full location string into ZONE, AISLE, RACK, SHELF
+function handleQRScanResult(result) {
+    const parts = result.split("-");
+    if (parts.length === 4) {
+        document.getElementById("zone")?.value = parts[0];
+        document.getElementById("aisle")?.value = parts[1];
+        document.getElementById("rack")?.value = parts[2];
+        document.getElementById("shelf")?.value = parts[3];
+        document.getElementById("location1")?.value = result;
+    } else {
+        document.getElementById("location1")?.value = result;
+    }
+}
+</script>
+<script>
+const CONFIG = {
+  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
+};
+</script><script>
+document.getElementById("submitBtn").addEventListener("click", function () {
+  const payload = {
+    upc: document.getElementById("upc").value,
+    brand: document.getElementById("brand").value,
+    gender: document.getElementById("gender").value,
+    masterDesc: document.getElementById("masterDesc").value,
+    coo: document.getElementById("coo").value,
+    cd: document.getElementById("cd").value,
+    weight: document.getElementById("weight").value,
+    length: document.getElementById("length").value,
+    width: document.getElementById("width").value,
+    height: document.getElementById("height").value,
+    expectedQty: document.getElementById("expectedQty").value,
+    enteredQty: document.getElementById("enteredQty").value,
+    notes: document.getElementById("notes").value,
+    locations: []
+  };
+
+  for (let i = 1; i <= 9; i++) {
+    const loc = document.getElementById("location" + i);
+    if (loc && loc.value.trim() !== "") {
+      payload.locations.push(loc.value.trim());
+    }
+  }
+
+  fetch(CONFIG.POST_URL, {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+    .then((res) => res.text())
+    .then((data) => {
+      alert("Submit successful!");
+    })
+    .catch((err) => {
+      alert("Submit failed. Use Download JSON.");
+    });
+});
+
+// QR scan parsing logic
+function handleQRScan(result) {
+  const parts = result.split("-");
+  if (parts.length === 4) {
+    document.getElementById("zone").value = parts[0];
+    document.getElementById("aisle").value = parts[1];
+    document.getElementById("rack").value = parts[2];
+    document.getElementById("shelf").value = parts[3];
+    document.getElementById("location1").value = result;
+  } else {
+    alert("Invalid QR code format. Expected format: ZONE-AISLE-RACK-SHELF");
+  }
+}
 </script></body>
 </html>
