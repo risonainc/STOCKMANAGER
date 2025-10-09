@@ -466,5 +466,77 @@ function handleQRScan(result) {
     alert("Invalid QR code format. Expected format: ZONE-AISLE-RACK-SHELF");
   }
 }
+</script><script>
+const CONFIG = {
+  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
+};
+
+function collectFormData() {
+  const data = {
+    upc: document.getElementById("upc")?.value || "",
+    brand: document.getElementById("brand")?.value || "",
+    gender: document.getElementById("gender")?.value || "",
+    masterItemDesc: document.getElementById("masterItemDesc")?.value || "",
+    coo: document.getElementById("coo")?.value || "",
+    cd: document.getElementById("cd")?.value || "",
+    expectedQty: document.getElementById("expectedQty")?.value || "",
+    enteredQty: document.getElementById("enteredQty")?.value || "",
+    itemWeight: document.getElementById("itemWeight")?.value || "",
+    itemLength: document.getElementById("itemLength")?.value || "",
+    itemWidth: document.getElementById("itemWidth")?.value || "",
+    itemHeight: document.getElementById("itemHeight")?.value || "",
+    notes: document.getElementById("notes")?.value || "",
+    locations: []
+  };
+
+  for (let i = 1; i <= 9; i++) {
+    const loc = document.getElementById("location" + i);
+    if (loc && loc.value) {
+      data.locations.push(loc.value);
+    }
+  }
+
+  return data;
+}
+
+function submitData() {
+  const payload = collectFormData();
+  fetch(CONFIG.POST_URL, {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      alert("Submit successful!");
+    } else {
+      throw new Error("Submit failed");
+    }
+  })
+  .catch(error => {
+    alert("Submit failed. Use Download JSON.");
+    console.error(error);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const submitBtn = document.getElementById("submitBtn");
+  if (submitBtn) {
+    submitBtn.addEventListener("click", submitData);
+  }
+});
+</script><script>
+function handleQRScanResult(qrString) {
+  const parts = qrString.split("-");
+  if (parts.length === 4) {
+    document.getElementById("zone")?.value = parts[0];
+    document.getElementById("aisle")?.value = parts[1];
+    document.getElementById("rack")?.value = parts[2];
+    document.getElementById("shelf")?.value = parts[3];
+    document.getElementById("location1")?.value = qrString;
+  }
+}
 </script></body>
 </html>
