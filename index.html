@@ -512,32 +512,5 @@ function handleQRScanResult(qrString) {
     document.getElementById("location1").value = qrString;
   }
 }
-</script><script>
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec';
-
-  function submitForm() {
-    const formData = new FormData();
-    formData.append('action', 'submit');
-    formData.append('upc', document.getElementById('upc').value);
-    formData.append('brand', document.getElementById('brand').value);
-    formData.append('location1', document.getElementById('location1').value);
-    // Add other fields as needed
-
-    fetch(scriptURL, {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Success:', data);
-      alert(data.ok ? 'Submitted!' : 'Submit failed: ' + data.error);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Error submitting form.');
-    });
-  }
-
-  document.getElementById('submitBtn').addEventListener('click', submitForm);
 </script></body>
 </html>
