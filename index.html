@@ -1,516 +1,398 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>STOCKMANAGERAPP · Mobile Inventory (Validated)</title>
-<link crossorigin="" href="https://unpkg.com" rel="preconnect"/>
-<script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
-<style>
-  :root{ --bg:#0b1220; --panel:#111a2b; --ink:#e8eef9; --muted:#97a6c3; --acc:#3dbb8e; --warn:#ffb02e; --err:#ff6363; --line:#24314e; --gap:12px; --radius:12px }
-  html,body{height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-  *{box-sizing:border-box}
-  .app{max-width:1080px;margin:0 auto;padding:16px}
-  header{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-  .title{font-weight:800;font-size:20px}
-  .badge{background:#16233b;border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:#9fb3d7}
-  .spacer{flex:1}
-  .status-strip{display:flex;gap:8px;align-items:center;color:#9fb3d7;font-size:12px}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
-  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
-  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
-  .row{display:flex;gap:var(--gap);flex-wrap:wrap}
-  label{display:block;font-size:12px;color:#9fb3d7;margin-bottom:6px}
-  input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0f1830;color:var(--ink)}
-  input[readonly]{opacity:.85}
-  textarea{min-height:72px;resize:vertical}
-  h2{margin:0 0 10px;font-size:16px}
-  h3{margin:8px 0;font-size:14px;color:#9fb3d7}
-  .btn{background:linear-gradient(180deg,#2ac28b,#22a173);color:#001b12;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer}
-  .btn.secondary{background:#1b2b4a;color:var(--ink);border:1px solid var(--line)}
-  .btn.warn{background:#3b2a12;color:#ffd39c;border:1px solid #6b4a1b}
-  .kpi{display:flex;gap:10px;flex-wrap:wrap}
-  .kpi .pill{background:#11253c;border:1px solid var(--line);color:#b7c5e6;padding:8px 12px;border-radius:999px;font-size:12px}
-  .version{color:#7aa2ff;font-size:12px;margin-left:8px}
-  dialog#scanner{border:none;border-radius:14px;padding:0;max-width:min(640px,96vw);width:100%;background:#0a1428}
-  .scan-wrap{position:relative}
-  video{width:100%;height:auto;border-bottom:1px solid var(--line);background:#000}
-  .overlay{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
-  .reticle{width:min(75vw,420px);height:min(50vh,260px);border:2px solid rgba(61,187,142,.9);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.45) inset,0 0 16px rgba(61,187,142,.35)}
-  .scan-hud{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:center;justify-content:space-between;color:#cfe7ff;font-size:12px}
-  .chip{background:#0c1a33;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#b7c5e6}
-  .close-x{position:absolute;top:8px;right:8px;background:#142748;border:1px solid var(--line);color:#cfe7ff;border-radius:10px;padding:6px 10px;cursor:pointer}
-  @media (max-width:880px){ .grid{grid-template-columns:1fr} .grid-3{grid-template-columns:1fr} .grid-4{grid-template-columns:1fr 1fr} }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STOCKMANAGERAPP · Mobile Inventory v1.0.0-PRELOCK (Front Cam + Lookup + Summary+CSV + Labels QR Composite)</title>
+  <style>
+    :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8}
+    body{margin:0;background:var(--bg);color:#eef2ff;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    header{padding:12px 16px;background:linear-gradient(90deg,#0ea5e9,#6366f1)}
+    header h1{margin:0;font-size:18px} header small{opacity:.9}
+    main{max-width:1060px;margin:0 auto;padding:16px}
+    .pill{background:#0b1329;border:1px solid #1f2440;padding:8px 10px;border-radius:999px;font-size:13px;color:#cbd5e1;display:inline-flex;gap:8px;align-items:center}
+    .bar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:10px 0 16px}
+    .page{background:var(--panel);border:1px solid #243047;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.35);padding:14px;margin-bottom:18px}
+    h2{font-size:18px;margin:8px 0 12px} h3{font-size:15px;margin:16px 0 6px;color:#cbd5e1}
+    label{font-size:12px;color:#cbd5e1;margin-bottom:4px;display:block}
+    input,select,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #324156;background:var(--card);color:#e5e7eb}
+    input[readonly]{opacity:.9;background:#1b2232} input:disabled,select:disabled,textarea:disabled{opacity:.6}
+    .grid{display:grid;gap:10px} .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+    .row{display:flex;gap:10px;align-items:center} .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{background:#0b1329;border:1px solid #2b3953;color:#e5e7eb;padding:10px 12px;border-radius:8px;cursor:pointer}
+    .btn.primary{background:#0ea5e9;border-color:#0891b2} .btn.success{background:#16a34a;border-color:#15803d}
+    .btn.warn{background:#f59e0b;border-color:#b45309} .btn.ghost{background:transparent;border-color:#2b3953}
+    .btn.danger{background:#ef4444;border-color:#b91c1c}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .scanner{position:relative;background:#0b1329;border:1px dashed #334155;border-radius:10px;min-height:240px;display:none;align-items:center;justify-content:center;overflow:hidden}
+    .scanner video{width:100%;height:100%;object-fit:cover}
+    .scan-overlay{position:absolute;inset:0;border:3px solid rgba(56,189,248,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none}
+    .overlay-box{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(80%,520px);height:190px;border:3px solid rgba(34,197,94,.9);border-radius:10px}
+    .hidden{display:none!important} .stat{padding:8px 10px;border-radius:8px;border:1px solid #2b3953;background:#0c142b;display:inline-flex;gap:8px;align-items:center}
+    .ok{color:var(--ok)} .bad{color:var(--bad)} .warn-t{color:var(--warn)} .muted{color:var(--muted);font-size:12px}
+    .box-card{border:1px solid #2b3953;border-radius:10px;padding:10px;background:#0c142b}
+    .kbd{font-family:ui-monospace,Menlo,monospace;background:#0b1329;border:1px solid #2b3953;border-bottom-width:3px;border-radius:6px;padding:2px 6px}
+
+    /* Label print sheet */
+    #labelSheet{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:100}
+    #labelCard{background:white;color:#000;width:6in;height:4in;display:flex;flex-direction:column;padding:.2in;box-sizing:border-box}
+    #labelHeader{font-weight:800;font-size:20pt;border-bottom:2px solid #000;padding-bottom:4pt;margin-bottom:4pt;display:flex;justify-content:space-between}
+    #labelBody{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:.1in}
+    #labelLeft{display:flex;flex-direction:column;gap:6pt}
+    #labelRight{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}
+    #codes{display:flex;gap:.1in;align-items:center}
+    #codes canvas{background:#fff}
+    #itemDesc{font-weight:700;font-size:14pt;text-align:center;border:2px solid #000;padding:4pt}
+    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:6in 4in landscape;margin:.25in} }
+  </style>
 </head>
 <body>
-<div class="app">
-<header>
-<div class="title">STOCKMANAGERAPP · Mobile Inventory <span class="version">v1.0.0-PRELOCK</span></div>
-<span class="badge" id="pageIndicator">Page 1 of 2</span>
-<div class="spacer"></div>
-<div class="status-strip">
-<span id="now"></span>
-<span>•</span>
-<span>Logged in as:</span>
-<input id="loginName" placeholder="Your name" style="width:150px"/>
-<button class="btn secondary" id="saveLogin" title="Save name on this device">Save</button>
-</div>
-</header>
-<section class="panel" id="screen1">
-<h2>Validate Item Details &amp; Packing</h2>
-<div class="grid">
-<div>
-<label>UPC <span style="color:#ffb02e">*</span></label>
-<div class="row">
-<input autocomplete="off" id="upc" inputmode="numeric" placeholder="Scan or enter UPC"/>
-<button class="btn" id="scanUPC">Scan UPC/Barcode</button>
-<button class="btn secondary" id="genUPC">Generate UPC</button>
-</div>
-<small id="upcMsg" style="color:#9fb3d7"></small>
-</div>
-<div class="grid-3">
-<div>
-<label>Brand</label>
-<input id="brand" placeholder="Auto-filled from base list"/>
-</div>
-<div>
-<label>Gender</label>
-<input id="gender" placeholder="Auto-filled from base list"/>
-</div>
-<div>
-<label>Master Item Description</label>
-<input id="desc" placeholder="Auto-filled from base list" style="width: 100%;"/>
-</div>
-</div>
-</div>
-<div class="grid">
-<div class="grid-4">
-<div>
-<label>COO</label>
-<input id="coo" placeholder="Country of Origin"/>
-</div>
-<div>
-<label>C/D</label>
-<input id="cd" placeholder="Clean/Decoded"/>
-</div>
-<div>
-<label>Expected Quantity</label>
-<input id="expectedQty" inputmode="numeric" placeholder="From base list (optional)"/>
-</div>
-<div>
-<label>Entered Quantity (Subtotal)</label>
-<input id="enteredQty" inputmode="numeric" placeholder="Auto-calculated" readonly=""/>
-</div>
-</div>
-<div>
-<div class="kpi">
-<span class="pill">Sheet ID: <code id="sheetId"></code></span>
-<span class="pill">Scan: <span id="scanStatus">Ready</span></span>
-<span class="pill">Camera: <select id="cameraFacing"><option value="environment">Back</option><option value="user">Front</option></select></span>
-</div>
-</div>
-</div>
-<h3>Item Weight &amp; Dimensions</h3>
-<div class="grid-4">
-<div>
-<label>Item Weight (lb)</label>
-<input id="itemWeight" inputmode="decimal" placeholder="0.0"/>
-</div>
-<div>
-<label>Item L (in)</label>
-<input id="itemDimL" inputmode="decimal" placeholder="0.0"/>
-</div>
-<div>
-<label>Item W (in)</label>
-<input id="itemDimW" inputmode="decimal" placeholder="0.0"/>
-</div>
-<div>
-<label>Item H (in)</label>
-<input id="itemDimH" inputmode="decimal" placeholder="0.0"/>
-</div>
-</div>
-<h3>Box Breakdown (Styles 1–4)</h3>
-<div class="grid-4">
-<div class="panel">
-<strong>Box Style 1</strong>
-<div class="grid-3">
-<div><label>Boxes</label><input id="bs1_boxes" inputmode="numeric" placeholder="10"/></div>
-<div><label>Qty/Box</label><input id="bs1_qty" inputmode="numeric" placeholder="20"/></div>
-<div><label>Pcs (auto)</label><input id="bs1_pcs" readonly=""/></div>
-</div>
-<div class="grid-4">
-<div><label>L (in)</label><input id="bs1_l" inputmode="decimal"/></div>
-<div><label>W (in)</label><input id="bs1_w" inputmode="decimal"/></div>
-<div><label>H (in)</label><input id="bs1_h" inputmode="decimal"/></div>
-<div><label>Weight (lb)</label><input id="bs1_wt" inputmode="decimal"/></div>
-</div>
-</div>
-<div class="panel">
-<strong>Box Style 2</strong>
-<div class="grid-3">
-<div><label>Boxes</label><input id="bs2_boxes" inputmode="numeric"/></div>
-<div><label>Qty/Box</label><input id="bs2_qty" inputmode="numeric"/></div>
-<div><label>Pcs (auto)</label><input id="bs2_pcs" readonly=""/></div>
-</div>
-<div class="grid-4">
-<div><label>L (in)</label><input id="bs2_l" inputmode="decimal"/></div>
-<div><label>W (in)</label><input id="bs2_w" inputmode="decimal"/></div>
-<div><label>H (in)</label><input id="bs2_h" inputmode="decimal"/></div>
-<div><label>Weight (lb)</label><input id="bs2_wt" inputmode="decimal"/></div>
-</div>
-</div>
-<div class="panel">
-<strong>Box Style 3</strong>
-<div class="grid-3">
-<div><label>Boxes</label><input id="bs3_boxes" inputmode="numeric"/></div>
-<div><label>Qty/Box</label><input id="bs3_qty" inputmode="numeric"/></div>
-<div><label>Pcs (auto)</label><input id="bs3_pcs" readonly=""/></div>
-</div>
-<div class="grid-4">
-<div><label>L (in)</label><input id="bs3_l" inputmode="decimal"/></div>
-<div><label>W (in)</label><input id="bs3_w" inputmode="decimal"/></div>
-<div><label>H (in)</label><input id="bs3_h" inputmode="decimal"/></div>
-<div><label>Weight (lb)</label><input id="bs3_wt" inputmode="decimal"/></div>
-</div>
-</div>
-<div class="panel">
-<strong>Box Style 4</strong>
-<div class="grid-3">
-<div><label>Boxes</label><input id="bs4_boxes" inputmode="numeric"/></div>
-<div><label>Qty/Box</label><input id="bs4_qty" inputmode="numeric"/></div>
-<div><label>Pcs (auto)</label><input id="bs4_pcs" readonly=""/></div>
-</div>
-<div class="grid-4">
-<div><label>L (in)</label><input id="bs4_l" inputmode="decimal"/></div>
-<div><label>W (in)</label><input id="bs4_w" inputmode="decimal"/></div>
-<div><label>H (in)</label><input id="bs4_h" inputmode="decimal"/></div>
-<div><label>Weight (lb)</label><input id="bs4_wt" inputmode="decimal"/></div>
-</div>
-</div>
-</div>
-<div class="row" style="margin-top:10px">
-<div class="kpi">
-<span class="pill">Subtotal Pcs: <strong id="subtotalPcs">0</strong></span>
-<span class="pill">Match Status: <strong id="matchStatus">—</strong></span>
-</div>
-<div class="spacer"></div>
-<button class="btn" id="checkDiscrepancy">Check Discrepancy</button>
-</div>
-<div class="footer-actions">
-<button class="btn secondary" id="toScreen2">Next → Putaway (Page 2)</button>
-</div>
-</section>
-<section class="panel" id="screen2" style="display:none">
-<h2>Putaway</h2>
-<div class="grid-3">
-<div>
-<label>Putaway Instructions / Notes</label>
-<textarea id="notes" placeholder="Optional"></textarea>
-</div>
-<div class="panel">
-<strong>Scan Controls</strong>
-<div class="row" style="margin-top:6px">
-<button class="btn secondary" id="scanLocation">Scan Location QR</button>
-<button class="btn secondary" id="toggleCamera">Toggle Camera</button>
-</div>
-<small>Tip: Use the front camera if it’s easier to align shelf/bin QR codes.</small>
-</div>
-<div class="panel">
-<strong>Totals</strong>
-<div class="kpi" style="margin-top:6px">
-<span class="pill">Entered Qty: <strong id="enteredQty2">0</strong></span>
-<span class="pill">Putaway Total: <strong id="putawayTotal">0</strong></span>
-<span class="pill">OK to Submit: <strong id="okToSubmit">No</strong></span>
-</div>
-</div>
-</div>
-<h3>Locations (up to 9)</h3>
-<div class="grid" id="locRows"></div>
-<div class="footer-actions">
-<button class="btn secondary" id="backTo1">← Back</button>
-<button class="btn warn" id="downloadJson" style="display:none">Download JSON (offline)</button>
-<button class="btn" id="submitSheet">Submit &amp; Next</button>
-</div>
-</section>
-</div>
-<dialog id="scanner">
-<div class="scan-wrap">
-<video autoplay="" id="video" muted="" playsinline=""></video>
-<div class="overlay"><div class="reticle"></div></div>
-<div class="scan-hud">
-<div class="chip" id="scanTypeLabel">Scanning…</div>
-<div class="row" style="gap:8px">
-<button class="btn secondary" id="flipFacing">Flip</button>
-<button class="btn" id="closeScanner">Done</button>
-</div>
-</div>
-<button class="close-x" id="xClose">✕</button>
-</div>
-</dialog>
-<script id="seedData" type="application/json">[{"upc":"3700591230073","brand":"ATELIER COLOGNE","gender":"LADIES","desc":"ATELIER CLEMENTINE CALIFORNIA L .33OZ PURE PERFUME SPRAY","coo":"FRANCE","cd":"C","expectedQty":4211},{"upc":"3700591230035","brand":"ATELIER COLOGNE","gender":"LADIES","desc":"ATELIER CLEMENTINE CALIFORNIA L 3.3OZ PURE PERFUME SPRAY","coo":"FRANCE","cd":"C","expectedQty":144},{"upc":"6290360593241","brand":"LATTAFA","gender":"UNISEX","desc":"LATTAFA KHAMRAH 6.7OZ DEO SPRAY","coo":"UAE","cd":"C","expectedQty":288}]</script>
-<script>
-const CONFIG = { SHEET_WEBAPP_URL: 'https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec', SHEET_ID: '1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA', REQUIRE_UPC: true };
-const $ = (id)=>document.getElementById(id);
-const val = (id)=>$(id).value?.trim();
-const setVal = (id,v)=>($(id).value = v ?? '');
-const num = (id)=>{ const x = val(id); const n = Number(x); return isNaN(n)?0:n };
-let ctx; function beep(){ try{ ctx = ctx || new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.type='sine'; o.frequency.value=880; o.start(); g.gain.setValueAtTime(0.001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.12); o.stop(ctx.currentTime+0.13); }catch(e){} }
-function onlyDigits(s){ return (s||'').replace(/\D+/g,''); }
-function normalizeUPC(s){ return onlyDigits(s); }
-function upcCheckDigit11(ups11){ let sum=0; for(let i=0;i<11;i++){ const d = Number(ups11[i]); sum += (i%2===0) ? d*3 : d; } return (10 - (sum % 10)) % 10; }
-function generateUPC(){ let base=''; for(let i=0;i<11;i++) base += Math.floor(Math.random()*10); return base + upcCheckDigit11(base); }
-function loadPrefs(){ setVal('loginName', localStorage.getItem('loginName')||''); $('cameraFacing').value = localStorage.getItem('cameraFacing')||'environment'; }
-function savePrefs(){ localStorage.setItem('loginName', val('loginName')); localStorage.setItem('cameraFacing', $('cameraFacing').value); }
-function tick(){ $('now').textContent = new Date().toLocaleString(); setTimeout(tick, 1000); }
-[1,2,3,4].forEach(i=>{ ['bs'+i+'_boxes','bs'+i+'_qty'].forEach(id=> $(id).addEventListener('input', recomputeTotals)); });
-function calcStylePcs(i){ const pcs = (num(`bs${i}_boxes`) * num(`bs${i}_qty`)) || 0; setVal(`bs${i}_pcs`, pcs); return pcs; }
-function recomputeTotals(){ let total=0; [1,2,3,4].forEach(i=> total += calcStylePcs(i)); $('subtotalPcs').textContent = String(total); setVal('enteredQty', total); $('enteredQty2').textContent = String(total); validatePutaway(); }
-function checkDiscrepancy(){ const expected = Number(val('expectedQty')||'0'); const entered = Number(val('enteredQty')||'0'); if(!expected){ $('matchStatus').innerHTML = '<span class="warn-text">No expected qty</span>'; return; } if(entered===expected){ $('matchStatus').innerHTML = '<span class="ok">Match</span>'; } else { const diff=entered-expected; const msg = diff>0? `Over by ${diff}`:`Short by ${Math.abs(diff)}`; $('matchStatus').innerHTML = `<span class="no">Mismatch – ${msg}</span>`; } }
-
-let currentCtrl = {target:null,type:'UPC'}, codeReader, previewStream; const scannerDialog=$('scanner'), videoEl=$('video');
-async function startScan(targetId, type){ currentCtrl={target:targetId,type}; const facing=$('cameraFacing').value; localStorage.setItem('cameraFacing', facing); $('scanStatus').textContent = (facing==='user'?'Front':'Back'); if(!codeReader) codeReader = new ZXingBrowser.BrowserMultiFormatReader(); try{ scannerDialog.showModal(); const constraints={ video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio:false }; previewStream=await navigator.mediaDevices.getUserMedia(constraints); videoEl.srcObject=previewStream; await codeReader.decodeFromVideoDevice(undefined, videoEl, (result,err)=>{ if(result){ const text=String(result.getText()).trim(); onScanSuccess(text); } }); }catch(e){ alert('Camera access failed. Please allow camera permissions and try again.'); closeScanner(); } }
-function onScanSuccess(text){ beep(); const tgt=$(currentCtrl.target); if(currentCtrl.type==='UPC'){ const d=normalizeUPC(text); if(!d) return; tgt.value=d; $('upcMsg').textContent=`Scanned: ${d}`; fetchBaseItem(d); } else { tgt.value=text; } closeScanner(); }
-function stopStream(){ try{ if(previewStream) previewStream.getTracks().forEach(t=>t.stop()); }catch(_ ){} try{ if(codeReader) codeReader.reset(); }catch(_ ){} }
-function closeScanner(){ stopStream(); if(scannerDialog.open) scannerDialog.close(); }
-$('xClose').addEventListener('click', closeScanner);
-$('closeScanner').addEventListener('click', closeScanner);
-$('flipFacing').addEventListener('click', ()=>{ $('cameraFacing').value=$('cameraFacing').value==='environment'?'user':'environment'; closeScanner(); startScan(currentCtrl.target, currentCtrl.type); });
-
-async function fetchBaseItem(upc){ // Primary: Apps Script
-  try{ if(CONFIG.SHEET_WEBAPP_URL){ const url = CONFIG.SHEET_WEBAPP_URL+`?action=getItem&upc=${encodeURIComponent(upc)}`; const res = await fetch(url); const data = await res.json(); if(data && data.item){ applyBaseItem(data.item); return; } } }catch(e){ /* ignore and fallback */ }
-  // Fallback: embedded Excel seed
-  const seed = JSON.parse(document.getElementById('seedData').textContent||'[]');
-  const found = seed.find(x=>String(x.upc)===String(upc));
-  if(found) applyBaseItem(found); else $('upcMsg').textContent='No base item found';
-}
-function applyBaseItem(item){ setVal('brand', item.brand||''); setVal('gender', item.gender||''); setVal('desc', item.desc||''); setVal('coo', item.coo||''); setVal('cd', item.cd||''); setVal('expectedQty', item.expectedQty||''); lockBrandGender(); }
-function lockBrandGender(){ const lock=(id)=>{ const el=$(id); if(val(id)) el.setAttribute('readonly','readonly'); else el.removeAttribute('readonly'); }; ['brand','gender'].forEach(lock); }
-
-function makeLocRow(i){ const d=document.createElement('div'); d.className='panel'; d.innerHTML = `
-  <div class="grid-4">
-    <div><label>ZONE</label><input id="loc${i}_zone" placeholder="A"></div>
-    <div><label>AISLE</label><input id="loc${i}_aisle" placeholder="05"></div>
-    <div><label>RACK</label><input id="loc${i}_rack" placeholder="02"></div>
-    <div><label>SHELF</label><input id="loc${i}_shelf" placeholder="3"></div>
-  </div>
-  <div class="grid-4" style="margin-top:8px">
-    <div><label>BIN</label><input id="loc${i}_bin" placeholder="B"></div>
-    <div><label>Location Code (QR)</label><input id="loc${i}_code" placeholder="Scan or paste"></div>
-    <div><label>Qty</label><input id="loc${i}_qty" inputmode="numeric" placeholder="0"></div>
-    <div style="display:flex;align-items:flex-end;gap:8px">
-      <button class="btn secondary" onclick="startScan('loc${i}_code','QR');return false;">Scan</button>
-      <button class="btn secondary" onclick="parseLoc(${i});return false;">Parse</button>
+  <header>
+    <h1>STOCKMANAGERAPP · Mobile Inventory <small>v1.0.0‑PRELOCK</small></h1>
+  </header>
+  <main>
+    <div class="bar">
+      <div class="pill">Page <span id="pageIndicator">1</span> of 2</div>
+      <div class="pill">Logged in as:
+        <select id="loginName" style="background:transparent;border:0;border-bottom:1px dashed #e5e7eb;color:#fff">
+          <option value="">— Select User —</option>
+          <option>Rikki</option>
+          <option>Alberto</option>
+          <option>Isabella</option>
+          <option>Kelis</option>
+          <option>Leydi</option>
+          <option>Veronica</option>
+          <option>Mabel</option>
+          <option>Jocelyn</option>
+          <option>WarehouseUser1</option>
+          <option>WarehouseUser2</option>
+        </select>
+        <span id="loginLock" class="muted">(locked until login)</span>
+      </div>
+      <div class="pill">Sheet: <span id="sheetIdDisplay">—</span></div>
+      <div class="pill">Camera: <span>Front</span></div>
     </div>
-  </div>`; return d; }
-function buildLocRows(){ const host=$('locRows'); host.innerHTML=''; for(let i=1;i<=9;i++) host.appendChild(makeLocRow(i)); }
-function parseLoc(i){ const code=val(`loc${i}_code`); if(!code) return; const k={ZONE:'',AISLE:'',RACK:'',SHELF:'',BIN:''}; code.split(/[\|,;]+/).forEach(p=>{ const m=p.match(/(ZONE|AISLE|RACK|SHELF|BIN)\s*[:=]\s*([A-Za-z0-9-]+)/i); if(m) k[m[1].toUpperCase()]=m[2]; }); if(!k.ZONE){ const parts=code.split(/[-_/]/); if(parts.length>=5) [k.ZONE,k.AISLE,k.RACK,k.SHELF,k.BIN]=parts.slice(0,5); } ['zone','aisle','rack','shelf','bin'].forEach(f=> setVal(`loc${i}_${f}`, k[f.toUpperCase()]||'')); }
-function validatePutaway(){ let s=0; for(let i=1;i<=9;i++) s += Number(val(`loc${i}_qty`)||'0'); $('putawayTotal').textContent=String(s); const entered=Number(val('enteredQty')||'0'); $('okToSubmit').textContent = (s>0 && s===entered) ? 'Yes':'No'; return (s>0 && s===entered); }
-for(let i=1;i<=9;i++){ document.addEventListener('input', (e)=>{ if(e.target && e.target.id===`loc${i}_qty`) validatePutaway(); }); }
-function buildPayload(){ const locs=[]; for(let i=1;i<=9;i++){ const qty=Number(val(`loc${i}_qty`)||'0'); if(qty>0) locs.push({zone:val(`loc${i}_zone`),aisle:val(`loc${i}_aisle`),rack:val(`loc${i}_rack`),shelf:val(`loc${i}_shelf`),bin:val(`loc${i}_bin`),code:val(`loc${i}_code`),qty}); } return {
-  timestamp:new Date().toISOString(), login:val('loginName')||'', upc:normalizeUPC(val('upc')),
-  brand:val('brand'), gender:val('gender'), desc:val('desc'), coo:val('coo'), cd:val('cd'),
-  expectedQty:Number(val('expectedQty')||'0'),
-  itemWeight:Number(val('itemWeight')||'0'), itemDimL:Number(val('itemDimL')||'0'), itemDimW:Number(val('itemDimW')||'0'), itemDimH:Number(val('itemDimH')||'0'),
-  boxStyles:[1,2,3,4].map(i=>({ boxes:Number(val(`bs${i}_boxes`)||'0'), qtyPerBox:Number(val(`bs${i}_qty`)||'0'), pcs:Number(val(`bs${i}_pcs`)||'0'), l:val(`bs${i}_l`), w:val(`bs${i}_w`), h:val(`bs${i}_h`), weight:val(`bs${i}_wt`) })),
-  subtotalPcs:Number(val('enteredQty')||'0'), locations:locs, notes:val('notes')||''
-}; }
-async function submit(){ if(CONFIG.REQUIRE_UPC && !val('upc')){ alert('UPC is required.'); return; } if(!validatePutaway()){ alert('Putaway total must equal Entered Quantity.'); return; } const payload=buildPayload(); if(CONFIG.SHEET_WEBAPP_URL){ try{ const res=await fetch(CONFIG.SHEET_WEBAPP_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'submit',payload}) }); const data=await res.json(); if(data && data.ok){ alert('Submitted ✔'); resetForm(); } else throw new Error('Bad response'); }catch(e){ alert('Submit failed. Use Download JSON.'); $('downloadJson').style.display='inline-flex'; } } else { $('downloadJson').style.display='inline-flex'; alert('No Google Sheets endpoint configured.'); } }
-function downloadJson(){ const blob = new Blob([JSON.stringify(buildPayload(), null, 2)], {type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='stockmanagerapp_prelock_submit_'+Date.now()+'.json'; a.click(); }
-function resetForm(){ const keep=['loginName']; document.querySelectorAll('input,textarea,select').forEach(el=>{ if(!keep.includes(el.id)) el.value=''; }); $('cameraFacing').value=localStorage.getItem('cameraFacing')||'environment'; lockBrandGender(); recomputeTotals(); buildLocRows(); $('pageIndicator').textContent='Page 1 of 2'; $('screen1').style.display='block'; $('screen2').style.display='none'; }
-$('saveLogin').addEventListener('click', savePrefs);
-$('cameraFacing').addEventListener('change', savePrefs);
-$('scanUPC').addEventListener('click', ()=> startScan('upc','UPC'));
-$('genUPC').addEventListener('click', ()=>{ const u=generateUPC(); setVal('upc',u); $('upcMsg').textContent='Generated: '+u; });
-$('checkDiscrepancy').addEventListener('click', checkDiscrepancy);
-$('submitSheet').addEventListener('click', submit);
-$('downloadJson').addEventListener('click', downloadJson);
-$('scanLocation').addEventListener('click', ()=> startScan('loc1_code','QR'));
-$('toggleCamera').addEventListener('click', ()=>{ $('cameraFacing').value=$('cameraFacing').value==='environment'?'user':'environment'; savePrefs(); });
-$('toScreen2').addEventListener('click', ()=>{ $('screen1').style.display='none'; $('screen2').style.display='block'; $('pageIndicator').textContent='Page 2 of 2'; validatePutaway(); });
-$('backTo1').addEventListener('click', ()=>{ $('screen2').style.display='none'; $('screen1').style.display='block'; $('pageIndicator').textContent='Page 1 of 2'; });
-$('upc').addEventListener('change', ()=>{ const d=normalizeUPC(val('upc')); setVal('upc', d); if(d) fetchBaseItem(d); });
-(function init(){ loadPrefs(); tick(); buildLocRows(); recomputeTotals(); lockBrandGender(); $('sheetId').textContent = '…'+CONFIG.SHEET_ID.slice(-6); })();
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const qrInput = document.getElementById("locationCodeQR");
-  const zoneField = document.getElementById("zone");
-  const aisleField = document.getElementById("aisle");
-  const rackField = document.getElementById("rack");
-  const shelfField = document.getElementById("shelf");
 
-  if (qrInput) {
-    qrInput.addEventListener("change", function () {
-      const scanned = qrInput.value.trim();
-      const parts = scanned.split("-");
-      if (parts.length === 4) {
-        zoneField.value = parts[0];
-        aisleField.value = parts[1];
-        rackField.value = parts[2];
-        shelfField.value = parts[3];
-      }
-    });
-  }
-});
-</script>
-<script>
-// CONFIG: Google Apps Script Web App URL
-const POST_URL = "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec";
+    <section id="page1" class="page">
+      <h2>Validate Item Details &amp; Packing</h2>
+      <div class="grid g3">
+        <div>
+          <label>UPC <span class="muted">*</span></label>
+          <input id="upc" inputmode="numeric" autocomplete="off" placeholder="Scan or enter UPC" disabled />
+        </div>
+        <div class="actions" style="align-items:end">
+          <button class="btn primary" id="btnScanUPC" disabled>Scan UPC/Barcode</button>
+          <button class="btn ghost" id="btnGenUPC" disabled>Generate UPC</button>
+        </div>
+        <div>
+          <label>Sheet ID</label>
+          <input id="sheetId" placeholder="Google Sheet ID" />
+        </div>
+      </div>
 
-// Submit & Next logic
-document.getElementById("submitBtn")?.addEventListener("click", function () {
-    const payload = {
-        upc: document.getElementById("upc")?.value || "",
-        brand: document.getElementById("brand")?.value || "",
-        gender: document.getElementById("gender")?.value || "",
-        masterItemDesc: document.getElementById("masterItemDesc")?.value || "",
-        coo: document.getElementById("coo")?.value || "",
-        cd: document.getElementById("cd")?.value || "",
-        expectedQty: document.getElementById("expectedQty")?.value || "",
-        enteredQty: document.getElementById("enteredQty")?.value || "",
-        itemWeight: document.getElementById("itemWeight")?.value || "",
-        itemLength: document.getElementById("itemLength")?.value || "",
-        itemWidth: document.getElementById("itemWidth")?.value || "",
-        itemHeight: document.getElementById("itemHeight")?.value || "",
-        notes: document.getElementById("notes")?.value || "",
-        locations: []
-    };
+      <div class="grid g3" style="margin-top:10px">
+        <div>
+          <label>Brand</label>
+          <input id="brand" placeholder="Auto‑filled if known" disabled />
+        </div>
+        <div>
+          <label>Gender (M / LADIES / UNISEX)</label>
+          <input id="gender" placeholder="Type 'LADIES' not 'WOMEN'" disabled />
+        </div>
+        <div>
+          <label>Master Item Description</label>
+          <input id="desc" placeholder="Item name / size" disabled />
+        </div>
+      </div>
 
-    for (let i = 1; i <= 9; i++) {
-        const loc = document.getElementById("location" + i)?.value || "";
-        if (loc) payload.locations.push(loc);
-    }
+      <div class="grid g4" style="margin-top:10px">
+        <div>
+          <label>COO</label>
+          <input id="coo" placeholder="Country of Origin" disabled />
+        </div>
+        <div>
+          <label>C/D</label>
+          <input id="cd" placeholder="CLEAN / DECODED" disabled />
+        </div>
+        <div>
+          <label>Expected Quantity</label>
+          <input id="expectedQty" type="number" min="0" step="1" disabled />
+        </div>
+        <div>
+          <label>Entered Quantity (Subtotal)</label>
+          <input id="enteredQty" type="number" readonly />
+        </div>
+      </div>
 
-    fetch(POST_URL, {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: { "Content-Type": "application/json" }
-    })
-    .then(res => res.ok ? alert("Submitted successfully!") : alert("Submit failed. Use Download JSON."))
-    .catch(() => alert("Submit failed. Use Download JSON."));
-});
+      <h3>Item Weight &amp; Dimensions</h3>
+      <div class="grid g4">
+        <div><label>Item Weight (lb)</label><input id="itemWeight" type="number" step="0.01" min="0" disabled/></div>
+        <div><label>Item L (in)</label><input id="itemL" type="number" step="0.01" min="0" disabled/></div>
+        <div><label>Item W (in)</label><input id="itemW" type="number" step="0.01" min="0" disabled/></div>
+        <div><label>Item H (in)</label><input id="itemH" type="number" step="0.01" min="0" disabled/></div>
+      </div>
 
-// QR Scan logic: parse full location string into ZONE, AISLE, RACK, SHELF
-function handleQRScanResult(result) {
-    const parts = result.split("-");
-    if (parts.length === 4) {
-        document.getElementById("zone")?.value = parts[0];
-        document.getElementById("aisle")?.value = parts[1];
-        document.getElementById("rack")?.value = parts[2];
-        document.getElementById("shelf")?.value = parts[3];
-        document.getElementById("location1")?.value = result;
-    } else {
-        document.getElementById("location1")?.value = result;
-    }
-}
-</script>
-<script>
-const CONFIG = {
-  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
-};
-</script><script>
-document.getElementById("submitBtn").addEventListener("click", function () {
-  const payload = {
-    upc: document.getElementById("upc").value,
-    brand: document.getElementById("brand").value,
-    gender: document.getElementById("gender").value,
-    masterDesc: document.getElementById("masterDesc").value,
-    coo: document.getElementById("coo").value,
-    cd: document.getElementById("cd").value,
-    weight: document.getElementById("weight").value,
-    length: document.getElementById("length").value,
-    width: document.getElementById("width").value,
-    height: document.getElementById("height").value,
-    expectedQty: document.getElementById("expectedQty").value,
-    enteredQty: document.getElementById("enteredQty").value,
-    notes: document.getElementById("notes").value,
-    locations: []
-  };
+      <h3>Box Breakdown (Styles 1–4)</h3>
+      <div id="boxStyles" class="grid g1"></div>
 
-  for (let i = 1; i <= 9; i++) {
-    const loc = document.getElementById("location" + i);
-    if (loc && loc.value.trim() !== "") {
-      payload.locations.push(loc.value.trim());
-    }
-  }
+      <div class="row" style="justify-content:space-between;margin-top:10px">
+        <div class="stat">Subtotal Pcs: <strong id="subtotal">0</strong></div>
+        <div class="stat">Match Status: <strong id="matchStatus">—</strong></div>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button class="btn warn" id="btnCheck" disabled>Check Discrepancy</button>
+        <button class="btn success" id="toPage2" disabled>Next → Putaway (Page 2)</button>
+      </div>
 
-  fetch(CONFIG.POST_URL, {
-    method: "POST",
-    body: JSON.stringify(payload),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-    .then((res) => res.text())
-    .then((data) => {
-      alert("Submit successful!");
-    })
-    .catch((err) => {
-      alert("Submit failed. Use Download JSON.");
-    });
-});
+      <div id="upcScanner" class="scanner" aria-live="polite">
+        <div class="scan-overlay"></div>
+        <div class="overlay-box"></div>
+        <video id="upcVideo" muted playsinline></video>
+      </div>
+    </section>
 
-// QR scan parsing logic
-function handleQRScan(result) {
-  const parts = result.split("-");
-  if (parts.length === 4) {
-    document.getElementById("zone").value = parts[0];
-    document.getElementById("aisle").value = parts[1];
-    document.getElementById("rack").value = parts[2];
-    document.getElementById("shelf").value = parts[3];
-    document.getElementById("location1").value = result;
-  } else {
-    alert("Invalid QR code format. Expected format: ZONE-AISLE-RACK-SHELF");
-  }
-}
-</script><script>
-const CONFIG = {
-  POST_URL: "https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec"
-};
-</script><script>
-document.getElementById("submitBtn")?.addEventListener("click", function () {
-  const payload = {
-    upc: document.getElementById("upc")?.value || "",
-    brand: document.getElementById("brand")?.value || "",
-    gender: document.getElementById("gender")?.value || "",
-    masterItemDesc: document.getElementById("masterItemDesc")?.value || "",
-    coo: document.getElementById("coo")?.value || "",
-    cd: document.getElementById("cd")?.value || "",
-    notes: document.getElementById("notes")?.value || "",
-    location1: document.getElementById("location1")?.value || "",
-    zone: document.getElementById("zone")?.value || "",
-    aisle: document.getElementById("aisle")?.value || "",
-    rack: document.getElementById("rack")?.value || "",
-    shelf: document.getElementById("shelf")?.value || ""
-  };
+    <section id="page2" class="page hidden">
+      <h2>Putaway</h2>
+      <label>Putaway Instructions / Notes</label>
+      <textarea id="putawayNotes" rows="2" placeholder="Special handling, bin hints, etc." disabled></textarea>
 
-  fetch(CONFIG.POST_URL, {
-    method: "POST",
-    body: JSON.stringify(payload),
-    headers: { "Content-Type": "application/json" }
-  })
-    .then((res) => res.text())
-    .then((data) => {
-      alert("Submit successful!");
-    })
-    .catch((err) => {
-      alert("Submit failed. Use Download JSON.");
-    });
-});
+      <div class="row" style="margin-top:10px;justify-content:space-between">
+        <div class="actions">
+          <button class="btn primary" id="btnScanLocation" disabled>Scan Location QR</button>
+          <span class="muted">Default camera: <span class="kbd">Front</span></span>
+        </div>
+        <div class="row" style="gap:12px">
+          <div class="stat">Entered Qty: <strong id="enteredQty2">0</strong></div>
+          <div class="stat">Putaway Total: <strong id="putawayTotal">0</strong></div>
+          <div class="stat">OK to Submit: <strong id="okToSubmit">No</strong></div>
+        </div>
+      </div>
 
-// QR scan parsing logic
-function handleQRScanResult(qrString) {
-  const parts = qrString.split("-");
-  if (parts.length === 4) {
-    document.getElementById("zone").value = parts[0];
-    document.getElementById("aisle").value = parts[1];
-    document.getElementById("rack").value = parts[2];
-    document.getElementById("shelf").value = parts[3];
-    document.getElementById("location1").value = qrString;
-  }
-}
-</script></body>
+      <h3>Locations (up to 9)</h3>
+      <div id="locations" class="grid g1"></div>
+
+      <div class="actions" style="margin-top:10px;justify-content:space-between">
+        <button class="btn" id="backTo1">← Back</button>
+        <div class="row" style="gap:8px">
+          <button class="btn ghost" id="btnDownloadJSON">Download JSON (offline)</button>
+          <button class="btn success" id="btnSubmitNext" disabled>Submit & Next</button>
+        </div>
+      </div>
+
+      <div id="qrScanner" class="scanner" aria-live="polite">
+        <div class="scan-overlay"></div>
+        <div class="overlay-box" style="height:70%;width:min(80%,520px);"></div>
+        <video id="qrVideo" muted playsinline></video>
+      </div>
+    </section>
+
+    <section class="page">
+      <h3>Service, Discrepancy & Labels</h3>
+      <div class="grid g4">
+        <div class="row" style="gap:8px;align-items:end">
+          <div>
+            <label>Apps Script Endpoint URL</label>
+            <input id="endpoint" placeholder="https://script.google.com/macros/s/.../exec" />
+          </div>
+          <button class="btn" id="btnPing">Ping</button>
+        </div>
+        <div class="row" style="gap:8px;align-items:end">
+          <div>
+            <label>Can Print Check</label>
+            <input id="canPrintMsg" readonly />
+          </div>
+          <button class="btn" id="btnCanPrint">Check</button>
+          <button class="btn success" id="btnPrintLabel" disabled>Print Label</button>
+        </div>
+        <div class="row" style="gap:8px;align-items:end">
+          <div>
+            <label>Discrepancy Email</label>
+            <input id="emailMsg" readonly />
+          </div>
+          <button class="btn" id="btnSendEmail">Send for this Item</button>
+          <button class="btn warn" id="btnFinalizeSummary">Finalize & Send Summary (CSV)</button>
+        </div>
+        <div>
+          <label class="muted">Notes</label>
+          <div class="muted">Lookup uses <b>Items</b> tab. Label prints 6×4 in landscape. QR encodes <b>UPC|LOCATION|QTY|STATUS</b>. Printing is enabled only after <b>VERIFIED/APPROVED</b>.</div>
+        </div>
+      </div>
+    </section>
+
+    <audio id="beep" preload="auto" src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"></audio>
+  </main>
+
+  <!-- Libs -->
+  <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
+  <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <!-- Label modal -->
+  <div id="labelSheet">
+    <div id="labelCard">
+      <div id="labelHeader">
+        <span>INVENTORIED LABEL</span>
+        <span id="labelLoc">LOCATION —</span>
+      </div>
+      <div id="itemDesc">—</div>
+      <div id="labelBody">
+        <div id="labelLeft">
+          <div><b>Item No:</b> <span id="labelItemNo">—</span></div>
+          <div><b>Brand:</b> <span id="labelBrand">—</span></div>
+          <div><b>Gender:</b> <span id="labelGender">—</span></div>
+          <div><b>COO:</b> <span id="labelCOO">—</span></div>
+          <div><b>TOTAL QTY:</b> <span id="labelTotal">0</span></div>
+          <div><b>Breakdown:</b> <span id="labelBreakdown">—</span></div>
+        </div>
+        <div id="labelRight">
+          <div id="codes">
+            <svg id="barcode"></svg>
+            <div id="qrcode"></div>
+          </div>
+          <div style="font-weight:700;text-align:center;width:100%">
+            <div>UPC</div>
+            <div id="labelUPC" style="font-size:12pt"></div>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button class="btn" onclick="closeLabel()">Close</button>
+        <button class="btn success" onclick="window.print()">Print</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = s=>document.querySelector(s); const $$ = s=>document.querySelectorAll(s);
+
+    const state = { page:1, subtotal:0, putawayTotal:0, okToSubmit:false, focusedLocationIndex:0, logged:false, canPrint:false };
+
+    (function init(){
+      const savedUser = localStorage.getItem('sma_user') || '';
+      const endpoint = localStorage.getItem('sma_endpoint') || 'https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec';
+      const sheet = localStorage.getItem('sma_sheet') || '1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA';
+      $('#endpoint').value = endpoint; $('#sheetId').value = sheet; $('#sheetIdDisplay').textContent = sheet ? 'Linked':'—';
+      if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
+    })();
+
+    function showUnlock(is){ state.logged=!!is; $('#loginLock').textContent=is?'(ready)':'(locked until login)';
+      ['upc','brand','gender','desc','coo','cd','expectedQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{ const el=$('#'+id); if(el) el.disabled=!is; });
+      ['btnScanUPC','btnGenUPC','btnCheck','toPage2','btnScanLocation','btnSubmitNext'].forEach(id=>{ const b=$('#'+id); if(b) b.disabled=!is; }); }
+
+    $('#loginName').addEventListener('change', e=>{ const user=e.target.value; if(!user){ showUnlock(false); return; }
+      const pwd=prompt('Enter password for '+user+' (hint: username backwards)')||''; const exp=user.split('').reverse().join('').toLowerCase();
+      if(pwd.toLowerCase()===exp){ localStorage.setItem('sma_user', user); showUnlock(true); $('#upc').focus(); } else { alert('Incorrect password.'); e.target.value=''; showUnlock(false); } });
+
+    $('#endpoint').addEventListener('input', e=>localStorage.setItem('sma_endpoint', e.target.value));
+    $('#sheetId').addEventListener('input', e=>{ localStorage.setItem('sma_sheet', e.target.value); $('#sheetIdDisplay').textContent = e.target.value? 'Linked':'—'; });
+
+    // Box styles
+    const boxStyles = $('#boxStyles');
+    for(let i=1;i<=4;i++){
+      const el=document.createElement('div'); el.className='box-card'; el.innerHTML=`
+        <div class="row" style="justify-content:space-between;align-items:center"><strong>Box Style ${i}</strong><span class="muted">Boxes × Qty/Box → Pcs</span></div>
+        <div class="grid g4" style="margin-top:6px">
+          <div><label>Boxes</label><input data-bs="${i}" class="bs_boxes" type="number" min="0" step="1" value="0" disabled></div>
+          <div><label>Qty/Box</label><input data-bs="${i}" class="bs_qty" type="number" min="0" step="1" value="0" disabled></div>
+          <div><label>Pcs (auto)</label><input data-bs="${i}" class="bs_pcs" type="number" readonly value="0"></div>
+          <div><label>Weight (lb)</label><input data-bs="${i}" class="bs_wt" type="number" step="0.01" min="0" value="" disabled></div>
+        </div>
+        <div class="grid g3" style="margin-top:6px">
+          <div><label>L (in)</label><input data-bs="${i}" class="bs_l" type="number" step="0.01" min="0" value="" disabled></div>
+          <div><label>W (in)</label><input data-bs="${i}" class="bs_w" type="number" step="0.01" min="0" value="" disabled></div>
+          <div><label>H (in)</label><input data-bs="${i}" class="bs_h" type="number" step="0.01" min="0" value="" disabled></div>
+        </div>`; boxStyles.appendChild(el); }
+
+    function recalcSubtotal(){ let subtotal=0; document.querySelectorAll('.bs_boxes').forEach(boxEl=>{ const i=boxEl.getAttribute('data-bs'); const boxes=+boxEl.value||0; const qty=+document.querySelector(`.bs_qty[data-bs="${i}"]`).value||0; const pcsEl=document.querySelector(`.bs_pcs[data-bs="${i}"]`); const pcs=boxes*qty; pcsEl.value=pcs; subtotal+=pcs; });
+      state.subtotal=subtotal; $('#enteredQty').value=subtotal; $('#enteredQty2').textContent=subtotal; $('#subtotal').textContent=subtotal; updateMatchStatus(); updateOkToSubmit(); }
+    boxStyles.addEventListener('input', recalcSubtotal);
+
+    function updateMatchStatus(){ const expected=+($('#expectedQty').value||0); const actual=state.subtotal; const ms=$('#matchStatus'); if(!expected && !actual){ ms.textContent='—'; ms.className=''; return; } if(expected===actual){ ms.textContent='MATCH'; ms.className='ok'; } else { ms.textContent=`MISMATCH (${actual-expected>=0?'+':''}${actual-expected})`; ms.className='bad'; } }
+    function updateOkToSubmit(){ const ok=((+($('#expectedQty').value||0))===state.subtotal && state.subtotal>0); state.okToSubmit=ok; $('#okToSubmit').textContent=ok?'Yes':'No'; }
+    $('#expectedQty').addEventListener('input', ()=>{ updateMatchStatus(); updateOkToSubmit(); });
+
+    function goto(p){ state.page=p; $('#pageIndicator').textContent=p; $('#page1').classList.toggle('hidden', p!==1); $('#page2').classList.toggle('hidden', p!==2); if(p===2){ $('#enteredQty2').textContent=state.subtotal; } }
+    $('#toPage2').addEventListener('click', ()=>goto(2)); $('#backTo1').addEventListener('click', ()=>goto(1));
+
+    function beep(){ const a=$('#beep'); a.currentTime=0; a.play().catch(()=>{}); }
+
+    // UPC Scan front camera
+    let quaggaActive=false; function startUPCScan(){ if(quaggaActive) return; $('#upcScanner').style.display='flex'; Quagga.init({ inputStream:{ type:'LiveStream', target:document.querySelector('#upcVideo'), constraints:{ facingMode:'user' } }, decoder:{ readers:['upc_reader','upc_e_reader','code_128_reader','ean_reader','ean_8_reader','code_39_reader'] }, locate:true }, err=>{ if(err){ alert('Camera init failed: '+err.message); stopUPCScan(); return; } Quagga.start(); quaggaActive=true; }); Quagga.onDetected(onUPCDetected); }
+    function stopUPCScan(){ if(quaggaActive){ Quagga.stop(); quaggaActive=false; } $('#upcScanner').style.display='none'; Quagga.offDetected(onUPCDetected); }
+    function onUPCDetected(res){ const code=res?.codeResult?.code; if(!code) return; if(!/^\d{6,14}$/.test(code)) return; beep(); $('#upc').value=code; stopUPCScan(); lookupUPC(code); }
+    $('#btnScanUPC').addEventListener('click', ()=>{ quaggaActive?stopUPCScan():startUPCScan(); });
+    $('#btnGenUPC').addEventListener('click', ()=>{ const rnd=Math.floor(1e11+Math.random()*9e11).toString(); $('#upc').value=rnd; lookupUPC(rnd); });
+
+    // LADIES normalization
+    $('#gender').addEventListener('input', (e)=>{ const v=(e.target.value||'').toUpperCase().replace('WOMEN','LADIES'); if(v!==e.target.value.toUpperCase()) e.target.value=v; });
+
+    // Locations UI
+    const locs = $('#locations'); function buildLocations(){ locs.innerHTML=''; for(let i=0;i<9;i++){ const row=document.createElement('div'); row.className='row'; row.style.gap='10px'; row.innerHTML=`
+      <div style="flex:2"><label>Location ${i+1} (scan QR or type)</label><input class="loc_code" data-i="${i}" placeholder="ZONE-AISLE-RACK-SHELF-BIN" disabled/></div>
+      <div style="flex:1"><label>Qty</label><input class="loc_qty" data-i="${i}" type="number" min="0" step="1" value="0" disabled/></div>`; locs.appendChild(row);} locs.addEventListener('focusin', e=>{ if(e.target.classList.contains('loc_code')) state.focusedLocationIndex=+e.target.getAttribute('data-i'); }); locs.addEventListener('input', recalcPutawayTotal); }
+    function recalcPutawayTotal(){ let t=0; document.querySelectorAll('.loc_qty').forEach(q=> t+= +q.value||0 ); state.putawayTotal=t; $('#putawayTotal').textContent=t; updateOkToSubmit(); }
+    buildLocations();
+
+    // QR Scan front camera
+    let qrStream=null; let qrActive=false; async function startQRScan(){ try{ $('#qrScanner').style.display='flex'; const constraints={ video:{ facingMode:'user' } }; const video=document.getElementById('qrVideo'); qrStream = await navigator.mediaDevices.getUserMedia(constraints); video.srcObject=qrStream; await video.play(); qrActive=true; scanLoop(); }catch(err){ alert('QR camera error: '+err.message); stopQRScan(); } }
+    function stopQRScan(){ qrActive=false; if(qrStream){ qrStream.getTracks().forEach(t=>t.stop()); qrStream=null; } $('#qrScanner').style.display='none'; }
+    async function scanLoop(){ const reader=new ZXingBrowser.BrowserMultiFormatReader(); const video=document.getElementById('qrVideo'); while(qrActive){ try{ const result=await reader.decodeFromVideoElement(video); if(result?.text){ onQRDetected(result.text); } }catch(e){} await new Promise(r=>setTimeout(r,200)); } }
+    function onQRDetected(text){ beep(); const input=document.querySelector(`.loc_code[data-i="${state.focusedLocationIndex}"]`); if(input){ input.value=text; } stopQRScan(); }
+    $('#btnScanLocation').addEventListener('click', ()=>{ qrActive?stopQRScan():startQRScan(); });
+
+    // Discrepancy
+    $('#btnCheck').addEventListener('click', ()=>{ const ok=state.okToSubmit; alert(ok ? '✔ Counts match. Status: VERIFIED.' : '⚠ Counts mismatch. Status: PENDING.'); });
+
+    // Build submit params (separate locations)
+    function buildSubmitParams(){ const p=new URLSearchParams(); p.append('action','submit'); p.append('upc', ($('#upc').value||'').trim()); p.append('brand',$('#brand').value||''); p.append('gender', ($('#gender').value||'').toUpperCase().replace('WOMEN','LADIES')); p.append('masterItemDesc',$('#desc').value||''); p.append('coo',$('#coo').value||''); p.append('cd',$('#cd').value||''); p.append('expectedQty', +($('#expectedQty').value||0) || 0); p.append('enteredQty', state.subtotal||0); p.append('itemWeight', +($('#itemWeight').value||0) || 0); p.append('itemDimL', +($('#itemL').value||0) || 0); p.append('itemDimW', +($('#itemW').value||0) || 0); p.append('itemDimH', +($('#itemH').value||0) || 0); p.append('notes',$('#putawayNotes').value||''); for(let i=1;i<=4;i++){ const get=(cls)=>document.querySelector(`.${cls}[data-bs="${i}"]`).value||''; p.append(`bs${i}_boxes`, get('bs_boxes')||0); p.append(`bs${i}_qty`, get('bs_qty')||0); p.append(`bs${i}_pcs`, get('bs_pcs')||0); p.append(`bs${i}_l`, get('bs_l')); p.append(`bs${i}_w`, get('bs_w')); p.append(`bs${i}_h`, get('bs_h')); p.append(`bs${i}_wt`, get('bs_wt')); } for(let i=0;i<9;i++){ const code=(document.querySelector(`.loc_code[data-i="${i}"]`).value||'').trim(); const qty=+document.querySelector(`.loc_qty[data-i="${i}"]`).value||0; p.append(`location${i+1}_code`, code); p.append(`location${i+1}_qty`, qty); } p.append('processed_by', localStorage.getItem('sma_user')||''); p.append('sheetId', $('#sheetId').value||''); p.append('status', state.okToSubmit ? 'VERIFIED' : 'PENDING'); return p; }
+
+    async function submitNow(){ const url=($('#endpoint').value||'').trim(); if(!url) return alert('Set Endpoint URL first.'); const params=buildSubmitParams(); try{ const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:params.toString()}); const text=await resp.text(); alert('Server response: '+text.slice(0,200)); if((params.get('status')||'')==='PENDING') await sendDiscrepancyEmail('Auto: pending discrepancy'); if((params.get('status')||'')==='VERIFIED') await canPrintCheck(); resetForNext(); }catch(err){ alert('Submit failed; downloading JSON locally. '+err.message); const obj=Object.fromEntries(params); downloadJSON(obj); } }
+    $('#btnSubmitNext').addEventListener('click', submitNow);
+
+    function resetForNext(){ ['upc','brand','gender','desc','coo','cd','expectedQty','enteredQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{const el=$('#'+id); if(el) el.value='';}); document.querySelectorAll('.bs_boxes,.bs_qty').forEach(el=>el.value='0'); document.querySelectorAll('.bs_pcs').forEach(el=>el.value='0'); document.querySelectorAll('.bs_wt,.bs_l,.bs_w,.bs_h').forEach(el=>el.value=''); document.querySelectorAll('.loc_code').forEach(el=>el.value=''); document.querySelectorAll('.loc_qty').forEach(el=>el.value='0'); state.subtotal=0; state.putawayTotal=0; state.okToSubmit=false; state.canPrint=false; $('#btnPrintLabel').disabled=true; $('#subtotal').textContent='0'; $('#enteredQty').value='0'; $('#enteredQty2').textContent='0'; $('#putawayTotal').textContent='0'; $('#matchStatus').textContent='—'; $('#canPrintMsg').value=''; goto(1); $('#upc').focus(); }
+
+    function downloadJSON(obj){ const name=`scan_${(obj.upc||'no_upc')}_${new Date().toISOString().replace(/[:.]/g,'-')}.json`; const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+    $('#btnDownloadJSON').addEventListener('click', ()=>{ const p=buildSubmitParams(); const obj=Object.fromEntries(p); downloadJSON(obj); });
+
+    // Service calls
+    async function ping(){ const url=($('#endpoint').value||'').trim(); if(!url) return alert('Set Endpoint URL first.'); const r=await fetch(url+`?action=ping`); const t=await r.text(); $('#canPrintMsg').value='Ping: '+t.slice(0,140); }
+    $('#btnPing').addEventListener('click', ping);
+
+    async function canPrintCheck(){ const url=($('#endpoint').value||'').trim(); if(!url) return; const upc=($('#upc').value||'').trim(); if(!upc) return; const r=await fetch(url+`?action=canprint&upc=${encodeURIComponent(upc)}&sheetId=${encodeURIComponent($('#sheetId').value||'')}`); const t=await r.text(); $('#canPrintMsg').value=t.slice(0,300); try{ const j=JSON.parse(t); state.canPrint=!!j.canPrint; }catch{} $('#btnPrintLabel').disabled=!state.canPrint; return t; }
+    $('#btnCanPrint').addEventListener('click', canPrintCheck);
+
+    async function sendDiscrepancyEmail(note){ const url=($('#endpoint').value||'').trim(); if(!url) return; const p=buildSubmitParams(); p.set('action','senddiscrepancyemail'); if(note) p.set('note', note); const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:p.toString()}); const t=await r.text(); $('#emailMsg').value=t.slice(0,200); return t; }
+    $('#btnSendEmail').addEventListener('click', ()=> sendDiscrepancyEmail('Manual trigger'));
+
+    async function finalizeAndSend(){ const url=($('#endpoint').value||'').trim(); if(!url) return; const p=new URLSearchParams(); p.set('action','finalizeandsummary'); p.set('sheetId',$('#sheetId').value||''); const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:p.toString()}); const t=await r.text(); $('#emailMsg').value=t.slice(0,300); return t; }
+    $('#btnFinalizeSummary').addEventListener('click', finalizeAndSend);
+
+    async function lookupUPC(upc){ const url=($('#endpoint').value||'').trim(); if(!url||!upc) return; try{ const r=await fetch(url+`?action=lookup&upc=${encodeURIComponent(upc)}&sheetId=${encodeURIComponent($('#sheetId').value||'')}`); const data=await r.json(); if(data && data.ok && data.item){ const it=data.item; if(it.brand) $('#brand').value=it.brand; if(it.gender) $('#gender').value=(it.gender+'').toUpperCase().replace('WOMEN','LADIES'); if(it.desc) $('#desc').value=it.desc; if(it.coo) $('#coo').value=it.coo; if(it.cd) $('#cd').value=it.cd; if(Number.isFinite(+it.expectedQty)) $('#expectedQty').value=+it.expectedQty; } ['brand','gender'].forEach(id=>{ const el=$('#'+id); if(el && el.value) el.readOnly=true; }); updateMatchStatus(); }catch(e){ console.log('lookup failed', e); } }
+
+    // Label rendering (QR composite: UPC|LOCATION|QTY|STATUS)
+    function openLabel(){ $('#labelSheet').style.display='flex'; }
+    function closeLabel(){ $('#labelSheet').style.display='none'; }
+    function computeBreakdown(){ let parts=[]; document.querySelectorAll('.bs_boxes').forEach(el=>{ const i=el.getAttribute('data-bs'); const b=+el.value||0; const q=+(document.querySelector(`.bs_qty[data-bs="${i}"]`).value||0); if(b>0 && q>0) parts.push(`${b} x ${q}`); }); return parts.length? parts.join(' + ') : '—'; }
+    function firstLocation(){ const code=(document.querySelector('.loc_code')?.value||'').trim(); return code || '—'; }
+    function renderLabel(){ const upc=($('#upc').value||'').trim(); if(!upc){ alert('UPC missing'); return; } const brand=$('#brand').value||''; const gender=$('#gender').value||''; const desc=$('#desc').value||''; const coo=$('#coo').value||''; const total=state.subtotal||0; const loc=firstLocation(); const statusText = state.canPrint ? 'VERIFIED' : 'PENDING';
+      $('#labelLoc').textContent = loc ? `LOCATION ${loc}` : 'LOCATION —';
+      $('#labelItemNo').textContent = upc; // UPC as item number unless RISONA ITEM NO is provided
+      $('#labelBrand').textContent = brand; $('#labelGender').textContent = gender; $('#labelCOO').textContent = coo; $('#labelTotal').textContent = total; $('#labelBreakdown').textContent = computeBreakdown(); $('#labelUPC').textContent = upc;
+      $('#itemDesc').textContent = desc || '—';
+      try{ JsBarcode('#barcode', upc, {format:'CODE128', width:2, height:60, displayValue:false, margin:0}); }catch(e){ console.log(e); }
+      try{ const qrDiv=document.getElementById('qrcode'); qrDiv.innerHTML=''; const composite = `${upc}|${loc}|${total}|${statusText}`; new QRCode(qrDiv,{text:composite,width:120,height:120}); }catch(e){ console.log(e); }
+      openLabel(); }
+
+    $('#btnPrintLabel').addEventListener('click', renderLabel);
+
+    // Init
+    recalcSubtotal(); updateOkToSubmit();
+  </script>
+  
+  <!-- Helpers to close label overlay -->
+  <script>
+    function closeLabel(){ document.getElementById('labelSheet').style.display='none'; }
+  </script>
+</body>
 </html>
