@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>STOCKMANAGERAPP · Mobile Inventory v1.0.0-COMPLETE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>STOCKMANAGERAPP · Mobile Inventory v1.0.0-FINAL</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8}
-    body{margin:0;background:var(--bg);color:#eef2ff;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+    input,textarea,select{-webkit-user-select:text !important;user-select:text !important}
+    body{margin:0;padding:0;background:var(--bg);color:#eef2ff;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow-x:hidden}
     header{padding:12px 16px;background:linear-gradient(90deg,#0ea5e9,#6366f1)}
     header h1{margin:0;font-size:18px} header small{opacity:.9}
     main{max-width:1060px;margin:0 auto;padding:16px}
@@ -15,19 +17,21 @@
     .page{background:var(--panel);border:1px solid #243047;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.35);padding:14px;margin-bottom:18px}
     h2{font-size:18px;margin:8px 0 12px} h3{font-size:15px;margin:16px 0 6px;color:#cbd5e1}
     label{font-size:12px;color:#cbd5e1;margin-bottom:4px;display:block}
-    input,select,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #324156;background:var(--card);color:#e5e7eb}
-    input[readonly]{opacity:.9;background:#1b2232} input:disabled,select:disabled,textarea:disabled{opacity:.6}
+    input,select,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #324156;background:var(--card);color:#e5e7eb;font-size:16px;-webkit-appearance:none;appearance:none}
+    input[readonly]{opacity:.9;background:#1b2232} 
+    input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:not-allowed}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#38bdf8;background:var(--card)}
     .grid{display:grid;gap:10px} .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
-    .row{display:flex;gap:10px;align-items:center} .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{background:#0b1329;border:1px solid #2b3953;color:#e5e7eb;padding:10px 12px;border-radius:8px;cursor:pointer}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap} .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{background:#0b1329;border:1px solid #2b3953;color:#e5e7eb;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14px;-webkit-appearance:none;appearance:none;-webkit-user-select:none;user-select:none}
     .btn.primary{background:#0ea5e9;border-color:#0891b2} .btn.success{background:#16a34a;border-color:#15803d}
     .btn.warn{background:#f59e0b;border-color:#b45309} .btn.ghost{background:transparent;border-color:#2b3953}
     .btn.danger{background:#ef4444;border-color:#b91c1c}
     .btn:disabled{opacity:.5;cursor:not-allowed}
-    .scanner{position:relative;background:#0b1329;border:1px dashed #334155;border-radius:10px;min-height:240px;display:none;align-items:center;justify-content:center;overflow:hidden}
-    .scanner video{width:100%;height:100%;object-fit:cover}
+    .scanner{position:relative;background:#0b1329;border:1px dashed #334155;border-radius:10px;min-height:240px;display:none;align-items:center;justify-content:center;overflow:hidden;width:100%}
+    .scanner video{width:100%;height:100%;object-fit:cover;display:block}
     .scan-overlay{position:absolute;inset:0;border:3px solid rgba(56,189,248,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none}
-    .overlay-box{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(80%,520px);height:190px;border:3px solid rgba(34,197,94,.9);border-radius:10px}
+    .overlay-box{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(80%,520px);height:190px;border:3px solid rgba(34,197,94,.9);border-radius:10px;pointer-events:none}
     .hidden{display:none!important} .stat{padding:8px 10px;border-radius:8px;border:1px solid #2b3953;background:#0c142b;display:inline-flex;gap:8px;align-items:center}
     .ok{color:var(--ok)} .bad{color:var(--bad)} .warn-t{color:var(--warn)} .muted{color:var(--muted);font-size:12px}
     .box-card{border:1px solid #2b3953;border-radius:10px;padding:10px;background:#0c142b}
@@ -46,7 +50,7 @@
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP · Mobile Inventory <small>v1.0.0‑COMPLETE</small></h1>
+    <h1>STOCKMANAGERAPP · Mobile Inventory <small>v1.0.0‑FINAL</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -79,8 +83,8 @@
           <input id="upc" inputmode="numeric" autocomplete="off" placeholder="Scan or enter UPC" disabled />
         </div>
         <div class="actions" style="align-items:end">
-          <button class="btn primary" id="btnScanUPC" disabled>Scan UPC/Barcode</button>
-          <button class="btn ghost" id="btnGenUPC" disabled>Generate UPC</button>
+          <button class="btn primary" id="btnScanUPC" disabled>Scan UPC</button>
+          <button class="btn ghost" id="btnGenUPC" disabled>Generate</button>
           <button class="btn" id="btnToggleCam">Back</button>
         </div>
         <div>
@@ -92,7 +96,7 @@
       <div class="grid g3" style="margin-top:10px">
         <div>
           <label>Brand</label>
-          <input id="brand" placeholder="Auto‑filled if known" disabled />
+          <input id="brand" placeholder="Auto-filled" disabled />
         </div>
         <div>
           <label>Gender</label>
@@ -111,7 +115,7 @@
 
       <div class="grid g4" style="margin-top:10px">
         <div>
-          <label>COO (Country of Origin)</label>
+          <label>COO</label>
           <select id="coo" disabled>
             <option value="">— Select —</option>
             <option value="USA">USA</option>
@@ -143,11 +147,11 @@
           </select>
         </div>
         <div>
-          <label>Expected Quantity</label>
+          <label>Expected Qty</label>
           <input id="expectedQty" type="number" min="0" step="1" disabled />
         </div>
         <div>
-          <label>Entered Quantity (Subtotal)</label>
+          <label>Entered Qty (Subtotal)</label>
           <input id="enteredQty" type="number" readonly />
         </div>
       </div>
@@ -155,9 +159,9 @@
       <h3>Item Weight &amp; Dimensions</h3>
       <div class="grid g4">
         <div><label>Item Weight (lb)</label><input id="itemWeight" type="number" step="0.01" min="0" placeholder="lbs" disabled/></div>
-        <div><label>Item L (in)</label><input id="itemL" type="number" step="0.01" min="0" placeholder="inches" disabled/></div>
-        <div><label>Item W (in)</label><input id="itemW" type="number" step="0.01" min="0" placeholder="inches" disabled/></div>
-        <div><label>Item H (in)</label><input id="itemH" type="number" step="0.01" min="0" placeholder="inches" disabled/></div>
+        <div><label>Item L (in)</label><input id="itemL" type="number" step="0.01" min="0" placeholder="L" disabled/></div>
+        <div><label>Item W (in)</label><input id="itemW" type="number" step="0.01" min="0" placeholder="W" disabled/></div>
+        <div><label>Item H (in)</label><input id="itemH" type="number" step="0.01" min="0" placeholder="H" disabled/></div>
       </div>
 
       <h3>Box Breakdown (Styles 1–4)</h3>
@@ -176,7 +180,7 @@
       <div id="upcScanner" class="scanner" aria-live="polite">
         <div class="scan-overlay"></div>
         <div class="overlay-box"></div>
-        <video id="upcVideo" muted playsinline></video>
+        <video id="upcVideo" muted playsinline style="width:100%;height:100%"></video>
       </div>
     </section>
 
@@ -194,12 +198,12 @@
       </div>
 
       <label>Putaway Instructions / Notes</label>
-      <textarea id="putawayNotes" rows="2" placeholder="Special handling, bin hints, etc." disabled></textarea>
+      <textarea id="putawayNotes" rows="2" placeholder="Special handling..." disabled style="-webkit-user-select:text;user-select:text"></textarea>
 
       <div class="row" style="margin-top:10px;justify-content:space-between">
         <div class="actions">
           <button class="btn primary" id="btnScanLocation" disabled>Scan Location QR</button>
-          <button class="btn success" id="btnMoveAll" disabled>Move All to Location 1</button>
+          <button class="btn success" id="btnMoveAll" disabled>Move All to Loc 1</button>
           <span class="muted">Default camera: <span class="kbd">Back</span></span>
         </div>
         <div class="row" style="gap:12px">
@@ -215,7 +219,7 @@
       <div class="actions" style="margin-top:10px;justify-content:space-between">
         <button class="btn" id="backTo1">← Back</button>
         <div class="row" style="gap:8px">
-          <button class="btn ghost" id="btnDownloadJSON">Download JSON (offline)</button>
+          <button class="btn ghost" id="btnDownloadJSON">Download JSON</button>
           <button class="btn success" id="btnSubmitNext" disabled>Submit & Next</button>
         </div>
       </div>
@@ -223,7 +227,7 @@
       <div id="qrScanner" class="scanner" aria-live="polite">
         <div class="scan-overlay"></div>
         <div class="overlay-box" style="height:70%;width:min(80%,520px);"></div>
-        <video id="qrVideo" muted playsinline></video>
+        <video id="qrVideo" muted playsinline style="width:100%;height:100%"></video>
       </div>
     </section>
 
@@ -233,7 +237,7 @@
         <div class="row" style="gap:8px;align-items:end">
           <div>
             <label>Apps Script Endpoint URL</label>
-            <input id="endpoint" placeholder="https://script.google.com/macros/s/AKfycbypXvTh1R3E1dzurqothXHWWgu269i3ToJKUS7Xi5tLRE56s6den-O8h7E_2D4CFld8Pw/exec" />
+            <input id="endpoint" placeholder="https://script.google.com/.../exec" style="-webkit-user-select:text;user-select:text" />
           </div>
           <button class="btn" id="btnPing">Ping</button>
         </div>
@@ -250,12 +254,8 @@
             <label>Discrepancy Email</label>
             <input id="emailMsg" readonly />
           </div>
-          <button class="btn" id="btnSendEmail">Send for this Item</button>
-          <button class="btn warn" id="btnFinalizeSummary">Finalize & Send Summary (CSV)</button>
-        </div>
-        <div>
-          <label class="muted">Notes</label>
-          <div class="muted">Lookup uses <b>Items</b> tab. Label prints 6×4 in landscape. QR encodes <b>UPC|LOCATION|QTY|STATUS</b>. Printing is enabled only after <b>VERIFIED/APPROVED</b>.</div>
+          <button class="btn" id="btnSendEmail">Send</button>
+          <button class="btn warn" id="btnFinalizeSummary">Finalize & Send Summary</button>
         </div>
       </div>
     </section>
@@ -306,6 +306,11 @@
     const $ = s=>document.querySelector(s); const $$ = s=>document.querySelectorAll(s);
     const state = { page:1, subtotal:0, putawayTotal:0, totalCuFt:0, okToSubmit:false, focusedLocationIndex:0, logged:false, canPrint:false };
 
+    // ====================================================================
+    // WAREHOUSE LOCATIONS - Validated list (163 locations)
+    // ====================================================================
+    const VALID_LOCATIONS = ["A-01-1.0-1.0","A-01-1.0-2.0","A-01-2.0-1.0","A-01-2.0-2.0","A-01-3.0-1.0","A-01-3.0-2.0","A-01-4.0-1.0","A-01-4.0-2.0","A-01-5.0-1.0","A-01-5.0-2.0","A-01-FLOOR","B-01-1.0-1.0","B-01-1.0-2.0","B-01-2.0-1.0","B-01-2.0-2.0","B-01-3.0-1.0","B-01-3.0-2.0","B-01-4.0-1.0","B-01-4.0-2.0","B-01-5.0-1.0","B-01-5.0-2.0","B-01-6.0-1.0","B-01-6.0-2.0","B-01-FLOOR","C-01-1.0-1.0","C-01-1.0-2.0","C-01-2.0-1.0","C-01-2.0-2.0","C-01-3.0-1.0","C-01-3.0-2.0","C-01-4.0-1.0","C-01-4.0-2.0","C-01-5.0-1.0","C-01-5.0-2.0","C-01-6.0-1.0","C-01-6.0-2.0","C-01-7.0-1.0","C-01-7.0-2.0","C-01-8.0-1.0","C-01-8.0-2.0","C-01-FLOOR","D-01-1.0-1.0","D-01-1.0-2.0","D-01-2.0-1.0","D-01-2.0-2.0","D-01-3.0-1.0","D-01-3.0-2.0","D-01-4.0-1.0","D-01-4.0-2.0","D-01-FLOOR","E-01-1.0-1.0","E-01-1.0-2.0","E-01-1.0-3.0","E-01-1.0-4.0","E-01-2.0-1.0","E-01-2.0-2.0","E-01-2.0-3.0","E-01-2.0-4.0","E-01-3.0-1.0","E-01-3.0-2.0","E-01-3.0-3.0","E-01-3.0-4.0","E-01-4.0-1.0","E-01-4.0-2.0","E-01-4.0-3.0","E-01-4.0-4.0","E-01-FLOOR","F-01-1.0-1.0","F-01-1.0-2.0","F-01-1.0-3.0","F-01-1.0-4.0","F-01-2.0-1.0","F-01-2.0-2.0","F-01-2.0-3.0","F-01-2.0-4.0","F-01-3.0-1.0","F-01-3.0-2.0","F-01-3.0-3.0","F-01-3.0-4.0","F-01-4.0-1.0","F-01-4.0-2.0","F-01-4.0-3.0","F-01-4.0-4.0","F-01-FLOOR","G-01-1.0-1.0","G-01-1.0-2.0","G-01-2.0-1.0","G-01-2.0-2.0","G-01-3.0-1.0","G-01-3.0-2.0","G-01-4.0-1.0","G-01-4.0-2.0","G-01-FLOOR","H-01-1.0-1.0","H-01-1.0-2.0","H-01-2.0-1.0","H-01-2.0-2.0","H-01-3.0-1.0","H-01-3.0-2.0","H-01-4.0-1.0","H-01-4.0-2.0","H-01-5.0-1.0","H-01-5.0-2.0","H-01-FLOOR","I-01-1.0-1.0","I-01-1.0-2.0","I-01-FLOOR","J-01-1.0-1.0","J-01-1.0-2.0","J-01-1.0-3.0","J-01-1.0-4.0","J-01-1.0-5.0","J-01-2.0-1.0","J-01-2.0-2.0","J-01-2.0-3.0","J-01-2.0-4.0","J-01-2.0-5.0","J-01-3.0-1.0","J-01-3.0-2.0","J-01-3.0-3.0","J-01-3.0-4.0","J-01-3.0-5.0","J-01-4.0-1.0","J-01-4.0-2.0","J-01-4.0-3.0","J-01-4.0-4.0","J-01-4.0-5.0","J-01-5.0-1.0","J-01-5.0-2.0","J-01-5.0-3.0","J-01-5.0-4.0","J-01-5.0-5.0","J-01-FLOOR","J-02-1.0-1.0","J-02-1.0-2.0","J-02-1.0-3.0","J-02-1.0-4.0","J-02-1.0-5.0","J-02-2.0-1.0","J-02-2.0-2.0","J-02-2.0-3.0","J-02-2.0-4.0","J-02-2.0-5.0","J-02-3.0-1.0","J-02-3.0-2.0","J-02-3.0-3.0","J-02-3.0-4.0","J-02-3.0-5.0","J-02-4.0-1.0","J-02-4.0-2.0","J-02-4.0-3.0","J-02-4.0-4.0","J-02-4.0-5.0","J-02-5.0-1.0","J-02-5.0-2.0","J-02-5.0-3.0","J-02-5.0-4.0","J-02-5.0-5.0","J-02-FLOOR","L-01-1.0-1.0","L-01-1.0-2.0","L-01-FLOOR","L-02-1.0-1.0","L-02-1.0-2.0","L-02-FLOOR"];
+
     (function init(){
       const savedUser = localStorage.getItem('sma_user') || '';
       const endpoint = localStorage.getItem('sma_endpoint') || 'https://script.google.com/macros/s/AKfycbypXvTh1R3E1dzurqothXHWWgu269i3ToJKUS7Xi5tLRE56s6den-O8h7E_2D4CFld8Pw/exec';
@@ -355,9 +360,9 @@
           <div><label>Weight (lb)</label><input data-bs="${i}" class="bs_wt" type="number" step="0.01" min="0" value="" disabled></div>
         </div>
         <div class="grid g4" style="margin-top:6px">
-          <div><label>L (in)</label><input data-bs="${i}" class="bs_l" type="number" step="0.01" min="0" value="" disabled></div>
-          <div><label>W (in)</label><input data-bs="${i}" class="bs_w" type="number" step="0.01" min="0" value="" disabled></div>
-          <div><label>H (in)</label><input data-bs="${i}" class="bs_h" type="number" step="0.01" min="0" value="" disabled></div>
+          <div><label>L (in)</label><input data-bs="${i}" class="bs_l" type="number" step="0.01" min="0" value="" disabled style="-webkit-appearance:none;appearance:none"></div>
+          <div><label>W (in)</label><input data-bs="${i}" class="bs_w" type="number" step="0.01" min="0" value="" disabled style="-webkit-appearance:none;appearance:none"></div>
+          <div><label>H (in)</label><input data-bs="${i}" class="bs_h" type="number" step="0.01" min="0" value="" disabled style="-webkit-appearance:none;appearance:none"></div>
           <div><label>Cu Ft (auto)</label><input data-bs="${i}" class="bs_cuft" type="number" readonly value="0" style="background:#1b2232"></div>
         </div>`; boxStyles.appendChild(el); }
 
@@ -424,35 +429,58 @@
       if(quaggaActive) return; 
       $('#upcScanner').style.display='flex'; 
       console.log('Starting UPC scan with camera:', currentFacingMode);
+      
+      // Use Quagga with proper initialization
       Quagga.init({ 
         inputStream:{ 
           type:'LiveStream', 
           target:document.querySelector('#upcVideo'), 
           constraints:{ 
-            width: { min: 640 },
-            height: { min: 480 },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
             facingMode: currentFacingMode
           } 
         }, 
         decoder:{ 
-          readers:['upc_reader','upc_e_reader','code_128_reader','ean_reader','ean_8_reader','code_39_reader'] 
+          readers:['upc_reader','upc_e_reader','code_128_reader','ean_reader','ean_8_reader','code_39_reader'],
+          debug:{ showCanvas: false, showPatternOrigin: false, drawBoundingBox: false }
         }, 
-        locate:true 
+        locate:true,
+        multiple:false
       }, err=>{ 
         if(err){ 
-          console.error('Quagga error:', err);
-          alert('Camera failed: '+err.message+'\n\nCheck: 1) Camera permission 2) HTTPS/localhost 3) Camera not in use'); 
-          stopUPCScan(); 
+          console.error('Quagga init error:', err);
+          $('#upcScanner').style.display='none';
+          alert('Camera error. Make sure:\n1) Camera permission is granted\n2) Page is using HTTPS or localhost\n3) No other app is using camera'); 
           return; 
         } 
-        console.log('Quagga started');
+        console.log('Quagga initialized successfully');
         Quagga.start(); 
         quaggaActive=true; 
       }); 
+      
       Quagga.onDetected(onUPCDetected); 
     }
-    function stopUPCScan(){ if(quaggaActive){ Quagga.stop(); quaggaActive=false; } $('#upcScanner').style.display='none'; Quagga.offDetected(onUPCDetected); }
-    function onUPCDetected(res){ const code=res?.codeResult?.code; if(!code) return; if(!/^\d{6,14}$/.test(code)) return; beep(); $('#upc').value=code; stopUPCScan(); lookupUPC(code); }
+    
+    function stopUPCScan(){ 
+      if(quaggaActive){ 
+        Quagga.stop(); 
+        Quagga.offDetected(onUPCDetected);
+        quaggaActive=false; 
+      } 
+      $('#upcScanner').style.display='none'; 
+    }
+    
+    function onUPCDetected(res){ 
+      const code=res?.codeResult?.code; 
+      if(!code) return; 
+      if(!/^\d{6,14}$/.test(code)) return; 
+      beep(); 
+      $('#upc').value=code; 
+      stopUPCScan(); 
+      lookupUPC(code); 
+    }
+    
     $('#btnScanUPC').addEventListener('click', ()=>{ quaggaActive?stopUPCScan():startUPCScan(); });
     $('#btnGenUPC').addEventListener('click', ()=>{ const rnd=Math.floor(1e11+Math.random()*9e11).toString(); $('#upc').value=rnd; lookupUPC(rnd); });
 
@@ -463,14 +491,79 @@
         const row=document.createElement('div'); 
         row.className='row'; 
         row.style.gap='10px'; 
-        row.innerHTML=`
-          <div style="flex:2"><label>Location ${i+1} (scan QR or type)</label><input class="loc_code" data-i="${i}" placeholder="ZONE-AISLE-RACK-SHELF-BIN" disabled/></div>
-          <div style="flex:1"><label>Qty</label><input class="loc_qty" data-i="${i}" type="number" min="0" step="1" value="0" disabled/></div>`; 
+        
+        // Location input with datalist for validation
+        const locInput = document.createElement('input');
+        locInput.className = 'loc_code';
+        locInput.setAttribute('data-i', i);
+        locInput.placeholder = 'ZONE-AISLE-RACK-SHELF or ZONE-AISLE-FLOOR';
+        locInput.disabled = true;
+        locInput.setAttribute('list', `locationList${i}`);
+        locInput.style.flex = '2';
+        
+        // Datalist for autocomplete
+        const datalist = document.createElement('datalist');
+        datalist.id = `locationList${i}`;
+        VALID_LOCATIONS.forEach(loc => {
+          const option = document.createElement('option');
+          option.value = loc;
+          datalist.appendChild(option);
+        });
+        
+        // Qty input
+        const qtyInput = document.createElement('input');
+        qtyInput.className = 'loc_qty';
+        qtyInput.setAttribute('data-i', i);
+        qtyInput.type = 'number';
+        qtyInput.min = '0';
+        qtyInput.step = '1';
+        qtyInput.value = '0';
+        qtyInput.disabled = true;
+        qtyInput.style.flex = '1';
+        
+        // Location label
+        const locLabel = document.createElement('label');
+        locLabel.textContent = `Location ${i+1}`;
+        locLabel.style.marginBottom = '4px';
+        
+        // Qty label
+        const qtyLabel = document.createElement('label');
+        qtyLabel.textContent = 'Qty';
+        qtyLabel.style.marginBottom = '4px';
+        
+        // Location div
+        const locDiv = document.createElement('div');
+        locDiv.style.flex = '2';
+        locDiv.appendChild(locLabel);
+        locDiv.appendChild(locInput);
+        locDiv.appendChild(datalist);
+        
+        // Qty div
+        const qtyDiv = document.createElement('div');
+        qtyDiv.style.flex = '1';
+        qtyDiv.appendChild(qtyLabel);
+        qtyDiv.appendChild(qtyInput);
+        
+        row.appendChild(locDiv);
+        row.appendChild(qtyDiv);
         locs.appendChild(row);
-      } 
-      locs.addEventListener('focusin', e=>{ if(e.target.classList.contains('loc_code')) state.focusedLocationIndex=+e.target.getAttribute('data-i'); }); 
-      locs.addEventListener('input', recalcPutawayTotal); 
+        
+        // Validation on change
+        locInput.addEventListener('change', ()=> {
+          const value = locInput.value.toUpperCase();
+          if (value && !VALID_LOCATIONS.includes(value)) {
+            alert(`⚠️ Invalid location!\n\nValid format:\nZONE-AISLE-RACK-SHELF\nor\nZONE-AISLE-FLOOR\n\nExample: A-01-1.0-1.0`);
+            locInput.value = '';
+            locInput.style.borderColor = '#ef4444';
+            setTimeout(() => { locInput.style.borderColor = '#324156'; }, 2000);
+          }
+        });
+        
+        locInput.addEventListener('focusin', ()=> { state.focusedLocationIndex=i; }); 
+        qtyInput.addEventListener('input', recalcPutawayTotal); 
+      }
     }
+    
     function recalcPutawayTotal(){ 
       let t=0; 
       document.querySelectorAll('.loc_qty').forEach(q=> t+= +q.value||0 ); 
@@ -481,8 +574,14 @@
     buildLocations();
 
     $('#btnMoveAll').addEventListener('click', () => {
+      const firstLocCode = document.querySelector('.loc_code[data-i="0"]');
       const firstLocQty = document.querySelector('.loc_qty[data-i="0"]');
-      if (firstLocQty) {
+      if (firstLocCode && firstLocQty) {
+        if (!firstLocCode.value) {
+          alert('Please enter a location for Location 1 first');
+          firstLocCode.focus();
+          return;
+        }
         firstLocQty.value = state.subtotal;
         document.querySelectorAll('.loc_qty').forEach((el, idx) => {
           if (idx > 0) el.value = '0';
@@ -503,7 +602,7 @@
         qrActive=true; 
         scanLoop(); 
       }catch(err){ 
-        alert('QR camera error: '+err.message); 
+        alert('QR camera error: '+err.message+'\n\nMake sure camera permission is granted'); 
         stopQRScan(); 
       } 
     }
@@ -532,7 +631,8 @@
       beep(); 
       const input=document.querySelector(`.loc_code[data-i="${state.focusedLocationIndex}"]`); 
       if(input){ 
-        input.value=text; 
+        input.value=text.toUpperCase(); 
+        input.dispatchEvent(new Event('change'));
       } 
       stopQRScan(); 
     }
@@ -605,8 +705,7 @@
     function resetForNext(){ 
       ['upc','brand','gender','desc','coo','cd','expectedQty','enteredQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{
         const el=$('#'+id); 
-        if(el) el.value='';
-      }); 
+        if(el) el.value='';}); 
       document.querySelectorAll('.bs_boxes,.bs_qty').forEach(el=>el.value='0'); 
       document.querySelectorAll('.bs_pcs,.bs_cuft').forEach(el=>el.value='0'); 
       document.querySelectorAll('.bs_wt,.bs_l,.bs_w,.bs_h').forEach(el=>el.value=''); 
@@ -727,10 +826,6 @@
     $('#btnPrintLabel').addEventListener('click', renderLabel);
     recalcSubtotal(); 
     updateOkToSubmit();
-  </script>
-  
-  <script>
-    function closeLabel(){ document.getElementById('labelSheet').style.display='none'; }
   </script>
 </body>
 </html>
