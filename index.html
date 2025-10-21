@@ -70,7 +70,7 @@
         <span id="loginLock" class="muted">(locked until login)</span>
       </div>
       <div class="pill">Sheet: <span id="sheetIdDisplay">—</span></div>
-      <div class="pill">Camera: <span>Front</span></div>
+      <div class="pill">Camera: <span id="camLabel">Front</span></div>
     </div>
 
     <section id="page1" class="page">
@@ -83,6 +83,7 @@
         <div class="actions" style="align-items:end">
           <button class="btn primary" id="btnScanUPC" disabled>Scan UPC/Barcode</button>
           <button class="btn ghost" id="btnGenUPC" disabled>Generate UPC</button>
+          <button class="btn" id="btnToggleCam">Front</button>
         </div>
         <div>
           <label>Sheet ID</label>
@@ -126,10 +127,10 @@
 
       <h3>Item Weight &amp; Dimensions</h3>
       <div class="grid g4">
-        <div><label>Item Weight (lb)</label><input id="itemWeight" type="number" step="0.01" min="0" disabled/></div>
-        <div><label>Item L (in)</label><input id="itemL" type="number" step="0.01" min="0" disabled/></div>
-        <div><label>Item W (in)</label><input id="itemW" type="number" step="0.01" min="0" disabled/></div>
-        <div><label>Item H (in)</label><input id="itemH" type="number" step="0.01" min="0" disabled/></div>
+        <div><label>Item Weight (lb)</label><input id="itemWeight" type="number" step="0.01" min="0" placeholder="lbs"/></div>
+        <div><label>Item L (in)</label><input id="itemL" type="number" step="0.01" min="0" placeholder="inches"/></div>
+        <div><label>Item W (in)</label><input id="itemW" type="number" step="0.01" min="0" placeholder="inches"/></div>
+        <div><label>Item H (in)</label><input id="itemH" type="number" step="0.01" min="0" placeholder="inches"/></div>
       </div>
 
       <h3>Box Breakdown (Styles 1–4)</h3>
@@ -276,6 +277,22 @@
       if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
     })();
 
+    // ==========================================================================
+    // CAMERA TOGGLE (ADDED FIX)
+    // ==========================================================================
+    let currentFacingMode = 'environment';
+    function toggleCam() {
+      currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+      const btnText = currentFacingMode === 'environment' ? 'Front' : 'Back';
+      const toggleBtn = document.getElementById('btnToggleCam');
+      const camLabel = document.getElementById('camLabel');
+      if (toggleBtn) toggleBtn.textContent = btnText;
+      if (camLabel) camLabel.textContent = 'Camera: ' + btnText;
+      if (quaggaActive) { stopUPCScan(); setTimeout(() => startUPCScan(), 100); }
+    }
+    const toggleCamBtn = document.getElementById('btnToggleCam');
+    if (toggleCamBtn) { toggleCamBtn.addEventListener('click', toggleCam); }
+
     function showUnlock(is){ state.logged=!!is; $('#loginLock').textContent=is?'(ready)':'(locked until login)';
       ['upc','brand','gender','desc','coo','cd','expectedQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{ const el=$('#'+id); if(el) el.disabled=!is; });
       ['btnScanUPC','btnGenUPC','btnCheck','toPage2','btnScanLocation','btnSubmitNext'].forEach(id=>{ const b=$('#'+id); if(b) b.disabled=!is; }); }
@@ -318,7 +335,7 @@
     function beep(){ const a=$('#beep'); a.currentTime=0; a.play().catch(()=>{}); }
 
     // UPC Scan front camera
-    let quaggaActive=false; function startUPCScan(){ if(quaggaActive) return; $('#upcScanner').style.display='flex'; Quagga.init({ inputStream:{ type:'LiveStream', target:document.querySelector('#upcVideo'), constraints:{ facingMode:'user' } }, decoder:{ readers:['upc_reader','upc_e_reader','code_128_reader','ean_reader','ean_8_reader','code_39_reader'] }, locate:true }, err=>{ if(err){ alert('Camera init failed: '+err.message); stopUPCScan(); return; } Quagga.start(); quaggaActive=true; }); Quagga.onDetected(onUPCDetected); }
+    let quaggaActive=false; function startUPCScan(){ if(quaggaActive) return; $('#upcScanner').style.display='flex'; Quagga.init({ inputStream:{ type:'LiveStream', target:document.querySelector('#upcVideo'), constraints:{ facingMode:currentFacingMode } }, decoder:{ readers:['upc_reader','upc_e_reader','code_128_reader','ean_reader','ean_8_reader','code_39_reader'] }, locate:true }, err=>{ if(err){ alert('Camera init failed: '+err.message); stopUPCScan(); return; } Quagga.start(); quaggaActive=true; }); Quagga.onDetected(onUPCDetected); }
     function stopUPCScan(){ if(quaggaActive){ Quagga.stop(); quaggaActive=false; } $('#upcScanner').style.display='none'; Quagga.offDetected(onUPCDetected); }
     function onUPCDetected(res){ const code=res?.codeResult?.code; if(!code) return; if(!/^\d{6,14}$/.test(code)) return; beep(); $('#upc').value=code; stopUPCScan(); lookupUPC(code); }
     $('#btnScanUPC').addEventListener('click', ()=>{ quaggaActive?stopUPCScan():startUPCScan(); });
@@ -335,7 +352,7 @@
     buildLocations();
 
     // QR Scan front camera
-    let qrStream=null; let qrActive=false; async function startQRScan(){ try{ $('#qrScanner').style.display='flex'; const constraints={ video:{ facingMode:'user' } }; const video=document.getElementById('qrVideo'); qrStream = await navigator.mediaDevices.getUserMedia(constraints); video.srcObject=qrStream; await video.play(); qrActive=true; scanLoop(); }catch(err){ alert('QR camera error: '+err.message); stopQRScan(); } }
+    let qrStream=null; let qrActive=false; async function startQRScan(){ try{ $('#qrScanner').style.display='flex'; const constraints={ video:{ facingMode:currentFacingMode } }; const video=document.getElementById('qrVideo'); qrStream = await navigator.mediaDevices.getUserMedia(constraints); video.srcObject=qrStream; await video.play(); qrActive=true; scanLoop(); }catch(err){ alert('QR camera error: '+err.message); stopQRScan(); } }
     function stopQRScan(){ qrActive=false; if(qrStream){ qrStream.getTracks().forEach(t=>t.stop()); qrStream=null; } $('#qrScanner').style.display='none'; }
     async function scanLoop(){ const reader=new ZXingBrowser.BrowserMultiFormatReader(); const video=document.getElementById('qrVideo'); while(qrActive){ try{ const result=await reader.decodeFromVideoElement(video); if(result?.text){ onQRDetected(result.text); } }catch(e){} await new Promise(r=>setTimeout(r,200)); } }
     function onQRDetected(text){ beep(); const input=document.querySelector(`.loc_code[data-i="${state.focusedLocationIndex}"]`); if(input){ input.value=text; } stopQRScan(); }
@@ -377,7 +394,7 @@
     function firstLocation(){ const code=(document.querySelector('.loc_code')?.value||'').trim(); return code || '—'; }
     function renderLabel(){ const upc=($('#upc').value||'').trim(); if(!upc){ alert('UPC missing'); return; } const brand=$('#brand').value||''; const gender=$('#gender').value||''; const desc=$('#desc').value||''; const coo=$('#coo').value||''; const total=state.subtotal||0; const loc=firstLocation(); const statusText = state.canPrint ? 'VERIFIED' : 'PENDING';
       $('#labelLoc').textContent = loc ? `LOCATION ${loc}` : 'LOCATION —';
-      $('#labelItemNo').textContent = upc; // UPC as item number unless RISONA ITEM NO is provided
+      $('#labelItemNo').textContent = upc;
       $('#labelBrand').textContent = brand; $('#labelGender').textContent = gender; $('#labelCOO').textContent = coo; $('#labelTotal').textContent = total; $('#labelBreakdown').textContent = computeBreakdown(); $('#labelUPC').textContent = upc;
       $('#itemDesc').textContent = desc || '—';
       try{ JsBarcode('#barcode', upc, {format:'CODE128', width:2, height:60, displayValue:false, margin:0}); }catch(e){ console.log(e); }
@@ -390,7 +407,6 @@
     recalcSubtotal(); updateOkToSubmit();
   </script>
   
-  <!-- Helpers to close label overlay -->
   <script>
     function closeLabel(){ document.getElementById('labelSheet').style.display='none'; }
   </script>
