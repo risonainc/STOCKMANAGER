@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>STOCKMANAGERAPP v1.0.1-CLEAN</title>
+  <title>STOCKMANAGERAPP v1.0.2-IMPROVED-SCANNER</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -50,7 +50,7 @@
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v1.0.1-CLEAN</small></h1>
+    <h1>STOCKMANAGERAPP <small>v1.0.2-IMPROVED-SCANNER</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -483,7 +483,7 @@
     async function startBarcodeDetection() {
       const video = document.getElementById('upcVideo');
       const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext('2d', { willReadFrequently: true });
       const reader = new ZXingBrowser.BrowserMultiFormatReader();
       
       const detectionLoop = async () => {
@@ -496,25 +496,33 @@
           if (canvas.width > 0 && canvas.height > 0) {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            const result = await reader.decodeFromCanvas(canvas);
-            if (result && result.text) {
-              const code = result.text;
-              console.log('Barcode detected:', code);
+            try {
+              const result = await Promise.race([
+                reader.decodeFromCanvas(canvas),
+                new Promise((_, reject) => setTimeout(() => reject('timeout'), 100))
+              ]);
               
-              if (/^\d{6,14}$/.test(code) || /^[0-9A-Za-z]+$/.test(code)) {
-                beep();
-                $('#upc').value = code;
-                stopUPCScan();
-                lookupUPC(code);
-                return;
+              if (result && result.text) {
+                const code = result.text.trim();
+                console.log('Barcode detected:', code);
+                
+                if (/^\d{6,20}$/.test(code) || /^[0-9A-Za-z\-\*]+$/.test(code)) {
+                  beep();
+                  $('#upc').value = code;
+                  stopUPCScan();
+                  lookupUPC(code);
+                  return;
+                }
               }
+            } catch (e) {
+              // Silently continue
             }
           }
         } catch (e) {
-          // Silently continue
+          console.log('Detection error:', e);
         }
         
-        setTimeout(detectionLoop, 33);
+        setTimeout(detectionLoop, 66);
       };
       
       detectionLoop();
@@ -652,19 +660,49 @@
       } 
       $('#qrScanner').style.display='none'; 
     }
-    async function scanQRLoop(){ 
-      const reader=new ZXingBrowser.BrowserMultiFormatReader(); 
-      const video=document.getElementById('qrVideo'); 
-      while(qrActive){ 
-        try{ 
-          const result=await reader.decodeFromVideoElement(video); 
-          if(result?.text){ 
-            onQRDetected(result.text); 
-          } 
-        }catch(e){} 
-        await new Promise(r=>setTimeout(r,200)); 
-      } 
+
+    async function scanQRLoop() { 
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      const reader = new ZXingBrowser.BrowserMultiFormatReader();
+      const video = document.getElementById('qrVideo'); 
+      
+      const detectionLoop = async () => {
+        if (!qrActive) return; 
+        
+        try {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          
+          if (canvas.width > 0 && canvas.height > 0) {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            try {
+              const result = await Promise.race([
+                reader.decodeFromCanvas(canvas),
+                new Promise((_, reject) => setTimeout(() => reject('timeout'), 100))
+              ]);
+              
+              if (result && result.text) {
+                const code = result.text.trim();
+                console.log('QR Code detected:', code);
+                onQRDetected(code);
+                return;
+              }
+            } catch (e) {
+              // Silently continue
+            }
+          }
+        } catch (e) {
+          console.log('QR Detection error:', e);
+        }
+        
+        setTimeout(detectionLoop, 66);
+      };
+      
+      detectionLoop();
     }
+
     function onQRDetected(text){ 
       beep(); 
       const input=document.querySelector(`.loc_code[data-i="${state.focusedLocationIndex}"]`); 
