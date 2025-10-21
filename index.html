@@ -192,7 +192,7 @@
         <div class="row" style="gap:8px;align-items:end">
           <div>
             <label>Apps Script Endpoint URL</label>
-            <input id="endpoint" placeholder="https://script.google.com/macros/s/.../exec" />
+            <input id="endpoint" placeholder="https://script.google.com/macros/s/AKfycbypXvTh1R3E1dzurqothXHWWgu269i3ToJKUS7Xi5tLRE56s6den-O8h7E_2D4CFld8Pw/exec" />
           </div>
           <button class="btn" id="btnPing">Ping</button>
         </div>
@@ -270,7 +270,7 @@
 
     (function init(){
       const savedUser = localStorage.getItem('sma_user') || '';
-      const endpoint = localStorage.getItem('sma_endpoint') || 'https://script.google.com/macros/s/AKfycbxxC1OEkRqyY3q39LivJhMVZ-f7wiL9cx-RMzE2yqhj0QKIfs3hlHucBovmgUcev8X0gA/exec';
+      const endpoint = localStorage.getItem('sma_endpoint') || 'https://script.google.com/macros/s/AKfycbypXvTh1R3E1dzurqothXHWWgu269i3ToJKUS7Xi5tLRE56s6den-O8h7E_2D4CFld8Pw/exec';
       const sheet = localStorage.getItem('sma_sheet') || '1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA';
       $('#endpoint').value = endpoint; $('#sheetId').value = sheet; $('#sheetIdDisplay').textContent = sheet ? 'Linked':'—';
       if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
