@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>STOCKMANAGERAPP · Mobile Inventory v1.0.0-FINAL</title>
+  <title>STOCKMANAGERAPP v1.0.1-CLEAN</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -50,7 +50,7 @@
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP · Mobile Inventory <small>v1.0.0‑FINAL</small></h1>
+    <h1>STOCKMANAGERAPP <small>v1.0.1-CLEAN</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -297,7 +297,6 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
   <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -306,9 +305,6 @@
     const $ = s=>document.querySelector(s); const $$ = s=>document.querySelectorAll(s);
     const state = { page:1, subtotal:0, putawayTotal:0, totalCuFt:0, okToSubmit:false, focusedLocationIndex:0, logged:false, canPrint:false };
 
-    // ====================================================================
-    // WAREHOUSE LOCATIONS - Validated list (163 locations)
-    // ====================================================================
     const VALID_LOCATIONS = ["A-01-1.0-1.0","A-01-1.0-2.0","A-01-2.0-1.0","A-01-2.0-2.0","A-01-3.0-1.0","A-01-3.0-2.0","A-01-4.0-1.0","A-01-4.0-2.0","A-01-5.0-1.0","A-01-5.0-2.0","A-01-FLOOR","B-01-1.0-1.0","B-01-1.0-2.0","B-01-2.0-1.0","B-01-2.0-2.0","B-01-3.0-1.0","B-01-3.0-2.0","B-01-4.0-1.0","B-01-4.0-2.0","B-01-5.0-1.0","B-01-5.0-2.0","B-01-6.0-1.0","B-01-6.0-2.0","B-01-FLOOR","C-01-1.0-1.0","C-01-1.0-2.0","C-01-2.0-1.0","C-01-2.0-2.0","C-01-3.0-1.0","C-01-3.0-2.0","C-01-4.0-1.0","C-01-4.0-2.0","C-01-5.0-1.0","C-01-5.0-2.0","C-01-6.0-1.0","C-01-6.0-2.0","C-01-7.0-1.0","C-01-7.0-2.0","C-01-8.0-1.0","C-01-8.0-2.0","C-01-FLOOR","D-01-1.0-1.0","D-01-1.0-2.0","D-01-2.0-1.0","D-01-2.0-2.0","D-01-3.0-1.0","D-01-3.0-2.0","D-01-4.0-1.0","D-01-4.0-2.0","D-01-FLOOR","E-01-1.0-1.0","E-01-1.0-2.0","E-01-1.0-3.0","E-01-1.0-4.0","E-01-2.0-1.0","E-01-2.0-2.0","E-01-2.0-3.0","E-01-2.0-4.0","E-01-3.0-1.0","E-01-3.0-2.0","E-01-3.0-3.0","E-01-3.0-4.0","E-01-4.0-1.0","E-01-4.0-2.0","E-01-4.0-3.0","E-01-4.0-4.0","E-01-FLOOR","F-01-1.0-1.0","F-01-1.0-2.0","F-01-1.0-3.0","F-01-1.0-4.0","F-01-2.0-1.0","F-01-2.0-2.0","F-01-2.0-3.0","F-01-2.0-4.0","F-01-3.0-1.0","F-01-3.0-2.0","F-01-3.0-3.0","F-01-3.0-4.0","F-01-4.0-1.0","F-01-4.0-2.0","F-01-4.0-3.0","F-01-4.0-4.0","F-01-FLOOR","G-01-1.0-1.0","G-01-1.0-2.0","G-01-2.0-1.0","G-01-2.0-2.0","G-01-3.0-1.0","G-01-3.0-2.0","G-01-4.0-1.0","G-01-4.0-2.0","G-01-FLOOR","H-01-1.0-1.0","H-01-1.0-2.0","H-01-2.0-1.0","H-01-2.0-2.0","H-01-3.0-1.0","H-01-3.0-2.0","H-01-4.0-1.0","H-01-4.0-2.0","H-01-5.0-1.0","H-01-5.0-2.0","H-01-FLOOR","I-01-1.0-1.0","I-01-1.0-2.0","I-01-FLOOR","J-01-1.0-1.0","J-01-1.0-2.0","J-01-1.0-3.0","J-01-1.0-4.0","J-01-1.0-5.0","J-01-2.0-1.0","J-01-2.0-2.0","J-01-2.0-3.0","J-01-2.0-4.0","J-01-2.0-5.0","J-01-3.0-1.0","J-01-3.0-2.0","J-01-3.0-3.0","J-01-3.0-4.0","J-01-3.0-5.0","J-01-4.0-1.0","J-01-4.0-2.0","J-01-4.0-3.0","J-01-4.0-4.0","J-01-4.0-5.0","J-01-5.0-1.0","J-01-5.0-2.0","J-01-5.0-3.0","J-01-5.0-4.0","J-01-5.0-5.0","J-01-FLOOR","J-02-1.0-1.0","J-02-1.0-2.0","J-02-1.0-3.0","J-02-1.0-4.0","J-02-1.0-5.0","J-02-2.0-1.0","J-02-2.0-2.0","J-02-2.0-3.0","J-02-2.0-4.0","J-02-2.0-5.0","J-02-3.0-1.0","J-02-3.0-2.0","J-02-3.0-3.0","J-02-3.0-4.0","J-02-3.0-5.0","J-02-4.0-1.0","J-02-4.0-2.0","J-02-4.0-3.0","J-02-4.0-4.0","J-02-4.0-5.0","J-02-5.0-1.0","J-02-5.0-2.0","J-02-5.0-3.0","J-02-5.0-4.0","J-02-5.0-5.0","J-02-FLOOR","L-01-1.0-1.0","L-01-1.0-2.0","L-01-FLOOR","L-02-1.0-1.0","L-02-1.0-2.0","L-02-FLOOR"];
 
     (function init(){
@@ -319,7 +315,7 @@
       if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
     })();
 
-    let currentFacingMode = 'user'; // Back camera default
+    let currentFacingMode = 'user';
 
     function toggleCam() {
       currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
@@ -328,7 +324,7 @@
       const camLabel = document.getElementById('camLabel');
       if (toggleBtn) toggleBtn.textContent = btnText;
       if (camLabel) camLabel.textContent = 'Camera: ' + btnText;
-      if (quaggaActive) { stopUPCScan(); setTimeout(() => startUPCScan(), 100); }
+      if (scannerActive) { stopUPCScan(); setTimeout(() => startUPCScan(), 100); }
     }
     const toggleCamBtn = document.getElementById('btnToggleCam');
     if (toggleCamBtn) { toggleCamBtn.addEventListener('click', toggleCam); }
@@ -420,69 +416,119 @@
         $('#putawaySummaryBreakdown').textContent = breakdown.length ? breakdown.join(' + ') : 'No boxes entered';
       } 
     }
-    $('#toPage2').addEventListener('click', ()=>goto(2)); $('#backTo1').addEventListener('click', ()=>goto(1));
+    $('#toPage2').addEventListener('click', ()=>goto(2)); 
+    $('#backTo1').addEventListener('click', ()=>goto(1));
 
     function beep(){ const a=$('#beep'); a.currentTime=0; a.play().catch(()=>{}); }
 
-    let quaggaActive=false; 
-    function startUPCScan(){ 
-      if(quaggaActive) return; 
-      $('#upcScanner').style.display='flex'; 
-      console.log('Starting UPC scan with camera:', currentFacingMode);
+    let scannerActive = false;
+
+    async function startUPCScan() {
+      if(scannerActive) return;
       
-      // Use Quagga with proper initialization
-      Quagga.init({ 
-        inputStream:{ 
-          type:'LiveStream', 
-          target:document.querySelector('#upcVideo'), 
-          constraints:{ 
+      $('#upcScanner').style.display='flex';
+      const video = document.getElementById('upcVideo');
+      
+      try {
+        console.log('Requesting camera access...');
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: currentFacingMode,
             width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: currentFacingMode
-          } 
-        }, 
-        decoder:{ 
-          readers:['upc_reader','upc_e_reader','code_128_reader','ean_reader','ean_8_reader','code_39_reader'],
-          debug:{ showCanvas: false, showPatternOrigin: false, drawBoundingBox: false }
-        }, 
-        locate:true,
-        multiple:false
-      }, err=>{ 
-        if(err){ 
-          console.error('Quagga init error:', err);
-          $('#upcScanner').style.display='none';
-          alert('Camera error. Make sure:\n1) Camera permission is granted\n2) Page is using HTTPS or localhost\n3) No other app is using camera'); 
-          return; 
-        } 
-        console.log('Quagga initialized successfully');
-        Quagga.start(); 
-        quaggaActive=true; 
-      }); 
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+        
+        video.srcObject = stream;
+        await video.play();
+        scannerActive = true;
+        console.log('Camera started successfully');
+        
+        startBarcodeDetection();
+        
+      } catch (err) {
+        console.error('Camera error:', err);
+        $('#upcScanner').style.display='none';
+        
+        let message = 'Camera access failed.\n\n';
+        if (err.name === 'NotAllowedError') {
+          message += 'Permission denied. Please allow camera access in browser settings.';
+        } else if (err.name === 'NotFoundError') {
+          message += 'No camera found on this device.';
+        } else if (err.name === 'NotReadableError') {
+          message += 'Camera is being used by another app. Close it and try again.';
+        } else {
+          message += err.message;
+        }
+        
+        alert(message);
+      }
+    }
+
+    function stopUPCScan() {
+      if (!scannerActive) return;
       
-      Quagga.onDetected(onUPCDetected); 
+      const video = document.getElementById('upcVideo');
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      
+      scannerActive = false;
+      $('#upcScanner').style.display='none';
+      console.log('Camera stopped');
     }
-    
-    function stopUPCScan(){ 
-      if(quaggaActive){ 
-        Quagga.stop(); 
-        Quagga.offDetected(onUPCDetected);
-        quaggaActive=false; 
-      } 
-      $('#upcScanner').style.display='none'; 
+
+    async function startBarcodeDetection() {
+      const video = document.getElementById('upcVideo');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const reader = new ZXingBrowser.BrowserMultiFormatReader();
+      
+      const detectionLoop = async () => {
+        if (!scannerActive) return;
+        
+        try {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          
+          if (canvas.width > 0 && canvas.height > 0) {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const result = await reader.decodeFromCanvas(canvas);
+            if (result && result.text) {
+              const code = result.text;
+              console.log('Barcode detected:', code);
+              
+              if (/^\d{6,14}$/.test(code) || /^[0-9A-Za-z]+$/.test(code)) {
+                beep();
+                $('#upc').value = code;
+                stopUPCScan();
+                lookupUPC(code);
+                return;
+              }
+            }
+          }
+        } catch (e) {
+          // Silently continue
+        }
+        
+        setTimeout(detectionLoop, 33);
+      };
+      
+      detectionLoop();
     }
-    
-    function onUPCDetected(res){ 
-      const code=res?.codeResult?.code; 
-      if(!code) return; 
-      if(!/^\d{6,14}$/.test(code)) return; 
-      beep(); 
-      $('#upc').value=code; 
-      stopUPCScan(); 
-      lookupUPC(code); 
-    }
-    
-    $('#btnScanUPC').addEventListener('click', ()=>{ quaggaActive?stopUPCScan():startUPCScan(); });
-    $('#btnGenUPC').addEventListener('click', ()=>{ const rnd=Math.floor(1e11+Math.random()*9e11).toString(); $('#upc').value=rnd; lookupUPC(rnd); });
+
+    $('#btnScanUPC').addEventListener('click', () => {
+      scannerActive ? stopUPCScan() : startUPCScan();
+    });
+
+    $('#btnGenUPC').addEventListener('click', () => {
+      const rnd = Math.floor(1e11 + Math.random() * 9e11).toString();
+      $('#upc').value = rnd;
+      lookupUPC(rnd);
+    });
 
     const locs = $('#locations'); 
     function buildLocations(){ 
@@ -492,7 +538,6 @@
         row.className='row'; 
         row.style.gap='10px'; 
         
-        // Location input with datalist for validation
         const locInput = document.createElement('input');
         locInput.className = 'loc_code';
         locInput.setAttribute('data-i', i);
@@ -501,7 +546,6 @@
         locInput.setAttribute('list', `locationList${i}`);
         locInput.style.flex = '2';
         
-        // Datalist for autocomplete
         const datalist = document.createElement('datalist');
         datalist.id = `locationList${i}`;
         VALID_LOCATIONS.forEach(loc => {
@@ -510,7 +554,6 @@
           datalist.appendChild(option);
         });
         
-        // Qty input
         const qtyInput = document.createElement('input');
         qtyInput.className = 'loc_qty';
         qtyInput.setAttribute('data-i', i);
@@ -521,24 +564,20 @@
         qtyInput.disabled = true;
         qtyInput.style.flex = '1';
         
-        // Location label
         const locLabel = document.createElement('label');
         locLabel.textContent = `Location ${i+1}`;
         locLabel.style.marginBottom = '4px';
         
-        // Qty label
         const qtyLabel = document.createElement('label');
         qtyLabel.textContent = 'Qty';
         qtyLabel.style.marginBottom = '4px';
         
-        // Location div
         const locDiv = document.createElement('div');
         locDiv.style.flex = '2';
         locDiv.appendChild(locLabel);
         locDiv.appendChild(locInput);
         locDiv.appendChild(datalist);
         
-        // Qty div
         const qtyDiv = document.createElement('div');
         qtyDiv.style.flex = '1';
         qtyDiv.appendChild(qtyLabel);
@@ -548,7 +587,6 @@
         row.appendChild(qtyDiv);
         locs.appendChild(row);
         
-        // Validation on change
         locInput.addEventListener('change', ()=> {
           const value = locInput.value.toUpperCase();
           if (value && !VALID_LOCATIONS.includes(value)) {
@@ -600,7 +638,7 @@
         video.srcObject=qrStream; 
         await video.play(); 
         qrActive=true; 
-        scanLoop(); 
+        scanQRLoop(); 
       }catch(err){ 
         alert('QR camera error: '+err.message+'\n\nMake sure camera permission is granted'); 
         stopQRScan(); 
@@ -614,7 +652,7 @@
       } 
       $('#qrScanner').style.display='none'; 
     }
-    async function scanLoop(){ 
+    async function scanQRLoop(){ 
       const reader=new ZXingBrowser.BrowserMultiFormatReader(); 
       const video=document.getElementById('qrVideo'); 
       while(qrActive){ 
@@ -705,7 +743,8 @@
     function resetForNext(){ 
       ['upc','brand','gender','desc','coo','cd','expectedQty','enteredQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{
         const el=$('#'+id); 
-        if(el) el.value='';}); 
+        if(el) el.value='';
+      }); 
       document.querySelectorAll('.bs_boxes,.bs_qty').forEach(el=>el.value='0'); 
       document.querySelectorAll('.bs_pcs,.bs_cuft').forEach(el=>el.value='0'); 
       document.querySelectorAll('.bs_wt,.bs_l,.bs_w,.bs_h').forEach(el=>el.value=''); 
