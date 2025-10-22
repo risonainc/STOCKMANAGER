@@ -329,7 +329,7 @@
       if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
     })();
 
-    let currentFacingMode = 'user'; // 'user' = back on most devices
+    let currentFacingMode = 'environment'; // ✓ FIXED: changed from 'user' to 'environment' for BACK camera
 
     function showUnlock(is){ 
       state.logged=!!is; 
@@ -478,10 +478,17 @@
       const reader = new ZXingBrowser.BrowserMultiFormatReader();
       const hints = new Map();
       hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, [
+        ZXingBrowser.BarcodeFormat.QR_CODE,
         ZXingBrowser.BarcodeFormat.EAN_13,
+        ZXingBrowser.BarcodeFormat.EAN_8,
         ZXingBrowser.BarcodeFormat.UPC_A,
-        ZXingBrowser.BarcodeFormat.CODE_128
+        ZXingBrowser.BarcodeFormat.UPC_E,
+        ZXingBrowser.BarcodeFormat.CODE_128,
+        ZXingBrowser.BarcodeFormat.CODE_39,
+        ZXingBrowser.BarcodeFormat.CODE_93,
+        ZXingBrowser.BarcodeFormat.ITF
       ]);
+      hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
       reader.defaultHints = hints;
 
       let frameCount = 0;
