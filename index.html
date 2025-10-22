@@ -484,228 +484,103 @@
       console.log('Camera stopped');
     }
 
-    async function startBarcodeDetection() {
-      const video = document.getElementById('upcVideo');
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d', { willReadFrequently: true });
-      const reader = new ZXingBrowser.BrowserMultiFormatReader();
+async function startBarcodeDetection() {
+  const video = document.getElementById('upcVideo');
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  const reader = new ZXingBrowser.BrowserMultiFormatReader();
+  
+  let consecutiveFailures = 0;
+  
+  const detectionLoop = async () => {
+    if (!scannerActive) return;
+    
+    try {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       
-      const detectionLoop = async () => {
-        if (!scannerActive) return;
+      if (canvas.width > 0 && canvas.height > 0) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
+        // Try to detect barcode
         try {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+          const result = await Promise.race([
+            reader.decodeFromCanvas(canvas),
+            new Promise((_, reject) => setTimeout(() => reject('timeout'), 100))
+          ]);
           
-          if (canvas.width > 0 && canvas.height > 0) {
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          if (result && result.text) {
+            const code = result.text.trim();
+            console.log('Barcode detected:', code);
             
-            try {
-              const result = await Promise.race([
-                reader.decodeFromCanvas(canvas),
-                new Promise((_, reject) => setTimeout(() => reject('timeout'), 100))
-              ]);
-              
-              if (result && result.text) {
-                const code = result.text.trim();
-                console.log('Barcode detected:', code);
-                
-                if (/^\d{6,20}$/.test(code) || /^[0-9A-Za-z\-\*]+$/.test(code)) {
-                  beep();
-                  $('#upc').value = code;
-                  stopUPCScan();
-                  lookupUPC(code);
-                  return;
-                }
-              }
-            } catch (e) {
-              // Silently continue
+            // Accept UPC/EAN, Code128, Code39, or any numeric code
+            if (/^\d{6,20}$/.test(code) || /^[0-9A-Za-z\-\*]+$/.test(code)) {
+              beep();
+              $('#upc').value = code;
+              stopUPCScan();
+              lookupUPC(code);
+              return;
             }
           }
+          consecutiveFailures = 0;
         } catch (e) {
-          console.log('Detection error:', e);
+          consecutiveFailures++;
+          // Silently continue
         }
-        
-        setTimeout(detectionLoop, 66);
-      };
-      
-      detectionLoop();
-    }
-
-    $('#btnScanUPC').addEventListener('click', () => {
-      scannerActive ? stopUPCScan() : startUPCScan();
-    });
-
-    $('#btnGenUPC').addEventListener('click', () => {
-      const rnd = Math.floor(1e11 + Math.random() * 9e11).toString();
-      $('#upc').value = rnd;
-      lookupUPC(rnd);
-    });
-
-    const locs = $('#locations'); 
-    function buildLocations(){ 
-      locs.innerHTML=''; 
-      for(let i=0;i<9;i++){ 
-        const row=document.createElement('div'); 
-        row.className='row'; 
-        row.style.gap='10px'; 
-        
-        const locInput = document.createElement('input');
-        locInput.className = 'loc_code';
-        locInput.setAttribute('data-i', i);
-        locInput.placeholder = 'ZONE-AISLE-RACK-SHELF or ZONE-AISLE-FLOOR';
-        locInput.disabled = true;
-        locInput.setAttribute('list', `locationList${i}`);
-        locInput.style.flex = '2';
-        
-        const datalist = document.createElement('datalist');
-        datalist.id = `locationList${i}`;
-        VALID_LOCATIONS.forEach(loc => {
-          const option = document.createElement('option');
-          option.value = loc;
-          datalist.appendChild(option);
-        });
-        
-        const qtyInput = document.createElement('input');
-        qtyInput.className = 'loc_qty';
-        qtyInput.setAttribute('data-i', i);
-        qtyInput.type = 'number';
-        qtyInput.min = '0';
-        qtyInput.step = '1';
-        qtyInput.value = '0';
-        qtyInput.disabled = true;
-        qtyInput.style.flex = '1';
-        
-        const locLabel = document.createElement('label');
-        locLabel.textContent = `Location ${i+1}`;
-        locLabel.style.marginBottom = '4px';
-        
-        const qtyLabel = document.createElement('label');
-        qtyLabel.textContent = 'Qty';
-        qtyLabel.style.marginBottom = '4px';
-        
-        const locDiv = document.createElement('div');
-        locDiv.style.flex = '2';
-        locDiv.appendChild(locLabel);
-        locDiv.appendChild(locInput);
-        locDiv.appendChild(datalist);
-        
-        const qtyDiv = document.createElement('div');
-        qtyDiv.style.flex = '1';
-        qtyDiv.appendChild(qtyLabel);
-        qtyDiv.appendChild(qtyInput);
-        
-        row.appendChild(locDiv);
-        row.appendChild(qtyDiv);
-        locs.appendChild(row);
-        
-        locInput.addEventListener('change', ()=> {
-          const value = locInput.value.toUpperCase();
-          if (value && !VALID_LOCATIONS.includes(value)) {
-            alert(`⚠️ Invalid location!\n\nValid format:\nZONE-AISLE-RACK-SHELF\nor\nZONE-AISLE-FLOOR\n\nExample: A-01-1.0-1.0`);
-            locInput.value = '';
-            locInput.style.borderColor = '#ef4444';
-            setTimeout(() => { locInput.style.borderColor = '#324156'; }, 2000);
-          }
-        });
-        
-        locInput.addEventListener('focusin', ()=> { state.focusedLocationIndex=i; }); 
-        qtyInput.addEventListener('input', recalcPutawayTotal); 
       }
+    } catch (e) {
+      console.log('Detection error:', e);
     }
     
-    function recalcPutawayTotal(){ 
-      let t=0; 
-      document.querySelectorAll('.loc_qty').forEach(q=> t+= +q.value||0 ); 
-      state.putawayTotal=t; 
-      $('#putawayTotal').textContent=t; 
-      updateOkToSubmit(); 
-    }
-    buildLocations();
+    // Scan at 15fps (more thorough)
+    setTimeout(detectionLoop, 66);
+  };
+  
+  detectionLoop();
+}
 
-    $('#btnMoveAll').addEventListener('click', () => {
-      const firstLocCode = document.querySelector('.loc_code[data-i="0"]');
-      const firstLocQty = document.querySelector('.loc_qty[data-i="0"]');
-      if (firstLocCode && firstLocQty) {
-        if (!firstLocCode.value) {
-          alert('Please enter a location for Location 1 first');
-          firstLocCode.focus();
-          return;
-        }
-        firstLocQty.value = state.subtotal;
-        document.querySelectorAll('.loc_qty').forEach((el, idx) => {
-          if (idx > 0) el.value = '0';
-        });
-        recalcPutawayTotal();
-      }
-    });
-
-    let qrStream=null; let qrActive=false; 
-    async function startQRScan(){ 
-      try{ 
-        $('#qrScanner').style.display='flex'; 
-        const constraints={ video:{ facingMode:currentFacingMode } }; 
-        const video=document.getElementById('qrVideo'); 
-        qrStream = await navigator.mediaDevices.getUserMedia(constraints); 
-        video.srcObject=qrStream; 
-        await video.play(); 
-        qrActive=true; 
-        scanQRLoop(); 
-      }catch(err){ 
-        alert('QR camera error: '+err.message+'\n\nMake sure camera permission is granted'); 
-        stopQRScan(); 
-      } 
-    }
-    function stopQRScan(){ 
-      qrActive=false; 
-      if(qrStream){ 
-        qrStream.getTracks().forEach(t=>t.stop()); 
-        qrStream=null; 
-      } 
-      $('#qrScanner').style.display='none'; 
-    }
-
-    async function scanQRLoop() { 
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d', { willReadFrequently: true });
-      const reader = new ZXingBrowser.BrowserMultiFormatReader();
-      const video = document.getElementById('qrVideo'); 
+async function scanQRLoop() { 
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  const reader = new ZXingBrowser.BrowserMultiFormatReader();
+  const video = document.getElementById('qrVideo'); 
+  
+  const detectionLoop = async () => {
+    if (!qrActive) return; 
+    
+    try {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       
-      const detectionLoop = async () => {
-        if (!qrActive) return; 
+      if (canvas.width > 0 && canvas.height > 0) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
         try {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+          const result = await Promise.race([
+            reader.decodeFromCanvas(canvas),
+            new Promise((_, reject) => setTimeout(() => reject('timeout'), 100))
+          ]);
           
-          if (canvas.width > 0 && canvas.height > 0) {
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            try {
-              const result = await Promise.race([
-                reader.decodeFromCanvas(canvas),
-                new Promise((_, reject) => setTimeout(() => reject('timeout'), 100))
-              ]);
-              
-              if (result && result.text) {
-                const code = result.text.trim();
-                console.log('QR Code detected:', code);
-                onQRDetected(code);
-                return;
-              }
-            } catch (e) {
-              // Silently continue
-            }
+          if (result && result.text) {
+            const code = result.text.trim();
+            console.log('QR Code detected:', code);
+            onQRDetected(code);
+            return;
           }
         } catch (e) {
-          console.log('QR Detection error:', e);
+          // Silently continue
         }
-        
-        setTimeout(detectionLoop, 66);
-      };
-      
-      detectionLoop();
+      }
+    } catch (e) {
+      console.log('QR Detection error:', e);
     }
+    
+    // Scan at 15fps
+    setTimeout(detectionLoop, 66);
+  };
+  
+  detectionLoop();
+}
 
     function onQRDetected(text){ 
       beep(); 
