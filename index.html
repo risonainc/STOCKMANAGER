@@ -329,17 +329,14 @@
       if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
     })();
 
-    let currentFacingMode = 'environment'; // ✓ FIXED: changed from 'user' to 'environment' for BACK camera
+    let currentFacingMode = 'environment';
 
     function showUnlock(is){ 
       state.logged=!!is; 
       $('#loginLock').textContent=is?'(ready)':'(locked until login)';
       ['upc','brand','gender','desc','coo','cd','expectedQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{ const el=$('#'+id); if(el) el.disabled=!is; });
-      // Make box style fields editable after login
       document.querySelectorAll('.bs_boxes, .bs_qty, .bs_wt, .bs_l, .bs_w, .bs_h').forEach(el => { el.disabled = !is; });
-      // Locations
       document.querySelectorAll('.loc_code, .loc_qty').forEach(el => { el.disabled = !is; });
-      // Buttons
       ['btnScanUPC','btnGenUPC','btnCheck','toPage2','btnScanLocation','btnSubmitNext','btnMoveAll'].forEach(id=>{ const b=$('#'+id); if(b) b.disabled=!is; }); 
     }
 
@@ -424,9 +421,6 @@
 
     function beep(){ const a=$('#beep'); a.currentTime=0; a.play().catch(()=>{}); }
 
-    // ===============================
-    // UPC BARCODE SCANNER (Back cam)
-    // ===============================
     let scannerActive = false;
 
     async function startUPCScan() {
@@ -435,7 +429,7 @@
       const video = document.getElementById('upcVideo');
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact:'environment' } }, // force back if available
+          video: { facingMode: { exact:'environment' } },
           audio: false
         });
         video.srcObject = stream;
@@ -443,7 +437,6 @@
         scannerActive = true;
         startBarcodeDetection();
       } catch (err) {
-        // fallback to generic back camera if 'environment' exact fails
         try{
           const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'environment' },
@@ -501,15 +494,15 @@
           if (canvas.width === 0 || canvas.height === 0) return requestAnimationFrame(loop);
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          if (frameCount % 3 === 0) {
+          if (frameCount % 2 === 0) {
             try{
               const result = await Promise.race([
                 reader.decodeFromCanvas(canvas),
-                new Promise((_, reject)=>setTimeout(()=>reject('timeout'), 120))
+                new Promise((_, reject)=>setTimeout(()=>reject('timeout'), 400))
               ]);
               if (result && result.text) {
                 const code = result.text.trim();
-                if (/^[0-9A-Za-z]{6,20}$/.test(code)) {
+                if (code.length >= 4 && code.length <= 30) {
                   beep();
                   $('#upc').value = code;
                   stopUPCScan();
@@ -517,7 +510,7 @@
                   return;
                 }
               }
-            }catch(_ignore){}
+            }catch(err){ if(frameCount % 30 === 0) console.log('Decode attempt:', err.message || 'no result'); }
           }
         } catch (_ignore) {}
         requestAnimationFrame(loop);
@@ -535,9 +528,6 @@
       lookupUPC(rnd);
     });
 
-    // ===============================
-    // LOCATIONS UI + VALIDATION
-    // ===============================
     const locs = $('#locations'); 
     function buildLocations(){ 
       locs.innerHTML=''; 
@@ -614,7 +604,6 @@
     }
     buildLocations();
 
-    // Move All
     $('#btnMoveAll').addEventListener('click', () => {
       const firstLocCode = document.querySelector('.loc_code[data-i="0"]');
       const firstLocQty = document.querySelector('.loc_qty[data-i="0"]');
@@ -626,9 +615,6 @@
       }
     });
 
-    // ===============================
-    // QR SCANNER (Back cam, QR-only)
-    // ===============================
     let qrStream=null; let qrActive=false; 
     async function startQRScan(){ 
       try{ 
@@ -660,9 +646,11 @@
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
       const reader = new ZXingBrowser.BrowserQRCodeReader();
       const video = document.getElementById('qrVideo'); 
+      let frameCount = 0;
       
       const detectionLoop = async () => {
         if (!qrActive) return; 
+        frameCount++;
         try {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
@@ -671,7 +659,7 @@
             try{
               const result = await Promise.race([
                 reader.decodeFromCanvas(canvas),
-                new Promise((_, reject)=>setTimeout(()=>reject('timeout'), 120))
+                new Promise((_, reject)=>setTimeout(()=>reject('timeout'), 400))
               ]);
               if (result && result.text) {
                 const code = result.text.trim();
@@ -681,7 +669,7 @@
                 stopQRScan();
                 return;
               }
-            }catch(_ignore){}
+            }catch(err){ if(frameCount % 30 === 0) console.log('Decode attempt:', err.message || 'no result'); }
           }
         } catch(_ignore){}
         setTimeout(detectionLoop, 66);
@@ -691,9 +679,6 @@
 
     $('#btnScanLocation').addEventListener('click', ()=>{ qrActive?stopQRScan():startQRScan(); });
 
-    // ===============================
-    // Service, submit, and lookup
-    // ===============================
     $('#btnCheck').addEventListener('click', ()=>{ const ok=state.okToSubmit; alert(ok ? '✔ Counts match. Status: VERIFIED.' : '⚠ Counts mismatch. Status: PENDING.'); });
 
     function buildSubmitParams(){ 
