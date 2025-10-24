@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>STOCKMANAGERAPP v1.0.3-BACKCAM</title>
+  <title>STOCKMANAGERAPP v1.2.0-CORRECTED</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -28,10 +28,13 @@
     .btn.warn{background:#f59e0b;border-color:#b45309} .btn.ghost{background:transparent;border-color:#2b3953}
     .btn.danger{background:#ef4444;border-color:#b91c1c}
     .btn:disabled{opacity:.5;cursor:not-allowed}
-    .scanner{position:relative;background:#0b1329;border:1px dashed #334155;border-radius:10px;min-height:240px;display:none;align-items:center;justify-content:center;overflow:hidden;width:100%}
-    .scanner video{width:100%;height:100%;object-fit:cover;display:block}
-    .scan-overlay{position:absolute;inset:0;border:3px solid rgba(56,189,248,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none}
-    .overlay-box{position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(80%,520px);height:190px;border:3px solid rgba(34,197,94,.9);border-radius:10px;pointer-events:none}
+    .scanner{position:relative;background:#0b1329;border:1px dashed #334155;border-radius:10px;min-height:320px;display:none;align-items:center;justify-content:center;overflow:hidden;width:100%}
+    .scanner .viewport{width:100%;height:100%}
+    .scanner .viewport video{width:100%;height:100%;object-fit:cover}
+    #qrReader{width:100%;height:100%}
+    #qrReader video{width:100%!important;height:100%!important;object-fit:cover}
+    .scan-overlay{position:absolute;inset:0;border:3px solid rgba(56,189,248,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none;z-index:2}
+    .overlay-box{position:absolute;left:50%;top:50%;translate:-50% -50%;width:90%;height:85%;border:3px solid rgba(34,197,94,.9);border-radius:10px;pointer-events:none;z-index:2}
     .hidden{display:none!important} .stat{padding:8px 10px;border-radius:8px;border:1px solid #2b3953;background:#0c142b;display:inline-flex;gap:8px;align-items:center}
     .ok{color:var(--ok)} .bad{color:var(--bad)} .warn-t{color:var(--warn)} .muted{color:var(--muted);font-size:12px}
     .box-card{border:1px solid #2b3953;border-radius:10px;padding:10px;background:#0c142b}
@@ -45,12 +48,13 @@
     #codes{display:flex;gap:.1in;align-items:center}
     #codes canvas{background:#fff}
     #itemDesc{font-weight:700;font-size:14pt;text-align:center;border:2px solid #000;padding:4pt}
-    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:6in 4in landscape;margin:.25in} }
+    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} }
+    .drawingBuffer{display:none!important}
   </style>
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v1.0.3‑BACKCAM</small></h1>
+    <h1>STOCKMANAGERAPP <small>v1.2.0‑CORRECTED</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -72,7 +76,7 @@
         <span id="loginLock" class="muted">(locked until login)</span>
       </div>
       <div class="pill">Sheet: <span id="sheetIdDisplay">—</span></div>
-      <div class="pill">Camera: <span id="camLabel">Back</span></div>
+      <div class="pill">Camera: <span id="camLabel">Back (Environment)</span></div>
     </div>
 
     <section id="page1" class="page">
@@ -176,10 +180,10 @@
         <button class="btn success" id="toPage2" disabled>Next → Putaway (Page 2)</button>
       </div>
 
-      <div id="upcScanner" class="scanner" aria-live="polite">
+      <div id="upcScanner" class="scanner">
         <div class="scan-overlay"></div>
         <div class="overlay-box"></div>
-        <video id="upcVideo" muted playsinline style="width:100%;height:100%"></video>
+        <div id="interactive" class="viewport"></div>
       </div>
     </section>
 
@@ -203,7 +207,7 @@
         <div class="actions">
           <button class="btn primary" id="btnScanLocation" disabled>Scan Location QR</button>
           <button class="btn success" id="btnMoveAll" disabled>Move All to Loc 1</button>
-          <span class="muted">Default camera: <span class="kbd">Back</span></span>
+          <span class="muted">Default camera: <span class="kbd">Back (Environment)</span></span>
         </div>
         <div class="row" style="gap:12px">
           <div class="stat">Entered Qty: <strong id="enteredQty2">0</strong></div>
@@ -223,10 +227,10 @@
         </div>
       </div>
 
-      <div id="qrScanner" class="scanner" aria-live="polite">
+      <div id="qrScanner" class="scanner">
         <div class="scan-overlay"></div>
-        <div class="overlay-box" style="height:70%;width:min(80%,520px);"></div>
-        <video id="qrVideo" muted playsinline style="width:100%;height:100%"></video>
+        <div class="overlay-box" style="height:85%;width:90%;"></div>
+        <div id="qrReader"></div>
       </div>
     </section>
 
@@ -258,8 +262,6 @@
         </div>
       </div>
     </section>
-
-    <audio id="beep" preload="auto" src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"></audio>
   </main>
 
   <div id="labelSheet">
@@ -296,30 +298,47 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script>
-    const $ = s=>document.querySelector(s); const $$ = s=>document.querySelectorAll(s);
-    const state = { page:1, subtotal:0, putawayTotal:0, totalCuFt:0, okToSubmit:false, focusedLocationIndex:0, logged:false, canPrint:false };
+    const $ = s=>document.querySelector(s);
+    const state = { page:1, subtotal:0, putawayTotal:0, totalCuFt:0, okToSubmit:false, focusedLocationIndex:0, logged:false, canPrint:false, scannerActive:false, qrScanner:null };
 
-    // VALID LOCATIONS (trimmed for brevity: include your full list here)
     const VALID_LOCATIONS = [
-      "A-01-1.0-1.0","A-01-1.0-2.0","A-01-2.0-1.0","A-01-2.0-2.0","A-01-FLOOR",
-      "B-01-1.0-1.0","B-01-1.0-2.0","B-01-FLOOR",
-      "C-01-1.0-1.0","C-01-1.0-2.0","C-01-FLOOR",
-      "D-01-1.0-1.0","D-01-1.0-2.0","D-01-FLOOR",
-      "E-01-1.0-1.0","E-01-1.0-2.0","E-01-FLOOR",
-      "F-01-1.0-1.0","F-01-1.0-2.0","F-01-FLOOR",
-      "G-01-1.0-1.0","G-01-1.0-2.0","G-01-FLOOR",
-      "H-01-1.0-1.0","H-01-1.0-2.0","H-01-FLOOR",
-      "I-01-1.0-1.0","I-01-1.0-2.0","I-01-FLOOR",
-      "J-01-1.0-1.0","J-01-1.0-2.0","J-01-FLOOR",
-      "J-02-1.0-1.0","J-02-1.0-2.0","J-02-FLOOR",
-      "L-01-1.0-1.0","L-01-1.0-2.0","L-01-FLOOR",
-      "L-02-1.0-1.0","L-02-1.0-2.0","L-02-FLOOR"
+      "A-01-01-01","A-01-01-02","A-01-02-01","A-01-02-02","A-01-FLOOR",
+      "B-01-01-01","B-01-01-02","B-01-FLOOR",
+      "C-01-01-01","C-01-01-02","C-01-FLOOR",
+      "D-01-01-01","D-01-01-02","D-01-FLOOR",
+      "E-01-01-01","E-01-01-02","E-01-FLOOR",
+      "F-01-01-01","F-01-01-02","F-01-FLOOR",
+      "G-01-01-01","G-01-01-02","G-01-FLOOR",
+      "H-01-01-01","H-01-01-02","H-01-FLOOR",
+      "I-01-01-01","I-01-01-02","I-01-FLOOR",
+      "J-01-01-01","J-01-01-02","J-01-FLOOR",
+      "J-02-01-01","J-02-01-02","J-02-FLOOR",
+      "L-01-01-01","L-01-01-02","L-01-FLOOR",
+      "L-02-01-01","L-02-01-02","L-02-FLOOR"
     ];
+
+    // AUTO-CORRECT LOCATION FORMAT
+    function normalizeLocation(loc) {
+      if (!loc) return '';
+      // Convert A-01-1.0-1.0 format to A-01-01-01
+      let normalized = loc.toUpperCase().trim();
+      // Replace .0 with nothing, pad with zeros
+      normalized = normalized.replace(/\.0/g, '');
+      // Ensure format like A-01-01-01
+      const parts = normalized.split('-');
+      if (parts.length === 4) {
+        return [parts[0], parts[1].padStart(2, '0'), parts[2].padStart(2, '0'), parts[3].padStart(2, '0')].join('-');
+      } else if (parts.length === 3 && parts[2].toUpperCase() === 'FLOOR') {
+        return [parts[0], parts[1].padStart(2, '0'), 'FLOOR'].join('-');
+      }
+      return normalized;
+    }
 
     (function init(){
       const savedUser = localStorage.getItem('sma_user') || '';
@@ -328,8 +347,6 @@
       $('#endpoint').value = endpoint; $('#sheetId').value = sheet; $('#sheetIdDisplay').textContent = sheet ? 'Linked':'—';
       if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
     })();
-
-    let currentFacingMode = 'environment';
 
     function showUnlock(is){ 
       state.logged=!!is; 
@@ -419,107 +436,152 @@
     $('#toPage2').addEventListener('click', ()=>goto(2)); 
     $('#backTo1').addEventListener('click', ()=>goto(1));
 
-    function beep(){ const a=$('#beep'); a.currentTime=0; a.play().catch(()=>{}); }
+    function beep(){ 
+      try{
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+      }catch(e){}
+    }
 
-    let scannerActive = false;
+    // QUAGGA BARCODE SCANNER - NUMERIC ONLY, DOUBLE CONFIRMATION
+    let lastBarcode = '';
+    let lastBarcodeTime = 0;
+    let confirmationCount = 0;
 
     async function startUPCScan() {
-      if(scannerActive) return;
+      if(state.scannerActive) return;
       $('#upcScanner').style.display='flex';
-      const video = document.getElementById('upcVideo');
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact:'environment' } },
-          audio: false
-        });
-        video.srcObject = stream;
-        await video.play();
-        scannerActive = true;
-        startBarcodeDetection();
-      } catch (err) {
-        try{
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' },
-            audio:false
-          });
-          video.srcObject = stream;
-          await video.play();
-          scannerActive = true;
-          startBarcodeDetection();
-        }catch(e2){
-          $('#upcScanner').style.display='none';
-          alert('Camera access failed: '+(e2.message||e2));
+      confirmationCount = 0;
+      lastBarcode = '';
+      
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: document.querySelector('#interactive'),
+          constraints: {
+            facingMode: "environment"
+          }
+        },
+        decoder: {
+          readers: ["ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader"]
         }
-      }
+      }, function(err) {
+        if (err) {
+          console.error(err);
+          alert('Barcode scanner failed: ' + err);
+          $('#upcScanner').style.display='none';
+          return;
+        }
+        console.log("✅ Barcode scanner started");
+        state.scannerActive = true;
+        Quagga.start();
+      });
+
+      Quagga.onDetected(function(result) {
+        if (!result || !result.codeResult || !result.codeResult.code) return;
+        
+        const code = result.codeResult.code.trim();
+        const now = Date.now();
+        
+        // NUMERIC-ONLY validation: 8-15 digits
+        if (!/^[0-9]{8,15}$/.test(code)) {
+          console.log('❌ Invalid barcode format (not 8-15 digits):', code);
+          return;
+        }
+        
+        // Double confirmation: must scan same code twice within 3 seconds
+        if (code === lastBarcode && (now - lastBarcodeTime) < 3000) {
+          confirmationCount++;
+          console.log('✅ Confirmation', confirmationCount, ':', code);
+          if (confirmationCount >= 1) {
+            console.log('🎉 BARCODE ACCEPTED:', code);
+            beep();
+            $('#upc').value = code;
+            stopUPCScan();
+            lookupUPC(code);
+            return;
+          }
+        } else {
+          confirmationCount = 1;
+          lastBarcode = code;
+          lastBarcodeTime = now;
+          console.log('🔍 First read:', code, '- hold barcode steady for confirmation');
+        }
+      });
     }
 
     function stopUPCScan() {
-      if (!scannerActive) return;
-      const video = document.getElementById('upcVideo');
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-      }
-      scannerActive = false;
+      if (!state.scannerActive) return;
+      Quagga.stop();
+      state.scannerActive = false;
       $('#upcScanner').style.display='none';
     }
 
-    async function startBarcodeDetection() {
-      const video = document.getElementById('upcVideo');
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      const reader = new ZXingBrowser.BrowserMultiFormatReader();
-      const hints = new Map();
-      hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, [
-        ZXingBrowser.BarcodeFormat.QR_CODE,
-        ZXingBrowser.BarcodeFormat.EAN_13,
-        ZXingBrowser.BarcodeFormat.EAN_8,
-        ZXingBrowser.BarcodeFormat.UPC_A,
-        ZXingBrowser.BarcodeFormat.UPC_E,
-        ZXingBrowser.BarcodeFormat.CODE_128,
-        ZXingBrowser.BarcodeFormat.CODE_39,
-        ZXingBrowser.BarcodeFormat.CODE_93,
-        ZXingBrowser.BarcodeFormat.ITF
-      ]);
-      hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
-      reader.defaultHints = hints;
-
-      let frameCount = 0;
-      const loop = async () => {
-        if (!scannerActive) return;
-        frameCount++;
-        try {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          if (canvas.width === 0 || canvas.height === 0) return requestAnimationFrame(loop);
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-          if (frameCount % 2 === 0) {
-            try{
-              const result = await Promise.race([
-                reader.decodeFromCanvas(canvas),
-                new Promise((_, reject)=>setTimeout(()=>reject('timeout'), 400))
-              ]);
-              if (result && result.text) {
-                const code = result.text.trim();
-                if (code.length >= 4 && code.length <= 30) {
-                  beep();
-                  $('#upc').value = code;
-                  stopUPCScan();
-                  lookupUPC(code);
-                  return;
-                }
-              }
-            }catch(err){ if(frameCount % 30 === 0) console.log('Decode attempt:', err.message || 'no result'); }
+    // HTML5-QRCODE SCANNER WITH AUTO-CORRECTION
+    async function startQRScan() {
+      if(state.qrScanner) return;
+      $('#qrScanner').style.display='flex';
+      
+      try {
+        state.qrScanner = new Html5Qrcode("qrReader");
+        
+        await state.qrScanner.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 300, height: 300 }
+          },
+          (decodedText, decodedResult) => {
+            console.log('✅ QR Code detected:', decodedText);
+            beep();
+            
+            // AUTO-CORRECT malformed location
+            const corrected = normalizeLocation(decodedText);
+            console.log('📍 Corrected location:', corrected);
+            
+            const input = document.querySelector(`.loc_code[data-i="${state.focusedLocationIndex}"]`);
+            if(input) {
+              input.value = corrected;
+              input.dispatchEvent(new Event('change'));
+            }
+            
+            stopQRScan();
           }
-        } catch (_ignore) {}
-        requestAnimationFrame(loop);
-      };
-      loop();
+        );
+        
+        console.log("✅ QR scanner started");
+      } catch (err) {
+        console.error('QR scanner error:', err);
+        alert('QR scanner failed. Please enter location manually.');
+        stopQRScan();
+      }
+    }
+
+    async function stopQRScan() {
+      if (!state.qrScanner) return;
+      try {
+        await state.qrScanner.stop();
+        state.qrScanner = null;
+      } catch(e) {}
+      $('#qrScanner').style.display='none';
     }
 
     $('#btnScanUPC').addEventListener('click', () => {
-      scannerActive ? stopUPCScan() : startUPCScan();
+      state.scannerActive ? stopUPCScan() : startUPCScan();
+    });
+
+    $('#btnScanLocation').addEventListener('click', ()=> {
+      state.qrScanner ? stopQRScan() : startQRScan();
     });
 
     $('#btnGenUPC').addEventListener('click', () => {
@@ -583,12 +645,15 @@
         locs.appendChild(row);
 
         locInput.addEventListener('change', ()=> {
-          const value = (locInput.value||'').toUpperCase();
-          if (value && !VALID_LOCATIONS.includes(value)) {
-            alert('Invalid location. Example: A-01-1.0-1.0 or A-01-FLOOR');
+          const raw = (locInput.value||'').trim();
+          const normalized = normalizeLocation(raw);
+          if (normalized && !VALID_LOCATIONS.includes(normalized)) {
+            alert('Invalid location. Example: A-01-01-01 or A-01-FLOOR');
             locInput.value = '';
             locInput.style.borderColor = '#ef4444';
             setTimeout(() => { locInput.style.borderColor = '#324156'; }, 1500);
+          } else if (normalized !== raw) {
+            locInput.value = normalized;
           }
         });
         locInput.addEventListener('focusin', ()=> { state.focusedLocationIndex=i; }); 
@@ -614,70 +679,6 @@
         recalcPutawayTotal();
       }
     });
-
-    let qrStream=null; let qrActive=false; 
-    async function startQRScan(){ 
-      try{ 
-        $('#qrScanner').style.display='flex'; 
-        const constraints={ video:{ facingMode: { exact:'environment' } } }; 
-        const video=document.getElementById('qrVideo'); 
-        try{
-          qrStream = await navigator.mediaDevices.getUserMedia(constraints);
-        }catch(_){
-          qrStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }});
-        }
-        video.srcObject=qrStream; 
-        await video.play(); 
-        qrActive=true; 
-        scanQRLoop(); 
-      }catch(err){ 
-        alert('QR camera error: '+err.message); 
-        stopQRScan(); 
-      } 
-    }
-    function stopQRScan(){ 
-      qrActive=false; 
-      if(qrStream){ qrStream.getTracks().forEach(t=>t.stop()); qrStream=null; } 
-      $('#qrScanner').style.display='none'; 
-    }
-
-    async function scanQRLoop() { 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      const reader = new ZXingBrowser.BrowserQRCodeReader();
-      const video = document.getElementById('qrVideo'); 
-      let frameCount = 0;
-      
-      const detectionLoop = async () => {
-        if (!qrActive) return; 
-        frameCount++;
-        try {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          if (canvas.width>0 && canvas.height>0) {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            try{
-              const result = await Promise.race([
-                reader.decodeFromCanvas(canvas),
-                new Promise((_, reject)=>setTimeout(()=>reject('timeout'), 400))
-              ]);
-              if (result && result.text) {
-                const code = result.text.trim();
-                beep();
-                const input=document.querySelector(`.loc_code[data-i="${state.focusedLocationIndex}"]`); 
-                if(input){ input.value=code.toUpperCase(); input.dispatchEvent(new Event('change')); }
-                stopQRScan();
-                return;
-              }
-            }catch(err){ if(frameCount % 30 === 0) console.log('Decode attempt:', err.message || 'no result'); }
-          }
-        } catch(_ignore){}
-        setTimeout(detectionLoop, 66);
-      };
-      detectionLoop();
-    }
-
-    $('#btnScanLocation').addEventListener('click', ()=>{ qrActive?stopQRScan():startQRScan(); });
 
     $('#btnCheck').addEventListener('click', ()=>{ const ok=state.okToSubmit; alert(ok ? '✔ Counts match. Status: VERIFIED.' : '⚠ Counts mismatch. Status: PENDING.'); });
 
