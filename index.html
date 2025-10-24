@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>STOCKMANAGERAPP v1.3.0-FINAL</title>
+  <title>STOCKMANAGERAPP v2.0-MASTER</title>
   <style>
-    :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8}
+    :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8;--required:#ef4444}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     input,textarea,select{-webkit-user-select:text !important;user-select:text !important}
     body{margin:0;padding:0;background:var(--bg);color:#eef2ff;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow-x:hidden}
@@ -17,6 +17,7 @@
     .page{background:var(--panel);border:1px solid #243047;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.35);padding:14px;margin-bottom:18px}
     h2{font-size:18px;margin:8px 0 12px} h3{font-size:15px;margin:16px 0 6px;color:#cbd5e1}
     label{font-size:12px;color:#cbd5e1;margin-bottom:4px;display:block}
+    .required{color:var(--required);margin-left:2px}
     input,select,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #324156;background:var(--card);color:#e5e7eb;font-size:16px;-webkit-appearance:none;appearance:none}
     input[readonly]{opacity:.9;background:#1b2232} 
     input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:not-allowed}
@@ -55,7 +56,7 @@
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v1.3.0‑FINAL</small></h1>
+    <h1>STOCKMANAGERAPP <small>v2.0‑MASTER</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -84,7 +85,7 @@
       <h2>Validate Item Details &amp; Packing</h2>
       <div class="grid g3">
         <div>
-          <label>UPC <span class="muted">*</span></label>
+          <label>UPC <span class="required">*</span></label>
           <input id="upc" inputmode="numeric" autocomplete="off" placeholder="Scan or enter UPC" disabled />
         </div>
         <div class="actions" style="align-items:end">
@@ -99,11 +100,11 @@
 
       <div class="grid g3" style="margin-top:10px">
         <div>
-          <label>Brand</label>
-          <input id="brand" placeholder="Auto-filled" disabled />
+          <label>Brand <span class="required">*</span></label>
+          <input id="brand" placeholder="Auto-filled from database" disabled />
         </div>
         <div>
-          <label>Gender</label>
+          <label>Gender <span class="required">*</span></label>
           <select id="gender" disabled>
             <option value="">— Select —</option>
             <option value="MENS">MENS</option>
@@ -112,14 +113,14 @@
           </select>
         </div>
         <div>
-          <label>Master Item Description</label>
+          <label>Master Item Description <span class="required">*</span></label>
           <input id="desc" placeholder="Item name / size" disabled />
         </div>
       </div>
 
       <div class="grid g4" style="margin-top:10px">
         <div>
-          <label>COO</label>
+          <label>COO <span class="required">*</span></label>
           <select id="coo" disabled>
             <option value="">— Select —</option>
             <option value="USA">USA</option>
@@ -143,7 +144,7 @@
           </select>
         </div>
         <div>
-          <label>Is_Clean?</label>
+          <label>Is_Clean? <span class="required">*</span></label>
           <select id="cd" disabled>
             <option value="">— Select —</option>
             <option value="Y">Y (Clean)</option>
@@ -151,7 +152,7 @@
           </select>
         </div>
         <div>
-          <label>Expected Qty</label>
+          <label>Expected Qty <span class="required">*</span></label>
           <input id="expectedQty" type="number" min="0" step="1" disabled />
         </div>
         <div>
@@ -162,13 +163,13 @@
 
       <h3>Item Weight &amp; Dimensions</h3>
       <div class="grid g4">
-        <div><label>Item Weight (lb)</label><input id="itemWeight" type="number" step="0.01" min="0" placeholder="lbs" disabled/></div>
-        <div><label>Item L (in)</label><input id="itemL" type="number" step="0.01" min="0" placeholder="L" disabled/></div>
-        <div><label>Item W (in)</label><input id="itemW" type="number" step="0.01" min="0" placeholder="W" disabled/></div>
-        <div><label>Item H (in)</label><input id="itemH" type="number" step="0.01" min="0" placeholder="H" disabled/></div>
+        <div><label>Item Weight (lb) <span class="required">*</span></label><input id="itemWeight" type="number" step="0.01" min="0" placeholder="lbs" disabled/></div>
+        <div><label>Item L (in) <span class="required">*</span></label><input id="itemL" type="number" step="0.01" min="0" placeholder="L" disabled/></div>
+        <div><label>Item W (in) <span class="required">*</span></label><input id="itemW" type="number" step="0.01" min="0" placeholder="W" disabled/></div>
+        <div><label>Item H (in) <span class="required">*</span></label><input id="itemH" type="number" step="0.01" min="0" placeholder="H" disabled/></div>
       </div>
 
-      <h3>Box Breakdown (Styles 1–4)</h3>
+      <h3>Box Breakdown (Styles 1–4) <span class="required">* At least one required</span></h3>
       <div id="boxStyles" class="grid g1"></div>
 
       <div class="row" style="justify-content:space-between;margin-top:10px">
@@ -217,7 +218,7 @@
         </div>
       </div>
 
-      <h3>Locations (up to 9)</h3>
+      <h3>Locations (up to 9) <span class="required">* At least one required</span></h3>
       <div id="locations" class="grid g1"></div>
 
       <div class="actions" style="margin-top:10px;justify-content:space-between">
@@ -306,7 +307,18 @@
 
   <script>
     const $ = s=>document.querySelector(s);
-    const state = { page:1, subtotal:0, putawayTotal:0, totalCuFt:0, okToSubmit:false, focusedLocationIndex:0, logged:false, canPrint:false, scannerActive:false, qrScanner:null };
+    const state = { 
+      page:1, 
+      subtotal:0, 
+      putawayTotal:0, 
+      totalCuFt:0, 
+      okToSubmit:false, 
+      focusedLocationIndex:0, 
+      logged:false, 
+      canPrint:false, 
+      scannerActive:false, 
+      qrScanner:null 
+    };
 
     const VALID_LOCATIONS = [
       "A-01-01-01","A-01-01-02","A-01-02-01","A-01-02-02","A-01-FLOOR",
@@ -339,9 +351,11 @@
 
     (function init(){
       const savedUser = localStorage.getItem('sma_user') || '';
-      const endpoint = localStorage.getItem('sma_endpoint') || 'https://script.google.com/macros/s/AKfycbypXvTh1R3E1dzurqothXHWWgu269i3ToJKUS7Xi5tLRE56s6den-O8h7E_2D4CFld8Pw/exec';
+      const endpoint = localStorage.getItem('sma_endpoint') || 'https://script.google.com/macros/s/AKfycbzyZIGeCzTYy_ohX6ULHwyow-cRKIrO4gF-q9_0rlPQXpOrzvlyR3psh9qRqL571vbgvg/exec';
       const sheet = localStorage.getItem('sma_sheet') || '1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA';
-      $('#endpoint').value = endpoint; $('#sheetId').value = sheet; $('#sheetIdDisplay').textContent = sheet ? 'Linked':'—';
+      $('#endpoint').value = endpoint; 
+      $('#sheetId').value = sheet; 
+      $('#sheetIdDisplay').textContent = sheet ? 'Linked':'—';
       if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
     })();
 
@@ -349,23 +363,19 @@
       state.logged=!!is; 
       $('#loginLock').textContent=is?'(ready)':'(locked until login)';
       
-      // Main fields
       ['upc','brand','gender','desc','coo','cd','expectedQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{ 
         const el=$('#'+id); 
         if(el) el.disabled=!is; 
       });
       
-      // BOX STYLE FIELDS - FIXED: Now properly enabled after login
       document.querySelectorAll('.bs_boxes, .bs_qty, .bs_wt, .bs_l, .bs_w, .bs_h').forEach(el => { 
         el.disabled = !is; 
       });
       
-      // Location fields
       document.querySelectorAll('.loc_code, .loc_qty').forEach(el => { 
         el.disabled = !is; 
       });
       
-      // Buttons
       ['btnScanUPC','btnGenUPC','btnCheck','toPage2','btnScanLocation','btnSubmitNext','btnMoveAll'].forEach(id=>{ 
         const b=$('#'+id); 
         if(b) b.disabled=!is; 
@@ -389,24 +399,30 @@
     });
 
     $('#endpoint').addEventListener('input', e=>localStorage.setItem('sma_endpoint', e.target.value));
-    $('#sheetId').addEventListener('input', e=>{ localStorage.setItem('sma_sheet', e.target.value); $('#sheetIdDisplay').textContent = e.target.value? 'Linked':'—'; });
+    $('#sheetId').addEventListener('input', e=>{ 
+      localStorage.setItem('sma_sheet', e.target.value); 
+      $('#sheetIdDisplay').textContent = e.target.value? 'Linked':'—'; 
+    });
 
     const boxStyles = $('#boxStyles');
     for(let i=1;i<=4;i++){
       const el=document.createElement('div'); 
       el.className='box-card'; 
       el.innerHTML=`
-        <div class="row" style="justify-content:space-between;align-items:center"><strong>Box Style ${i}</strong><span class="muted">Boxes × Qty/Box → Pcs | Cu Ft</span></div>
-        <div class="grid g4" style="margin-top:6px">
-          <div><label>Boxes</label><input data-bs="${i}" class="bs_boxes" type="number" min="0" step="1" value="0" disabled></div>
-          <div><label>Qty/Box</label><input data-bs="${i}" class="bs_qty" type="number" min="0" step="1" value="0" disabled></div>
-          <div><label>Pcs (auto)</label><input data-bs="${i}" class="bs_pcs" type="number" readonly value="0"></div>
-          <div><label>Weight (lb)</label><input data-bs="${i}" class="bs_wt" type="number" step="0.01" min="0" value="" disabled></div>
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <strong>Box Style ${i}</strong>
+          <span class="muted">Boxes × Qty/Box → Pcs | Cu Ft</span>
         </div>
         <div class="grid g4" style="margin-top:6px">
-          <div><label>L (in)</label><input data-bs="${i}" class="bs_l" type="number" step="0.01" min="0" value="" disabled></div>
-          <div><label>W (in)</label><input data-bs="${i}" class="bs_w" type="number" step="0.01" min="0" value="" disabled></div>
-          <div><label>H (in)</label><input data-bs="${i}" class="bs_h" type="number" step="0.01" min="0" value="" disabled></div>
+          <div><label>Boxes <span class="required">*</span></label><input data-bs="${i}" class="bs_boxes" type="number" min="0" step="1" value="0" disabled></div>
+          <div><label>Qty/Box <span class="required">*</span></label><input data-bs="${i}" class="bs_qty" type="number" min="0" step="1" value="0" disabled></div>
+          <div><label>Pcs (auto)</label><input data-bs="${i}" class="bs_pcs" type="number" readonly value="0"></div>
+          <div><label>Weight (lb) <span class="required">*</span></label><input data-bs="${i}" class="bs_wt" type="number" step="0.01" min="0" value="" disabled></div>
+        </div>
+        <div class="grid g4" style="margin-top:6px">
+          <div><label>L (in) <span class="required">*</span></label><input data-bs="${i}" class="bs_l" type="number" step="0.01" min="0" value="" disabled></div>
+          <div><label>W (in) <span class="required">*</span></label><input data-bs="${i}" class="bs_w" type="number" step="0.01" min="0" value="" disabled></div>
+          <div><label>H (in) <span class="required">*</span></label><input data-bs="${i}" class="bs_h" type="number" step="0.01" min="0" value="" disabled></div>
           <div><label>Cu Ft (auto)</label><input data-bs="${i}" class="bs_cuft" type="number" readonly value="0" style="background:#1b2232"></div>
         </div>`;
       boxStyles.appendChild(el); 
@@ -425,9 +441,6 @@
         pcsEl.value=pcs; 
         subtotal+=pcs;
         
-        // FIXED: Correct Total Cu Ft calculation
-        // Cu Ft per box = (L × W × H) / 1728
-        // Total Cu Ft for style = Cu Ft per box × Number of boxes
         const l = +document.querySelector(`.bs_l[data-bs="${i}"]`).value||0;
         const w = +document.querySelector(`.bs_w[data-bs="${i}"]`).value||0;
         const h = +document.querySelector(`.bs_h[data-bs="${i}"]`).value||0;
@@ -512,7 +525,7 @@
       }catch(e){}
     }
 
-    // IMPROVED BARCODE SCANNER - TRIPLE CONFIRMATION, 12-13 DIGITS ONLY
+    // BARCODE SCANNER
     let barcodeHistory = [];
     const REQUIRED_CONFIRMATIONS = 3;
 
@@ -550,17 +563,14 @@
         
         const code = result.codeResult.code.trim();
         
-        // STRICT VALIDATION: 12 or 13 digits ONLY (UPC/EAN standard)
         if (!/^[0-9]{12,13}$/.test(code)) {
           console.log('❌ Invalid: not 12-13 digits:', code);
           return;
         }
         
-        // Add to history
         barcodeHistory.push(code);
         if (barcodeHistory.length > 10) barcodeHistory.shift();
         
-        // Check last 3 scans
         const lastThree = barcodeHistory.slice(-REQUIRED_CONFIRMATIONS);
         if (lastThree.length === REQUIRED_CONFIRMATIONS && lastThree.every(c => c === code)) {
           console.log('🎉 BARCODE CONFIRMED (3x):', code);
@@ -587,7 +597,7 @@
       barcodeHistory = [];
     }
 
-    // QR CODE SCANNER WITH AUTO-CORRECTION
+    // QR SCANNER
     async function startQRScan() {
       if(state.qrScanner) return;
       $('#qrScanner').style.display='flex';
@@ -733,9 +743,15 @@
       const firstLocCode = document.querySelector('.loc_code[data-i="0"]');
       const firstLocQty = document.querySelector('.loc_qty[data-i="0"]');
       if (firstLocCode && firstLocQty) {
-        if (!firstLocCode.value) { alert('Enter a Location 1 code first'); firstLocCode.focus(); return; }
+        if (!firstLocCode.value) { 
+          alert('Enter a Location 1 code first'); 
+          firstLocCode.focus(); 
+          return; 
+        }
         firstLocQty.value = state.subtotal;
-        document.querySelectorAll('.loc_qty').forEach((el, idx) => { if (idx > 0) el.value = '0'; });
+        document.querySelectorAll('.loc_qty').forEach((el, idx) => { 
+          if (idx > 0) el.value = '0'; 
+        });
         recalcPutawayTotal();
       }
     });
@@ -744,6 +760,65 @@
       const ok=state.okToSubmit; 
       alert(ok ? '✔ Counts match. Status: VERIFIED.' : '⚠ Counts mismatch. Status: PENDING.'); 
     });
+
+    // PRE-SUBMIT VALIDATION
+    function validateBeforeSubmit() {
+      const missing = [];
+      
+      // Page 1 required fields
+      if (!$('#upc').value.trim()) missing.push('UPC');
+      if (!$('#brand').value.trim()) missing.push('Brand');
+      if (!$('#gender').value) missing.push('Gender');
+      if (!$('#desc').value.trim()) missing.push('Description');
+      if (!$('#coo').value) missing.push('COO');
+      if (!$('#cd').value) missing.push('Is_Clean');
+      if (!$('#expectedQty').value || +$('#expectedQty').value === 0) missing.push('Expected Qty');
+      if (!$('#itemWeight').value || +$('#itemWeight').value === 0) missing.push('Item Weight');
+      if (!$('#itemL').value || +$('#itemL').value === 0) missing.push('Item L');
+      if (!$('#itemW').value || +$('#itemW').value === 0) missing.push('Item W');
+      if (!$('#itemH').value || +$('#itemH').value === 0) missing.push('Item H');
+      
+      // Check at least one box style
+      let hasBoxStyle = false;
+      for (let i = 1; i <= 4; i++) {
+        const boxes = +document.querySelector(`.bs_boxes[data-bs="${i}"]`).value || 0;
+        const qty = +document.querySelector(`.bs_qty[data-bs="${i}"]`).value || 0;
+        const l = +document.querySelector(`.bs_l[data-bs="${i}"]`).value || 0;
+        const w = +document.querySelector(`.bs_w[data-bs="${i}"]`).value || 0;
+        const h = +document.querySelector(`.bs_h[data-bs="${i}"]`).value || 0;
+        const wt = +document.querySelector(`.bs_wt[data-bs="${i}"]`).value || 0;
+        
+        if (boxes > 0 && qty > 0) {
+          hasBoxStyle = true;
+          if (!wt || wt === 0) missing.push(`Box Style ${i} Weight`);
+          if (!l || l === 0) missing.push(`Box Style ${i} L`);
+          if (!w || w === 0) missing.push(`Box Style ${i} W`);
+          if (!h || h === 0) missing.push(`Box Style ${i} H`);
+        }
+      }
+      
+      if (!hasBoxStyle) missing.push('At least one Box Style with dimensions');
+      
+      // Check at least one location
+      let hasLocation = false;
+      for (let i = 0; i < 9; i++) {
+        const code = document.querySelector(`.loc_code[data-i="${i}"]`).value.trim();
+        const qty = +document.querySelector(`.loc_qty[data-i="${i}"]`).value || 0;
+        if (code && qty > 0) {
+          hasLocation = true;
+          break;
+        }
+      }
+      
+      if (!hasLocation) missing.push('At least one Location with Qty');
+      
+      if (missing.length > 0) {
+        alert('⚠️ MISSING REQUIRED FIELDS:\n\n' + missing.join('\n'));
+        return false;
+      }
+      
+      return true;
+    }
 
     function buildSubmitParams(){ 
       const p=new URLSearchParams(); 
@@ -761,6 +836,7 @@
       p.append('itemDimW', +($('#itemW').value||0) || 0); 
       p.append('itemDimH', +($('#itemH').value||0) || 0); 
       p.append('notes',$('#putawayNotes').value||''); 
+      
       for(let i=1;i<=4;i++){ 
         const get=(cls)=>document.querySelector(`.${cls}[data-bs="${i}"]`).value||''; 
         p.append(`bs${i}_boxes`, get('bs_boxes')||0); 
@@ -772,12 +848,14 @@
         p.append(`bs${i}_wt`, get('bs_wt'));
         p.append(`bs${i}_cuft`, document.querySelector(`.bs_cuft[data-bs="${i}"]`).value || '0');
       } 
+      
       for(let i=0;i<9;i++){ 
         const code=(document.querySelector(`.loc_code[data-i="${i}"]`).value||'').trim(); 
         const qty=+document.querySelector(`.loc_qty[data-i="${i}"]`).value||0; 
         p.append(`location${i+1}_code`, code); 
         p.append(`location${i+1}_qty`, qty); 
       } 
+      
       p.append('processed_by', localStorage.getItem('sma_user')||''); 
       p.append('sheetId', $('#sheetId').value||''); 
       p.append('status', state.okToSubmit ? 'VERIFIED' : 'PENDING'); 
@@ -785,18 +863,31 @@
     }
 
     async function submitNow(){ 
+      // VALIDATE FIRST
+      if (!validateBeforeSubmit()) {
+        return;
+      }
+      
       const url=($('#endpoint').value||'').trim(); 
       if(!url) return alert('Set Endpoint URL first.'); 
+      
       const params=buildSubmitParams(); 
+      
       try{ 
-        const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:params.toString()}); 
+        const resp=await fetch(url,{
+          method:'POST',
+          headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+          body:params.toString()
+        }); 
         const text=await resp.text(); 
-        alert('Server response: '+text.slice(0,200)); 
+        alert('Server response:\n\n'+text.slice(0,200)); 
+        
         if((params.get('status')||'')==='PENDING') await sendDiscrepancyEmail('Auto: pending discrepancy'); 
         if((params.get('status')||'')==='VERIFIED') await canPrintCheck(); 
+        
         resetForNext(); 
       }catch(err){ 
-        alert('Submit failed; downloading JSON locally. '+err.message); 
+        alert('Submit failed; downloading JSON locally.\n\n'+err.message); 
         const obj=Object.fromEntries(params); 
         downloadJSON(obj); 
       } 
@@ -805,61 +896,145 @@
 
     function resetForNext(){ 
       ['upc','brand','gender','desc','coo','cd','expectedQty','enteredQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{
-        const el=$('#'+id); if(el) el.value='';
+        const el=$('#'+id); 
+        if(el) el.value='';
       }); 
+      
       document.querySelectorAll('.bs_boxes,.bs_qty').forEach(el=>el.value='0'); 
       document.querySelectorAll('.bs_pcs,.bs_cuft').forEach(el=>el.value='0'); 
       document.querySelectorAll('.bs_wt,.bs_l,.bs_w,.bs_h').forEach(el=>el.value=''); 
       document.querySelectorAll('.loc_code').forEach(el=>el.value=''); 
       document.querySelectorAll('.loc_qty').forEach(el=>el.value='0'); 
-      state.subtotal=0; state.putawayTotal=0; state.totalCuFt=0; state.okToSubmit=false; state.canPrint=false; 
+      
+      state.subtotal=0; 
+      state.putawayTotal=0; 
+      state.totalCuFt=0; 
+      state.okToSubmit=false; 
+      state.canPrint=false; 
+      
       $('#btnPrintLabel').disabled=true; 
-      $('#subtotal').textContent='0'; $('#totalCuFt').textContent='0.00';
-      $('#enteredQty').value='0'; $('#enteredQty2').textContent='0'; $('#putawayTotal').textContent='0'; 
-      $('#matchStatus').textContent='—'; $('#canPrintMsg').value=''; 
-      goto(1); $('#upc').focus(); 
+      $('#subtotal').textContent='0'; 
+      $('#totalCuFt').textContent='0.00';
+      $('#enteredQty').value='0'; 
+      $('#enteredQty2').textContent='0'; 
+      $('#putawayTotal').textContent='0'; 
+      $('#matchStatus').textContent='—'; 
+      $('#canPrintMsg').value=''; 
+      
+      goto(1); 
+      $('#upc').focus(); 
     }
 
     function downloadJSON(obj){ 
       const name=`scan_${(obj.upc||'no_upc')}_${new Date().toISOString().replace(/[:.]/g,'-')}.json`; 
       const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); 
-      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); 
+      const a=document.createElement('a'); 
+      a.href=URL.createObjectURL(blob); 
+      a.download=name; 
+      a.click(); 
     }
-    $('#btnDownloadJSON').addEventListener('click', ()=>{ const p=buildSubmitParams(); const obj=Object.fromEntries(p); downloadJSON(obj); });
+    $('#btnDownloadJSON').addEventListener('click', ()=>{ 
+      const p=buildSubmitParams(); 
+      const obj=Object.fromEntries(p); 
+      downloadJSON(obj); 
+    });
 
-    async function ping(){ const url=($('#endpoint').value||'').trim(); if(!url) return alert('Set Endpoint URL first.'); const r=await fetch(url+`?action=ping`); const t=await r.text(); $('#canPrintMsg').value='Ping: '+t.slice(0,140); }
+    async function ping(){ 
+      const url=($('#endpoint').value||'').trim(); 
+      if(!url) return alert('Set Endpoint URL first.'); 
+      const r=await fetch(url+`?action=ping`); 
+      const t=await r.text(); 
+      $('#canPrintMsg').value='Ping: '+t.slice(0,140); 
+    }
     $('#btnPing').addEventListener('click', ping);
 
-    async function canPrintCheck(){ const url=($('#endpoint').value||'').trim(); if(!url) return; const upc=($('#upc').value||'').trim(); if(!upc) return; const r=await fetch(url+`?action=canprint&upc=${encodeURIComponent(upc)}&sheetId=${encodeURIComponent($('#sheetId').value||'')}`); const t=await r.text(); $('#canPrintMsg').value=t.slice(0,300); try{ const j=JSON.parse(t); state.canPrint=!!j.canPrint; }catch{} $('#btnPrintLabel').disabled=!state.canPrint; return t; }
+    async function canPrintCheck(){ 
+      const url=($('#endpoint').value||'').trim(); 
+      if(!url) return; 
+      const upc=($('#upc').value||'').trim(); 
+      if(!upc) return; 
+      const r=await fetch(url+`?action=canprint&upc=${encodeURIComponent(upc)}&sheetId=${encodeURIComponent($('#sheetId').value||'')}`); 
+      const t=await r.text(); 
+      $('#canPrintMsg').value=t.slice(0,300); 
+      try{ 
+        const j=JSON.parse(t); 
+        state.canPrint=!!j.canPrint; 
+      }catch{} 
+      $('#btnPrintLabel').disabled=!state.canPrint; 
+      return t; 
+    }
     $('#btnCanPrint').addEventListener('click', canPrintCheck);
 
-    async function sendDiscrepancyEmail(note){ const url=($('#endpoint').value||'').trim(); if(!url) return; const p=buildSubmitParams(); p.set('action','senddiscrepancyemail'); if(note) p.set('note', note); const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:p.toString()}); const t=await r.text(); $('#emailMsg').value=t.slice(0,200); return t; }
+    async function sendDiscrepancyEmail(note){ 
+      const url=($('#endpoint').value||'').trim(); 
+      if(!url) return; 
+      const p=buildSubmitParams(); 
+      p.set('action','senddiscrepancyemail'); 
+      if(note) p.set('note', note); 
+      const r=await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body:p.toString()
+      }); 
+      const t=await r.text(); 
+      $('#emailMsg').value=t.slice(0,200); 
+      return t; 
+    }
     $('#btnSendEmail').addEventListener('click', ()=> sendDiscrepancyEmail('Manual trigger'));
 
-    async function finalizeAndSend(){ const url=($('#endpoint').value||'').trim(); if(!url) return; const p=new URLSearchParams(); p.set('action','finalizeandsummary'); p.set('sheetId',$('#sheetId').value||''); const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:p.toString()}); const t=await r.text(); $('#emailMsg').value=t.slice(0,300); return t; }
+    async function finalizeAndSend(){ 
+      const url=($('#endpoint').value||'').trim(); 
+      if(!url) return; 
+      const p=new URLSearchParams(); 
+      p.set('action','finalizeandsummary'); 
+      p.set('sheetId',$('#sheetId').value||''); 
+      const r=await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body:p.toString()
+      }); 
+      const t=await r.text(); 
+      $('#emailMsg').value=t.slice(0,300); 
+      return t; 
+    }
     $('#btnFinalizeSummary').addEventListener('click', finalizeAndSend);
 
     async function lookupUPC(upc){ 
-      const url=($('#endpoint').value||'').trim(); if(!url||!upc) return; 
+      const url=($('#endpoint').value||'').trim(); 
+      if(!url||!upc) return; 
+      
       try{ 
         const r=await fetch(url+`?action=lookup&upc=${encodeURIComponent(upc)}&sheetId=${encodeURIComponent($('#sheetId').value||'')}`); 
         const data=await r.json(); 
-        if(data && data.ok && data.item){ 
+        
+        if(data && data.ok && data.found && data.item){ 
           const it=data.item; 
+          
+          // AUTO-FILL FROM ITEM_MASTER
           if(it.brand) $('#brand').value=it.brand; 
           if(it.gender) $('#gender').value=(it.gender+'').toUpperCase();
           if(it.desc) $('#desc').value=it.desc; 
           if(it.coo) $('#coo').value = it.coo.toUpperCase();
           if(it.cd) $('#cd').value = it.cd.toUpperCase();
-          if(Number.isFinite(+it.expectedQty)) $('#expectedQty').value=+it.expectedQty; 
-        } 
-        ['brand','gender'].forEach(id=>{ const el=$('#'+id); if(el && el.value) el.readOnly=true; }); 
+          if(it.itemWeight) $('#itemWeight').value = it.itemWeight;
+          if(it.itemL) $('#itemL').value = it.itemL;
+          if(it.itemW) $('#itemW').value = it.itemW;
+          if(it.itemH) $('#itemH').value = it.itemH;
+          
+          alert('✅ Item found in database!\n\nPlease review auto-filled fields.');
+        } else {
+          alert('ℹ️ New item - please fill in all details.\n\nIt will be saved to database after submission.');
+        }
+        
         updateMatchStatus(); 
-      }catch(e){ console.log('lookup failed', e); } 
+      }catch(e){ 
+        console.log('lookup failed', e); 
+      } 
     }
 
     function openLabel(){ $('#labelSheet').style.display='flex'; }
     function closeLabel(){ $('#labelSheet').style.display='none'; }
+    
     function computeBreakdown(){ 
       let parts=[]; 
       document.querySelectorAll('.bs_boxes').forEach(el=>{ 
@@ -870,17 +1045,62 @@
       }); 
       return parts.length? parts.join(' + ') : '—'; 
     }
-    function firstLocation(){ const code=(document.querySelector('.loc_code')?.value||'').trim(); return code || '—'; }
+    
+    function firstLocation(){ 
+      const code=(document.querySelector('.loc_code')?.value||'').trim(); 
+      return code || '—'; 
+    }
+    
     function renderLabel(){ 
-      const upc=($('#upc').value||'').trim(); if(!upc){ alert('UPC missing'); return; } 
-      const brand=$('#brand').value||''; const gender=$('#gender').value||''; const desc=$('#desc').value||''; const coo=$('#coo').value||''; 
-      const total=state.subtotal||0; const loc=firstLocation(); const statusText = state.canPrint ? 'VERIFIED' : 'PENDING';
+      const upc=($('#upc').value||'').trim(); 
+      if(!upc){ 
+        alert('UPC missing'); 
+        return; 
+      } 
+      
+      const brand=$('#brand').value||''; 
+      const gender=$('#gender').value||''; 
+      const desc=$('#desc').value||''; 
+      const coo=$('#coo').value||''; 
+      const total=state.subtotal||0; 
+      const loc=firstLocation(); 
+      const statusText = state.canPrint ? 'VERIFIED' : 'PENDING';
+      
       $('#labelLoc').textContent = loc ? `LOCATION ${loc}` : 'LOCATION —';
       $('#labelItemNo').textContent = upc;
-      $('#labelBrand').textContent = brand; $('#labelGender').textContent = gender; $('#labelCOO').textContent = coo; 
-      $('#labelTotal').textContent = total; $('#labelBreakdown').textContent = computeBreakdown(); $('#labelUPC').textContent = upc; $('#itemDesc').textContent = desc || '—';
-      try{ JsBarcode('#barcode', upc, {format:'CODE128', width:2, height:60, displayValue:false, margin:0}); }catch(e){ console.log(e); }
-      try{ const qrDiv=document.getElementById('qrcode'); qrDiv.innerHTML=''; const composite = `${upc}|${loc}|${total}|${statusText}`; new QRCode(qrDiv,{text:composite,width:120,height:120}); }catch(e){ console.log(e); }
+      $('#labelBrand').textContent = brand; 
+      $('#labelGender').textContent = gender; 
+      $('#labelCOO').textContent = coo; 
+      $('#labelTotal').textContent = total; 
+      $('#labelBreakdown').textContent = computeBreakdown(); 
+      $('#labelUPC').textContent = upc; 
+      $('#itemDesc').textContent = desc || '—';
+      
+      try{ 
+        JsBarcode('#barcode', upc, {
+          format:'CODE128', 
+          width:2, 
+          height:60, 
+          displayValue:false, 
+          margin:0
+        }); 
+      }catch(e){ 
+        console.log(e); 
+      }
+      
+      try{ 
+        const qrDiv=document.getElementById('qrcode'); 
+        qrDiv.innerHTML=''; 
+        const composite = `${upc}|${loc}|${total}|${statusText}`; 
+        new QRCode(qrDiv,{
+          text:composite,
+          width:120,
+          height:120
+        }); 
+      }catch(e){ 
+        console.log(e); 
+      }
+      
       openLabel(); 
     }
     $('#btnPrintLabel').addEventListener('click', renderLabel);
