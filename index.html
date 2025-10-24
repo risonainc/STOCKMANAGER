@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>STOCKMANAGERAPP v2.1-STABLE</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>STOCKMANAGERAPP v2.2-PRODUCTION</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8;--required:#ef4444}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -34,8 +37,7 @@
     .scanner .viewport video{width:100%;height:100%;object-fit:cover}
     #qrReader{width:100%;height:100%}
     #qrReader video{width:100%!important;height:100%!important;object-fit:cover}
-    .scan-overlay{position:absolute;inset:0;border:3px solid rgba(239,68,68,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none;z-index:2;transition:border-color 0.3s}
-    .scan-overlay.ready{border-color:rgba(34,197,94,.9)}
+    .scan-overlay{position:absolute;inset:0;border:3px solid rgba(239,68,68,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none;z-index:2}
     .overlay-box{position:absolute;left:50%;top:50%;translate:-50% -50%;width:90%;height:85%;border:3px solid rgba(34,197,94,.9);border-radius:10px;pointer-events:none;z-index:2}
     .hidden{display:none!important} .stat{padding:8px 10px;border-radius:8px;border:1px solid #2b3953;background:#0c142b;display:inline-flex;gap:8px;align-items:center}
     .ok{color:var(--ok)} .bad{color:var(--bad)} .warn-t{color:var(--warn)} .muted{color:var(--muted);font-size:12px}
@@ -56,7 +58,7 @@
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v2.1‑STABLE</small></h1>
+    <h1>STOCKMANAGERAPP <small>v2.2‑PRODUCTION</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -183,7 +185,7 @@
       </div>
 
       <div id="upcScanner" class="scanner">
-        <div class="scan-overlay" id="scanOverlay"></div>
+        <div class="scan-overlay"></div>
         <div class="overlay-box"></div>
         <div id="interactive" class="viewport"></div>
       </div>
@@ -525,10 +527,7 @@
       }catch(e){}
     }
 
-    // SIMPLE BARCODE SCANNER - REVERTED TO WORKING VERSION
-    let lastDetectedCode = '';
-    let lastDetectTime = 0;
-
+    // BARE MINIMUM BARCODE SCANNER - NO VALIDATION
     async function startUPCScan() {
       if(state.scannerActive) return;
       $('#upcScanner').style.display='flex';
@@ -543,7 +542,7 @@
           }
         },
         decoder: {
-          readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader", "upc_reader", "upc_e_reader"]
+          readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader", "upc_reader", "upc_e_reader", "codabar_reader"]
         }
       }, function(err) {
         if (err) {
@@ -561,37 +560,13 @@
         if (!result || !result.codeResult || !result.codeResult.code) return;
         
         const code = result.codeResult.code;
-        const now = Date.now();
         
-        // Quality check
-        if (result.codeResult.quality && result.codeResult.quality < 0.65) {
-          console.log('Low quality scan ignored:', code);
-          return;
-        }
-        
-        // Basic validation: 8-15 alphanumeric
-        if (!/^[0-9A-Z]{8,15}$/i.test(code)) {
-          console.log('Invalid barcode format:', code);
-          return;
-        }
-        
-        // Prevent rapid duplicates (1 second cooldown)
-        if (code === lastDetectedCode && (now - lastDetectTime) < 1000) {
-          return;
-        }
-        
-        lastDetectedCode = code;
-        lastDetectTime = now;
-        
-        console.log('✅ Valid barcode detected:', code);
-        $('#scanOverlay').classList.add('ready');
+        console.log('✅ Barcode detected:', code);
         beep();
         
-        setTimeout(() => {
-          $('#upc').value = code;
-          stopUPCScan();
-          lookupUPC(code);
-        }, 200);
+        $('#upc').value = code;
+        stopUPCScan();
+        lookupUPC(code);
       });
     }
 
@@ -600,7 +575,6 @@
       Quagga.stop();
       state.scannerActive = false;
       $('#upcScanner').style.display='none';
-      $('#scanOverlay').classList.remove('ready');
     }
 
     // QR SCANNER
