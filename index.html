@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>STOCKMANAGERAPP v2.2-PRODUCTION</title>
+  <title>STOCKMANAGERAPP v2.3-TRIPLECONFIRM</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8;--required:#ef4444}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -52,13 +52,16 @@
     #codes{display:flex;gap:.1in;align-items:center}
     #codes canvas{background:#fff}
     #itemDesc{font-weight:700;font-size:14pt;text-align:center;border:2px solid #000;padding:4pt}
+    .scan-status{position:fixed;bottom:20px;right:20px;background:#0c142b;border:2px solid #38bdf8;padding:16px;border-radius:8px;font-size:13px;max-width:300px;z-index:99}
+    .scan-status.match{border-color:#22c55e}
+    .scan-status.nomatch{border-color:#ef4444}
     @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} }
     .drawingBuffer{display:none!important}
   </style>
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v2.2‑PRODUCTION</small></h1>
+    <h1>STOCKMANAGERAPP <small>v2.3‑TRIPLECONFIRM</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -302,6 +305,10 @@
     </div>
   </div>
 
+  <div id="scanStatus" class="scan-status hidden">
+    <div id="scanStatusText"></div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -349,6 +356,15 @@
         return [parts[0], parts[1].padStart(2, '0'), 'FLOOR'].join('-');
       }
       return normalized;
+    }
+
+    function showScanStatus(msg, isMatch) {
+      const el = $('#scanStatus');
+      el.classList.remove('hidden');
+      el.classList.toggle('match', isMatch);
+      el.classList.toggle('nomatch', !isMatch);
+      $('#scanStatusText').textContent = msg;
+      setTimeout(() => { el.classList.add('hidden'); }, 3000);
     }
 
     (function init(){
@@ -527,10 +543,14 @@
       }catch(e){}
     }
 
-    // BARE MINIMUM BARCODE SCANNER - NO VALIDATION
+    // TRIPLE-MATCH CONFIRMATION BARCODE SCANNER
+    let barcodeScans = [];
+    const REQUIRED_MATCHES = 3;
+
     async function startUPCScan() {
       if(state.scannerActive) return;
       $('#upcScanner').style.display='flex';
+      barcodeScans = [];
       
       Quagga.init({
         inputStream: {
@@ -559,14 +579,29 @@
       Quagga.onDetected(function(result) {
         if (!result || !result.codeResult || !result.codeResult.code) return;
         
-        const code = result.codeResult.code;
+        const code = result.codeResult.code.trim();
         
-        console.log('✅ Barcode detected:', code);
-        beep();
+        barcodeScans.push(code);
+        if (barcodeScans.length > 5) barcodeScans.shift();
         
-        $('#upc').value = code;
-        stopUPCScan();
-        lookupUPC(code);
+        // Check if last 3 are identical
+        const lastThree = barcodeScans.slice(-REQUIRED_MATCHES);
+        if (lastThree.length === REQUIRED_MATCHES && lastThree.every(c => c === code)) {
+          console.log('✅ TRIPLE-CONFIRMED:', code);
+          beep();
+          showScanStatus(`✅ CONFIRMED: ${code}`, true);
+          
+          setTimeout(() => {
+            $('#upc').value = code;
+            stopUPCScan();
+            lookupUPC(code);
+          }, 500);
+          return;
+        }
+        
+        const matchCount = lastThree.filter(c => c === code).length;
+        console.log(`🔍 Scan ${matchCount}/${REQUIRED_MATCHES}: ${code}`);
+        showScanStatus(`🔍 Scan ${matchCount}/${REQUIRED_MATCHES}: ${code}`, false);
       });
     }
 
@@ -575,6 +610,7 @@
       Quagga.stop();
       state.scannerActive = false;
       $('#upcScanner').style.display='none';
+      barcodeScans = [];
     }
 
     // QR SCANNER
