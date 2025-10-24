@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>STOCKMANAGERAPP v2.0-MASTER</title>
+  <title>STOCKMANAGERAPP v2.1-STABLE</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8;--required:#ef4444}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -56,7 +56,7 @@
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v2.0‑MASTER</small></h1>
+    <h1>STOCKMANAGERAPP <small>v2.1‑STABLE</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -525,14 +525,13 @@
       }catch(e){}
     }
 
-    // BARCODE SCANNER
-    let barcodeHistory = [];
-    const REQUIRED_CONFIRMATIONS = 3;
+    // SIMPLE BARCODE SCANNER - REVERTED TO WORKING VERSION
+    let lastDetectedCode = '';
+    let lastDetectTime = 0;
 
     async function startUPCScan() {
       if(state.scannerActive) return;
       $('#upcScanner').style.display='flex';
-      barcodeHistory = [];
       
       Quagga.init({
         inputStream: {
@@ -544,7 +543,7 @@
           }
         },
         decoder: {
-          readers: ["ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader"]
+          readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader", "upc_reader", "upc_e_reader"]
         }
       }, function(err) {
         if (err) {
@@ -561,30 +560,38 @@
       Quagga.onDetected(function(result) {
         if (!result || !result.codeResult || !result.codeResult.code) return;
         
-        const code = result.codeResult.code.trim();
+        const code = result.codeResult.code;
+        const now = Date.now();
         
-        if (!/^[0-9]{12,13}$/.test(code)) {
-          console.log('❌ Invalid: not 12-13 digits:', code);
+        // Quality check
+        if (result.codeResult.quality && result.codeResult.quality < 0.65) {
+          console.log('Low quality scan ignored:', code);
           return;
         }
         
-        barcodeHistory.push(code);
-        if (barcodeHistory.length > 10) barcodeHistory.shift();
-        
-        const lastThree = barcodeHistory.slice(-REQUIRED_CONFIRMATIONS);
-        if (lastThree.length === REQUIRED_CONFIRMATIONS && lastThree.every(c => c === code)) {
-          console.log('🎉 BARCODE CONFIRMED (3x):', code);
-          $('#scanOverlay').classList.add('ready');
-          beep();
-          setTimeout(() => {
-            $('#upc').value = code;
-            stopUPCScan();
-            lookupUPC(code);
-          }, 300);
+        // Basic validation: 8-15 alphanumeric
+        if (!/^[0-9A-Z]{8,15}$/i.test(code)) {
+          console.log('Invalid barcode format:', code);
           return;
         }
         
-        console.log('🔍 Detecting...', code, `(${lastThree.filter(c => c === code).length}/${REQUIRED_CONFIRMATIONS})`);
+        // Prevent rapid duplicates (1 second cooldown)
+        if (code === lastDetectedCode && (now - lastDetectTime) < 1000) {
+          return;
+        }
+        
+        lastDetectedCode = code;
+        lastDetectTime = now;
+        
+        console.log('✅ Valid barcode detected:', code);
+        $('#scanOverlay').classList.add('ready');
+        beep();
+        
+        setTimeout(() => {
+          $('#upc').value = code;
+          stopUPCScan();
+          lookupUPC(code);
+        }, 200);
       });
     }
 
@@ -594,7 +601,6 @@
       state.scannerActive = false;
       $('#upcScanner').style.display='none';
       $('#scanOverlay').classList.remove('ready');
-      barcodeHistory = [];
     }
 
     // QR SCANNER
@@ -765,7 +771,6 @@
     function validateBeforeSubmit() {
       const missing = [];
       
-      // Page 1 required fields
       if (!$('#upc').value.trim()) missing.push('UPC');
       if (!$('#brand').value.trim()) missing.push('Brand');
       if (!$('#gender').value) missing.push('Gender');
@@ -778,7 +783,6 @@
       if (!$('#itemW').value || +$('#itemW').value === 0) missing.push('Item W');
       if (!$('#itemH').value || +$('#itemH').value === 0) missing.push('Item H');
       
-      // Check at least one box style
       let hasBoxStyle = false;
       for (let i = 1; i <= 4; i++) {
         const boxes = +document.querySelector(`.bs_boxes[data-bs="${i}"]`).value || 0;
@@ -799,7 +803,6 @@
       
       if (!hasBoxStyle) missing.push('At least one Box Style with dimensions');
       
-      // Check at least one location
       let hasLocation = false;
       for (let i = 0; i < 9; i++) {
         const code = document.querySelector(`.loc_code[data-i="${i}"]`).value.trim();
@@ -863,7 +866,6 @@
     }
 
     async function submitNow(){ 
-      // VALIDATE FIRST
       if (!validateBeforeSubmit()) {
         return;
       }
@@ -1010,7 +1012,6 @@
         if(data && data.ok && data.found && data.item){ 
           const it=data.item; 
           
-          // AUTO-FILL FROM ITEM_MASTER
           if(it.brand) $('#brand').value=it.brand; 
           if(it.gender) $('#gender').value=(it.gender+'').toUpperCase();
           if(it.desc) $('#desc').value=it.desc; 
