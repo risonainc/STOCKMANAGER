@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>STOCKMANAGERAPP v1.2.0-CORRECTED</title>
+  <title>STOCKMANAGERAPP v1.3.0-FINAL</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -33,7 +33,8 @@
     .scanner .viewport video{width:100%;height:100%;object-fit:cover}
     #qrReader{width:100%;height:100%}
     #qrReader video{width:100%!important;height:100%!important;object-fit:cover}
-    .scan-overlay{position:absolute;inset:0;border:3px solid rgba(56,189,248,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none;z-index:2}
+    .scan-overlay{position:absolute;inset:0;border:3px solid rgba(239,68,68,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none;z-index:2;transition:border-color 0.3s}
+    .scan-overlay.ready{border-color:rgba(34,197,94,.9)}
     .overlay-box{position:absolute;left:50%;top:50%;translate:-50% -50%;width:90%;height:85%;border:3px solid rgba(34,197,94,.9);border-radius:10px;pointer-events:none;z-index:2}
     .hidden{display:none!important} .stat{padding:8px 10px;border-radius:8px;border:1px solid #2b3953;background:#0c142b;display:inline-flex;gap:8px;align-items:center}
     .ok{color:var(--ok)} .bad{color:var(--bad)} .warn-t{color:var(--warn)} .muted{color:var(--muted);font-size:12px}
@@ -54,7 +55,7 @@
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v1.2.0‑CORRECTED</small></h1>
+    <h1>STOCKMANAGERAPP <small>v1.3.0‑FINAL</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -181,7 +182,7 @@
       </div>
 
       <div id="upcScanner" class="scanner">
-        <div class="scan-overlay"></div>
+        <div class="scan-overlay" id="scanOverlay"></div>
         <div class="overlay-box"></div>
         <div id="interactive" class="viewport"></div>
       </div>
@@ -323,14 +324,10 @@
       "L-02-01-01","L-02-01-02","L-02-FLOOR"
     ];
 
-    // AUTO-CORRECT LOCATION FORMAT
     function normalizeLocation(loc) {
       if (!loc) return '';
-      // Convert A-01-1.0-1.0 format to A-01-01-01
       let normalized = loc.toUpperCase().trim();
-      // Replace .0 with nothing, pad with zeros
       normalized = normalized.replace(/\.0/g, '');
-      // Ensure format like A-01-01-01
       const parts = normalized.split('-');
       if (parts.length === 4) {
         return [parts[0], parts[1].padStart(2, '0'), parts[2].padStart(2, '0'), parts[3].padStart(2, '0')].join('-');
@@ -351,22 +348,54 @@
     function showUnlock(is){ 
       state.logged=!!is; 
       $('#loginLock').textContent=is?'(ready)':'(locked until login)';
-      ['upc','brand','gender','desc','coo','cd','expectedQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{ const el=$('#'+id); if(el) el.disabled=!is; });
-      document.querySelectorAll('.bs_boxes, .bs_qty, .bs_wt, .bs_l, .bs_w, .bs_h').forEach(el => { el.disabled = !is; });
-      document.querySelectorAll('.loc_code, .loc_qty').forEach(el => { el.disabled = !is; });
-      ['btnScanUPC','btnGenUPC','btnCheck','toPage2','btnScanLocation','btnSubmitNext','btnMoveAll'].forEach(id=>{ const b=$('#'+id); if(b) b.disabled=!is; }); 
+      
+      // Main fields
+      ['upc','brand','gender','desc','coo','cd','expectedQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{ 
+        const el=$('#'+id); 
+        if(el) el.disabled=!is; 
+      });
+      
+      // BOX STYLE FIELDS - FIXED: Now properly enabled after login
+      document.querySelectorAll('.bs_boxes, .bs_qty, .bs_wt, .bs_l, .bs_w, .bs_h').forEach(el => { 
+        el.disabled = !is; 
+      });
+      
+      // Location fields
+      document.querySelectorAll('.loc_code, .loc_qty').forEach(el => { 
+        el.disabled = !is; 
+      });
+      
+      // Buttons
+      ['btnScanUPC','btnGenUPC','btnCheck','toPage2','btnScanLocation','btnSubmitNext','btnMoveAll'].forEach(id=>{ 
+        const b=$('#'+id); 
+        if(b) b.disabled=!is; 
+      }); 
     }
 
-    $('#loginName').addEventListener('change', e=>{ const user=e.target.value; if(!user){ showUnlock(false); return; }
-      const pwd=prompt('Enter password for '+user+' (hint: username backwards)')||''; const exp=user.split('').reverse().join('').toLowerCase();
-      if(pwd.toLowerCase()===exp){ localStorage.setItem('sma_user', user); showUnlock(true); $('#upc').focus(); } else { alert('Incorrect password.'); e.target.value=''; showUnlock(false); } });
+    $('#loginName').addEventListener('change', e=>{ 
+      const user=e.target.value; 
+      if(!user){ showUnlock(false); return; }
+      const pwd=prompt('Enter password for '+user+' (hint: username backwards)')||''; 
+      const exp=user.split('').reverse().join('').toLowerCase();
+      if(pwd.toLowerCase()===exp){ 
+        localStorage.setItem('sma_user', user); 
+        showUnlock(true); 
+        $('#upc').focus(); 
+      } else { 
+        alert('Incorrect password.'); 
+        e.target.value=''; 
+        showUnlock(false); 
+      } 
+    });
 
     $('#endpoint').addEventListener('input', e=>localStorage.setItem('sma_endpoint', e.target.value));
     $('#sheetId').addEventListener('input', e=>{ localStorage.setItem('sma_sheet', e.target.value); $('#sheetIdDisplay').textContent = e.target.value? 'Linked':'—'; });
 
     const boxStyles = $('#boxStyles');
     for(let i=1;i<=4;i++){
-      const el=document.createElement('div'); el.className='box-card'; el.innerHTML=`
+      const el=document.createElement('div'); 
+      el.className='box-card'; 
+      el.innerHTML=`
         <div class="row" style="justify-content:space-between;align-items:center"><strong>Box Style ${i}</strong><span class="muted">Boxes × Qty/Box → Pcs | Cu Ft</span></div>
         <div class="grid g4" style="margin-top:6px">
           <div><label>Boxes</label><input data-bs="${i}" class="bs_boxes" type="number" min="0" step="1" value="0" disabled></div>
@@ -379,11 +408,14 @@
           <div><label>W (in)</label><input data-bs="${i}" class="bs_w" type="number" step="0.01" min="0" value="" disabled></div>
           <div><label>H (in)</label><input data-bs="${i}" class="bs_h" type="number" step="0.01" min="0" value="" disabled></div>
           <div><label>Cu Ft (auto)</label><input data-bs="${i}" class="bs_cuft" type="number" readonly value="0" style="background:#1b2232"></div>
-        </div>`; boxStyles.appendChild(el); }
+        </div>`;
+      boxStyles.appendChild(el); 
+    }
 
     function recalcSubtotal(){ 
       let subtotal=0; 
       let totalCuFt=0;
+      
       document.querySelectorAll('.bs_boxes').forEach(boxEl=>{ 
         const i=boxEl.getAttribute('data-bs'); 
         const boxes=+boxEl.value||0; 
@@ -392,14 +424,20 @@
         const pcs=boxes*qty; 
         pcsEl.value=pcs; 
         subtotal+=pcs;
+        
+        // FIXED: Correct Total Cu Ft calculation
+        // Cu Ft per box = (L × W × H) / 1728
+        // Total Cu Ft for style = Cu Ft per box × Number of boxes
         const l = +document.querySelector(`.bs_l[data-bs="${i}"]`).value||0;
         const w = +document.querySelector(`.bs_w[data-bs="${i}"]`).value||0;
         const h = +document.querySelector(`.bs_h[data-bs="${i}"]`).value||0;
         const cuftPerBox = (l * w * h) / 1728;
         const totalCuFtForStyle = cuftPerBox * boxes;
+        
         document.querySelector(`.bs_cuft[data-bs="${i}"]`).value = totalCuFtForStyle.toFixed(2);
         totalCuFt += totalCuFtForStyle;
       });
+      
       state.subtotal=subtotal; 
       state.totalCuFt=totalCuFt;
       $('#enteredQty').value=subtotal; 
@@ -411,8 +449,30 @@
     }
     boxStyles.addEventListener('input', recalcSubtotal);
 
-    function updateMatchStatus(){ const expected=+($('#expectedQty').value||0); const actual=state.subtotal; const ms=$('#matchStatus'); if(!expected && !actual){ ms.textContent='—'; ms.className=''; return; } if(expected===actual){ ms.textContent='MATCH'; ms.className='ok'; } else { ms.textContent=`MISMATCH (${actual-expected>=0?'+':''}${actual-expected})`; ms.className='bad'; } }
-    function updateOkToSubmit(){ const ok=((+($('#expectedQty').value||0))===state.subtotal && state.subtotal>0); state.okToSubmit=ok; $('#okToSubmit').textContent=ok?'Yes':'No'; }
+    function updateMatchStatus(){ 
+      const expected=+($('#expectedQty').value||0); 
+      const actual=state.subtotal; 
+      const ms=$('#matchStatus'); 
+      if(!expected && !actual){ 
+        ms.textContent='—'; 
+        ms.className=''; 
+        return; 
+      } 
+      if(expected===actual){ 
+        ms.textContent='MATCH'; 
+        ms.className='ok'; 
+      } else { 
+        ms.textContent=`MISMATCH (${actual-expected>=0?'+':''}${actual-expected})`; 
+        ms.className='bad'; 
+      } 
+    }
+    
+    function updateOkToSubmit(){ 
+      const ok=((+($('#expectedQty').value||0))===state.subtotal && state.subtotal>0); 
+      state.okToSubmit=ok; 
+      $('#okToSubmit').textContent=ok?'Yes':'No'; 
+    }
+    
     $('#expectedQty').addEventListener('input', ()=>{ updateMatchStatus(); updateOkToSubmit(); });
 
     function goto(p){ 
@@ -452,16 +512,14 @@
       }catch(e){}
     }
 
-    // QUAGGA BARCODE SCANNER - NUMERIC ONLY, DOUBLE CONFIRMATION
-    let lastBarcode = '';
-    let lastBarcodeTime = 0;
-    let confirmationCount = 0;
+    // IMPROVED BARCODE SCANNER - TRIPLE CONFIRMATION, 12-13 DIGITS ONLY
+    let barcodeHistory = [];
+    const REQUIRED_CONFIRMATIONS = 3;
 
     async function startUPCScan() {
       if(state.scannerActive) return;
       $('#upcScanner').style.display='flex';
-      confirmationCount = 0;
-      lastBarcode = '';
+      barcodeHistory = [];
       
       Quagga.init({
         inputStream: {
@@ -491,32 +549,32 @@
         if (!result || !result.codeResult || !result.codeResult.code) return;
         
         const code = result.codeResult.code.trim();
-        const now = Date.now();
         
-        // NUMERIC-ONLY validation: 8-15 digits
-        if (!/^[0-9]{8,15}$/.test(code)) {
-          console.log('❌ Invalid barcode format (not 8-15 digits):', code);
+        // STRICT VALIDATION: 12 or 13 digits ONLY (UPC/EAN standard)
+        if (!/^[0-9]{12,13}$/.test(code)) {
+          console.log('❌ Invalid: not 12-13 digits:', code);
           return;
         }
         
-        // Double confirmation: must scan same code twice within 3 seconds
-        if (code === lastBarcode && (now - lastBarcodeTime) < 3000) {
-          confirmationCount++;
-          console.log('✅ Confirmation', confirmationCount, ':', code);
-          if (confirmationCount >= 1) {
-            console.log('🎉 BARCODE ACCEPTED:', code);
-            beep();
+        // Add to history
+        barcodeHistory.push(code);
+        if (barcodeHistory.length > 10) barcodeHistory.shift();
+        
+        // Check last 3 scans
+        const lastThree = barcodeHistory.slice(-REQUIRED_CONFIRMATIONS);
+        if (lastThree.length === REQUIRED_CONFIRMATIONS && lastThree.every(c => c === code)) {
+          console.log('🎉 BARCODE CONFIRMED (3x):', code);
+          $('#scanOverlay').classList.add('ready');
+          beep();
+          setTimeout(() => {
             $('#upc').value = code;
             stopUPCScan();
             lookupUPC(code);
-            return;
-          }
-        } else {
-          confirmationCount = 1;
-          lastBarcode = code;
-          lastBarcodeTime = now;
-          console.log('🔍 First read:', code, '- hold barcode steady for confirmation');
+          }, 300);
+          return;
         }
+        
+        console.log('🔍 Detecting...', code, `(${lastThree.filter(c => c === code).length}/${REQUIRED_CONFIRMATIONS})`);
       });
     }
 
@@ -525,9 +583,11 @@
       Quagga.stop();
       state.scannerActive = false;
       $('#upcScanner').style.display='none';
+      $('#scanOverlay').classList.remove('ready');
+      barcodeHistory = [];
     }
 
-    // HTML5-QRCODE SCANNER WITH AUTO-CORRECTION
+    // QR CODE SCANNER WITH AUTO-CORRECTION
     async function startQRScan() {
       if(state.qrScanner) return;
       $('#qrScanner').style.display='flex';
@@ -545,7 +605,6 @@
             console.log('✅ QR Code detected:', decodedText);
             beep();
             
-            // AUTO-CORRECT malformed location
             const corrected = normalizeLocation(decodedText);
             console.log('📍 Corrected location:', corrected);
             
@@ -660,6 +719,7 @@
         qtyInput.addEventListener('input', recalcPutawayTotal); 
       }
     }
+    
     function recalcPutawayTotal(){ 
       let t=0; 
       document.querySelectorAll('.loc_qty').forEach(q=> t+= +q.value||0 ); 
@@ -680,7 +740,10 @@
       }
     });
 
-    $('#btnCheck').addEventListener('click', ()=>{ const ok=state.okToSubmit; alert(ok ? '✔ Counts match. Status: VERIFIED.' : '⚠ Counts mismatch. Status: PENDING.'); });
+    $('#btnCheck').addEventListener('click', ()=>{ 
+      const ok=state.okToSubmit; 
+      alert(ok ? '✔ Counts match. Status: VERIFIED.' : '⚠ Counts mismatch. Status: PENDING.'); 
+    });
 
     function buildSubmitParams(){ 
       const p=new URLSearchParams(); 
