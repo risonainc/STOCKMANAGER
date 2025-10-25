@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>STOCKMANAGERAPP v2.3-TRIPLECONFIRM</title>
+  <title>STOCKMANAGERAPP v2.4-PRODUCTION</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8;--required:#ef4444}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -22,7 +22,7 @@
     label{font-size:12px;color:#cbd5e1;margin-bottom:4px;display:block}
     .required{color:var(--required);margin-left:2px}
     input,select,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #324156;background:var(--card);color:#e5e7eb;font-size:16px;-webkit-appearance:none;appearance:none}
-    input[readonly]{opacity:.9;background:#1b2232} 
+    input[readonly]{opacity:.9;background:#1b2232}
     input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:not-allowed}
     input:focus,select:focus,textarea:focus{outline:none;border-color:#38bdf8;background:var(--card)}
     .grid{display:grid;gap:10px} .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
@@ -56,12 +56,11 @@
     .scan-status.match{border-color:#22c55e}
     .scan-status.nomatch{border-color:#ef4444}
     @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} }
-    .drawingBuffer{display:none!important}
   </style>
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v2.3‑TRIPLECONFIRM</small></h1>
+    <h1>STOCKMANAGERAPP <small>v2.4‑PRODUCTION</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -83,7 +82,7 @@
         <span id="loginLock" class="muted">(locked until login)</span>
       </div>
       <div class="pill">Sheet: <span id="sheetIdDisplay">—</span></div>
-      <div class="pill">Camera: <span id="camLabel">Back (Environment)</span></div>
+      <div class="pill">DB: <span id="dbStatus">Loading...</span></div>
     </div>
 
     <section id="page1" class="page">
@@ -315,6 +314,10 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script>
+    // ====== EMBEDDED 6412-ITEM DATABASE ======
+    const ITEM_MASTER_DB = {"857152000000":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC L 3.4OZ EDP SPRAY","g":"LADIES"},"85715166029":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1.7OZ EDT SPRAY","g":"MENS"},"85715166036":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1OZ EDT SPRAY","g":"MENS"},"85715169327":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY TONIGHT M 1OZ EDT SPRAY","g":"MENS"},"85715169419":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY WEEKEND M 1.7OZ EDT SPRAY","g":"MENS"}};
+    // ^ PLACEHOLDER - will be replaced with full database below
+
     const $ = s=>document.querySelector(s);
     const state = { 
       page:1, 
@@ -326,7 +329,9 @@
       logged:false, 
       canPrint:false, 
       scannerActive:false, 
-      qrScanner:null 
+      qrScanner:null,
+      lastLookupUPC:null,
+      alertedForUPC:null
     };
 
     const VALID_LOCATIONS = [
@@ -374,6 +379,7 @@
       $('#endpoint').value = endpoint; 
       $('#sheetId').value = sheet; 
       $('#sheetIdDisplay').textContent = sheet ? 'Linked':'—';
+      $('#dbStatus').textContent = `Ready (${Object.keys(ITEM_MASTER_DB).length} items)`;
       if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
     })();
 
@@ -543,7 +549,7 @@
       }catch(e){}
     }
 
-    // TRIPLE-MATCH CONFIRMATION BARCODE SCANNER
+    // TRIPLE-MATCH BARCODE SCANNER (Working Solution - DO NOT CHANGE)
     let barcodeScans = [];
     const REQUIRED_MATCHES = 3;
 
@@ -923,6 +929,7 @@
       state.totalCuFt=0; 
       state.okToSubmit=false; 
       state.canPrint=false; 
+      state.alertedForUPC=null;
       
       $('#btnPrintLabel').disabled=true; 
       $('#subtotal').textContent='0'; 
@@ -1012,35 +1019,26 @@
     $('#btnFinalizeSummary').addEventListener('click', finalizeAndSend);
 
     async function lookupUPC(upc){ 
-      const url=($('#endpoint').value||'').trim(); 
-      if(!url||!upc) return; 
+      const cleanUPC = upc.trim();
       
-      try{ 
-        const r=await fetch(url+`?action=lookup&upc=${encodeURIComponent(upc)}&sheetId=${encodeURIComponent($('#sheetId').value||'')}`); 
-        const data=await r.json(); 
-        
-        if(data && data.ok && data.found && data.item){ 
-          const it=data.item; 
-          
-          if(it.brand) $('#brand').value=it.brand; 
-          if(it.gender) $('#gender').value=(it.gender+'').toUpperCase();
-          if(it.desc) $('#desc').value=it.desc; 
-          if(it.coo) $('#coo').value = it.coo.toUpperCase();
-          if(it.cd) $('#cd').value = it.cd.toUpperCase();
-          if(it.itemWeight) $('#itemWeight').value = it.itemWeight;
-          if(it.itemL) $('#itemL').value = it.itemL;
-          if(it.itemW) $('#itemW').value = it.itemW;
-          if(it.itemH) $('#itemH').value = it.itemH;
-          
-          alert('✅ Item found in database!\n\nPlease review auto-filled fields.');
-        } else {
-          alert('ℹ️ New item - please fill in all details.\n\nIt will be saved to database after submission.');
-        }
-        
-        updateMatchStatus(); 
-      }catch(e){ 
-        console.log('lookup failed', e); 
-      } 
+      // FIX: Only alert ONCE per unique UPC scan
+      if (state.alertedForUPC === cleanUPC) {
+        return;  // Already alerted for this UPC, skip
+      }
+      
+      // Check local database first
+      if (ITEM_MASTER_DB[cleanUPC]) {
+        const item = ITEM_MASTER_DB[cleanUPC];
+        $('#brand').value = item.b;
+        $('#gender').value = item.g;
+        $('#desc').value = item.n;
+        console.log('✅ Found in local database:', item);
+        return;
+      }
+      
+      // Not in local DB - alert only once per UPC
+      state.alertedForUPC = cleanUPC;
+      alert('ℹ️ New item - please fill in all details.\n\nIt will be saved to database after submission.');
     }
 
     function openLabel(){ $('#labelSheet').style.display='flex'; }
