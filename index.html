@@ -90,9 +90,79 @@
       <div class="grid g3">
         <div>
           <label>UPC <span class="required">*</span></label>
-          <input id="upc" placeholder="Scan UPC" maxlength="14" pattern="[0-9]*" onchange="handleUPCScan(this.value)" onkeypress="return event.key !== 'Enter'" />
+          <input id="upc" placeholder="Scan UPC" readonly onclick="enableScanning()" />
+<div id="scan-status" style="margin-top:5px; font-size:12px; color:#666;">Click to enable scanning</div>
 
 <script>
+let scannerLocked = false;
+let scanTimeout = null;
+let lastScanTime = 0;
+
+function enableScanning() {
+  if (scannerLocked) return;
+  
+  const upcField = document.getElementById('upc');
+  const statusDiv = document.getElementById('scan-status');
+  
+  upcField.readOnly = false;
+  upcField.focus();
+  upcField.value = '';
+  statusDiv.textContent = 'Ready to scan - aim ONE scanner only';
+  statusDiv.style.color = '#22c55e';
+  
+  scanTimeout = setTimeout(() => {
+    lockScanning('Scan timeout - click to try again');
+  }, 3000);
+}
+
+function lockScanning(message) {
+  const upcField = document.getElementById('upc');
+  const statusDiv = document.getElementById('scan-status');
+  
+  scannerLocked = true;
+  upcField.readOnly = true;
+  upcField.blur();
+  statusDiv.textContent = message;
+  statusDiv.style.color = '#ef4444';
+  
+  if (scanTimeout) {
+    clearTimeout(scanTimeout);
+    scanTimeout = null;
+  }
+  
+  setTimeout(() => {
+    scannerLocked = false;
+    statusDiv.textContent = 'Click to enable scanning';
+    statusDiv.style.color = '#666';
+  }, 2000);
+}
+
+document.getElementById('upc').addEventListener('input', function(e) {
+  if (scannerLocked) {
+    e.target.value = '';
+    return;
+  }
+  
+  const currentTime = Date.now();
+  const upcValue = e.target.value.trim();
+  
+  if (currentTime - lastScanTime < 100) {
+    e.target.value = '';
+    return;
+  }
+  
+  if (upcValue.length >= 8 && upcValue.length <= 14 && /^[0-9]+$/.test(upcValue)) {
+    lastScanTime = currentTime;
+    clearTimeout(scanTimeout);
+    lockScanning('UPC captured: ' + upcValue);
+    console.log('Valid UPC scanned:', upcValue);
+  } else if (upcValue.length > 14 || /[^0-9]/.test(upcValue)) {
+    e.target.value = '';
+    lockScanning('Scanner collision detected - try again');
+  }
+});
+</script>
+
 let upcLocked = false;
 
 function handleUPCScan(upcValue) {
