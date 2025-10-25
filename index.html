@@ -90,7 +90,31 @@
       <div class="grid g3">
         <div>
           <label>UPC <span class="required">*</span></label>
-          <input id="upc" inputmode="numeric" autocomplete="off" placeholder="Scan or enter UPC" disabled />
+          <input id="upc" placeholder="Scan UPC" maxlength="14" pattern="[0-9]*" onchange="handleUPCScan(this.value)" onkeypress="return event.key !== 'Enter'" />
+
+<script>
+let upcLocked = false;
+
+function handleUPCScan(upcValue) {
+  if (upcLocked) return; // Ignore if already processing
+  
+  upcLocked = true;
+  document.getElementById('upc').disabled = true;
+  
+  // Lock for 500ms to prevent multi-scanner collision
+  setTimeout(() => {
+    upcLocked = false;
+    document.getElementById('upc').disabled = false;
+    document.getElementById('upc').value = ''; // Clear for next scan
+    document.getElementById('upc').focus(); // Return focus
+  }, 500);
+  
+  // Process the UPC value here
+  console.log('UPC Scanned:', upcValue);
+  // Add your form logic here
+}
+</script>
+
         </div>
         <div class="actions" style="align-items:end">
           <button class="btn primary" id="btnScanUPC" disabled>Scan UPC</button>
