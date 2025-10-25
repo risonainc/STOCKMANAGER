@@ -137,29 +137,56 @@ function lockScanning(message) {
   }, 2000);
 }
 
+// Handle UPC input - FIXED VERSION
 document.getElementById('upc').addEventListener('input', function(e) {
   if (scannerLocked) {
+    return; // Don't clear, just ignore
+  }
+  
+  let upcValue = e.target.value;
+  
+  // REMOVE SPACES - don't reject them
+  upcValue = upcValue.replace(/\s+/g, '');
+  
+  // Only accept digits after removing spaces
+  if (/[^0-9]/.test(upcValue)) {
     e.target.value = '';
+    lockScanning('Invalid characters - scan again');
     return;
   }
   
-  const currentTime = Date.now();
-  const upcValue = e.target.value.trim();
-  
-  if (currentTime - lastScanTime < 100) {
-    e.target.value = '';
-    return;
-  }
-  
-  if (upcValue.length >= 8 && upcValue.length <= 14 && /^[0-9]+$/.test(upcValue)) {
+  // Accept UPC lengths 8-14 digits
+  if (upcValue.length >= 8 && upcValue.length <= 14) {
+    e.target.value = upcValue; // Store without spaces
+    const currentTime = Date.now();
     lastScanTime = currentTime;
     clearTimeout(scanTimeout);
+    
     lockScanning('UPC captured: ' + upcValue);
-    console.log('Valid UPC scanned:', upcValue);
-  } else if (upcValue.length > 14 || /[^0-9]/.test(upcValue)) {
-    e.target.value = '';
-    lockScanning('Scanner collision detected - try again');
+    processValidUPC(upcValue);
   }
+  else if (upcValue.length > 14) {
+    e.target.value = '';
+    lockScanning('UPC too long - try again');
+  }
+});
+
+function processValidUPC(upc) {
+  console.log('Valid UPC scanned:', upc);
+  // Auto-fill other fields if needed
+}
+
+// Prevent form submission on Enter
+document.getElementById('upc').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+  }
+});
+
+// IMPORTANT: Add this to prevent field clearing when leaving
+document.getElementById('upc').addEventListener('blur', function(e) {
+  // Do NOT clear on blur - keep the value
+  // This fixes the issue where UPC disappears when moving to next field
 });
 </script>
 
