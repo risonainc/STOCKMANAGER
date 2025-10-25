@@ -96,40 +96,27 @@
 <script>
 let scannerLocked = false;
 let scanTimeout = null;
-let lastScanTime = 0;
 
 function enableScanning() {
   if (scannerLocked) return;
-  
   const upcField = document.getElementById('upc');
   const statusDiv = document.getElementById('scan-status');
-  
   upcField.readOnly = false;
   upcField.focus();
   upcField.value = '';
-  statusDiv.textContent = 'Ready to scan - aim ONE scanner only';
+  statusDiv.textContent = 'Ready to scan';
   statusDiv.style.color = '#22c55e';
-  
-  scanTimeout = setTimeout(() => {
-    lockScanning('Scan timeout - click to try again');
-  }, 3000);
+  scanTimeout = setTimeout(() => { lockScanning('Timeout'); }, 3000);
 }
 
 function lockScanning(message) {
   const upcField = document.getElementById('upc');
   const statusDiv = document.getElementById('scan-status');
-  
   scannerLocked = true;
   upcField.readOnly = true;
-  upcField.blur();
   statusDiv.textContent = message;
   statusDiv.style.color = '#ef4444';
-  
-  if (scanTimeout) {
-    clearTimeout(scanTimeout);
-    scanTimeout = null;
-  }
-  
+  if (scanTimeout) clearTimeout(scanTimeout);
   setTimeout(() => {
     scannerLocked = false;
     statusDiv.textContent = 'Click to enable scanning';
@@ -137,79 +124,20 @@ function lockScanning(message) {
   }, 2000);
 }
 
-// Handle UPC input - FIXED VERSION
 document.getElementById('upc').addEventListener('input', function(e) {
-  if (scannerLocked) {
-    return; // Don't clear, just ignore
-  }
-  
-  let upcValue = e.target.value;
-  
-  // REMOVE SPACES - don't reject them
-  upcValue = upcValue.replace(/\s+/g, '');
-  
-  // Only accept digits after removing spaces
-  if (/[^0-9]/.test(upcValue)) {
+  if (scannerLocked) return;
+  let val = e.target.value.replace(/\s+/g, '');
+  if (/[^0-9]/.test(val)) {
     e.target.value = '';
-    lockScanning('Invalid characters - scan again');
+    lockScanning('Invalid');
     return;
   }
-  
-  // Accept UPC lengths 8-14 digits
-  if (upcValue.length >= 8 && upcValue.length <= 14) {
-    e.target.value = upcValue; // Store without spaces
-    const currentTime = Date.now();
-    lastScanTime = currentTime;
+  if (val.length >= 8 && val.length <= 14) {
+    e.target.value = val;
     clearTimeout(scanTimeout);
-    
-    lockScanning('UPC captured: ' + upcValue);
-    processValidUPC(upcValue);
-  }
-  else if (upcValue.length > 14) {
-    e.target.value = '';
-    lockScanning('UPC too long - try again');
+    lockScanning('UPC: ' + val);
   }
 });
-
-function processValidUPC(upc) {
-  console.log('Valid UPC scanned:', upc);
-  // Auto-fill other fields if needed
-}
-
-// Prevent form submission on Enter
-document.getElementById('upc').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-  }
-});
-
-// IMPORTANT: Add this to prevent field clearing when leaving
-document.getElementById('upc').addEventListener('blur', function(e) {
-  // Do NOT clear on blur - keep the value
-  // This fixes the issue where UPC disappears when moving to next field
-});
-</script>
-
-let upcLocked = false;
-
-function handleUPCScan(upcValue) {
-  if (upcLocked) return; // Ignore if already processing
-  
-  upcLocked = true;
-  document.getElementById('upc').disabled = true;
-  
-  // Lock for 500ms to prevent multi-scanner collision
-  setTimeout(() => {
-    upcLocked = false;
-    document.getElementById('upc').disabled = false;
-    document.getElementById('upc').value = ''; // Clear for next scan
-    document.getElementById('upc').focus(); // Return focus
-  }, 500);
-  
-  // Process the UPC value here
-  console.log('UPC Scanned:', upcValue);
-  // Add your form logic here
-}
 </script>
 
         </div>
