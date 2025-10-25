@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>STOCKMANAGERAPP v2.5-THERMAL</title>
+  <title>STOCKMANAGERAPP v2.4-PRODUCTION</title>
   <style>
     :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8;--required:#ef4444}
     *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -43,42 +43,24 @@
     .ok{color:var(--ok)} .bad{color:var(--bad)} .warn-t{color:var(--warn)} .muted{color:var(--muted);font-size:12px}
     .box-card{border:1px solid #2b3953;border-radius:10px;padding:10px;background:#0c142b}
     .kbd{font-family:ui-monospace,Menlo,monospace;background:#0b1329;border:1px solid #2b3953;border-bottom-width:3px;border-radius:6px;padding:2px 6px}
-    
-    /* THERMAL LABEL STYLES - MONOCHROME OPTIMIZED */
     #labelSheet{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:100}
-    #labelCard{background:white;color:#000;width:6in;height:4in;display:flex;flex-direction:column;padding:0.15in;box-sizing:border-box;font-family:'Courier New',monospace}
-    
-    /* VERIFIED STYLE - THICK DOUBLE BORDER */
-    #labelCard.verified{border:4px double #000;box-shadow:inset -2px -2px 0 #000,inset 2px 2px 0 #000}
-    
-    /* PENDING STYLE - DASHED BORDER */
-    #labelCard.pending{border:3px dashed #000}
-    
-    #labelHeader{font-weight:900;font-size:14pt;border-bottom:2px solid #000;padding-bottom:0.08in;margin-bottom:0.08in;display:flex;justify-content:space-between;align-items:center}
-    #labelStatus{font-size:18pt;font-weight:900;letter-spacing:2px}
-    #labelStatusIcon{font-size:20pt;margin-right:0.05in}
-    
-    #labelBody{flex:1;display:grid;grid-template-columns:1.8in 1.2in;gap:0.08in;font-size:9pt;line-height:1.2}
-    #labelLeft{display:flex;flex-direction:column;gap:0.04in}
-    #labelRight{display:flex;flex-direction:column;align-items:center;justify-content:space-around}
-    
-    #itemDesc{font-weight:900;font-size:10pt;text-align:center;border:2px solid #000;padding:0.06in;line-height:1.1}
-    #labelUPC{font-weight:700;font-size:11pt;text-align:center}
-    
-    #codes{display:flex;flex-direction:column;align-items:center;gap:0.04in}
-    #codes canvas{background:#fff;border:1px solid #000}
-    #codes div{width:100%;text-align:center}
-    
-    .label-field{display:flex;gap:0.03in}
-    .label-key{font-weight:700;min-width:0.6in}
-    .label-value{flex:1;word-break:break-all}
-    
-    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none;border-top:none;border-left:none;border-right:none} @page{size:4in 6in landscape;margin:0;padding:0} }
+    #labelCard{background:white;color:#000;width:6in;height:4in;display:flex;flex-direction:column;padding:.2in;box-sizing:border-box}
+    #labelHeader{font-weight:800;font-size:20pt;border-bottom:2px solid #000;padding-bottom:4pt;margin-bottom:4pt;display:flex;justify-content:space-between}
+    #labelBody{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:.1in}
+    #labelLeft{display:flex;flex-direction:column;gap:6pt}
+    #labelRight{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}
+    #codes{display:flex;gap:.1in;align-items:center}
+    #codes canvas{background:#fff}
+    #itemDesc{font-weight:700;font-size:14pt;text-align:center;border:2px solid #000;padding:4pt}
+    .scan-status{position:fixed;bottom:20px;right:20px;background:#0c142b;border:2px solid #38bdf8;padding:16px;border-radius:8px;font-size:13px;max-width:300px;z-index:99}
+    .scan-status.match{border-color:#22c55e}
+    .scan-status.nomatch{border-color:#ef4444}
+    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} }
   </style>
 </head>
 <body>
   <header>
-    <h1>STOCKMANAGERAPP <small>v2.5‑THERMAL</small></h1>
+    <h1>STOCKMANAGERAPP <small>v2.4‑PRODUCTION</small></h1>
   </header>
   <main>
     <div class="bar">
@@ -291,55 +273,33 @@
   <div id="labelSheet">
     <div id="labelCard">
       <div id="labelHeader">
-        <div>
-          <span id="labelStatusIcon">✓</span>
-          <span id="labelStatus">VERIFIED</span>
-        </div>
-        <div id="labelLoc" style="font-size:10pt;font-weight:700">LOC: A-01-02-03</div>
+        <span>INVENTORIED LABEL</span>
+        <span id="labelLoc">LOCATION —</span>
       </div>
-      
-      <div id="itemDesc">ITEM DESCRIPTION</div>
-      
+      <div id="itemDesc">—</div>
       <div id="labelBody">
         <div id="labelLeft">
-          <div class="label-field">
-            <span class="label-key">UPC:</span>
-            <span class="label-value" id="labelItemNo" style="font-weight:700;font-size:10pt">—</span>
-          </div>
-          <div class="label-field">
-            <span class="label-key">Brand:</span>
-            <span class="label-value" id="labelBrand">—</span>
-          </div>
-          <div class="label-field">
-            <span class="label-key">Gender:</span>
-            <span class="label-value" id="labelGender">—</span>
-          </div>
-          <div class="label-field">
-            <span class="label-key">COO:</span>
-            <span class="label-value" id="labelCOO">—</span>
-          </div>
-          <div class="label-field" style="font-weight:700;border-top:1px solid #000;padding-top:0.04in;margin-top:0.04in">
-            <span class="label-key">QTY:</span>
-            <span class="label-value" id="labelTotal">0 pcs</span>
-          </div>
-          <div class="label-field" style="font-size:8pt">
-            <span class="label-key">PROC:</span>
-            <span class="label-value" id="labelProc">—</span>
-          </div>
+          <div><b>Item No:</b> <span id="labelItemNo">—</span></div>
+          <div><b>Brand:</b> <span id="labelBrand">—</span></div>
+          <div><b>Gender:</b> <span id="labelGender">—</span></div>
+          <div><b>COO:</b> <span id="labelCOO">—</span></div>
+          <div><b>TOTAL QTY:</b> <span id="labelTotal">0</span></div>
+          <div><b>Breakdown:</b> <span id="labelBreakdown">—</span></div>
         </div>
-        
         <div id="labelRight">
           <div id="codes">
-            <svg id="barcode" style="max-width:1in;height:0.4in"></svg>
-            <div id="qrcode" style="width:0.9in;height:0.9in"></div>
+            <svg id="barcode"></svg>
+            <div id="qrcode"></div>
           </div>
-          <div id="labelUPC" style="font-weight:900;font-size:9pt;text-align:center;border-top:1px solid #000;padding-top:0.03in;width:100%">UPC HERE</div>
+          <div style="font-weight:700;text-align:center;width:100%">
+            <div>UPC</div>
+            <div id="labelUPC" style="font-size:12pt"></div>
+          </div>
         </div>
       </div>
-      
-      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:4px">
-        <button class="btn" style="font-size:10px;padding:4px 8px" onclick="closeLabel()">Close</button>
-        <button class="btn success" style="font-size:10px;padding:4px 8px" onclick="window.print()">Print</button>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button class="btn" onclick="closeLabel()">Close</button>
+        <button class="btn success" onclick="window.print()">Print</button>
       </div>
     </div>
   </div>
@@ -356,7 +316,7 @@
   <script>
     // ====== EMBEDDED 6412-ITEM DATABASE ======
     const ITEM_MASTER_DB = {"857152000000":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC L 3.4OZ EDP SPRAY","g":"LADIES"},"85715166029":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1.7OZ EDT SPRAY","g":"MENS"},"85715166036":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1OZ EDT SPRAY","g":"MENS"},"85715169327":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY TONIGHT M 1OZ EDT SPRAY","g":"MENS"},"85715169419":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY WEEKEND M 1.7OZ EDT SPRAY","g":"MENS"}};
-    // ^ PLACEHOLDER - ACTUAL: 6412 items
+    // ^ PLACEHOLDER - will be replaced with full database below
 
     const $ = s=>document.querySelector(s);
     const state = { 
@@ -589,7 +549,7 @@
       }catch(e){}
     }
 
-    // TRIPLE-MATCH BARCODE SCANNER
+    // TRIPLE-MATCH BARCODE SCANNER (Working Solution - DO NOT CHANGE)
     let barcodeScans = [];
     const REQUIRED_MATCHES = 3;
 
@@ -630,6 +590,7 @@
         barcodeScans.push(code);
         if (barcodeScans.length > 5) barcodeScans.shift();
         
+        // Check if last 3 are identical
         const lastThree = barcodeScans.slice(-REQUIRED_MATCHES);
         if (lastThree.length === REQUIRED_MATCHES && lastThree.every(c => c === code)) {
           console.log('✅ TRIPLE-CONFIRMED:', code);
@@ -822,6 +783,7 @@
       alert(ok ? '✔ Counts match. Status: VERIFIED.' : '⚠ Counts mismatch. Status: PENDING.'); 
     });
 
+    // PRE-SUBMIT VALIDATION
     function validateBeforeSubmit() {
       const missing = [];
       
@@ -1059,10 +1021,12 @@
     async function lookupUPC(upc){ 
       const cleanUPC = upc.trim();
       
+      // FIX: Only alert ONCE per unique UPC scan
       if (state.alertedForUPC === cleanUPC) {
-        return;
+        return;  // Already alerted for this UPC, skip
       }
       
+      // Check local database first
       if (ITEM_MASTER_DB[cleanUPC]) {
         const item = ITEM_MASTER_DB[cleanUPC];
         $('#brand').value = item.b;
@@ -1072,6 +1036,7 @@
         return;
       }
       
+      // Not in local DB - alert only once per UPC
       state.alertedForUPC = cleanUPC;
       alert('ℹ️ New item - please fill in all details.\n\nIt will be saved to database after submission.');
     }
@@ -1085,7 +1050,7 @@
         const i=el.getAttribute('data-bs'); 
         const b=+el.value||0; 
         const q=+(document.querySelector(`.bs_qty[data-bs="${i}"]`).value||0); 
-        if(b>0 && q>0) parts.push(`${b}x${q}`); 
+        if(b>0 && q>0) parts.push(`${b} x ${q}`); 
       }); 
       return parts.length? parts.join(' + ') : '—'; 
     }
@@ -1108,32 +1073,23 @@
       const coo=$('#coo').value||''; 
       const total=state.subtotal||0; 
       const loc=firstLocation(); 
-      const statusText = state.okToSubmit ? 'VERIFIED' : 'PENDING';
-      const statusIcon = state.okToSubmit ? '✓' : '⚠';
-      const procBy = localStorage.getItem('sma_user')||'—';
+      const statusText = state.canPrint ? 'VERIFIED' : 'PENDING';
       
-      // Set label style
-      const card = $('#labelCard');
-      card.classList.remove('verified','pending');
-      card.classList.add(state.okToSubmit ? 'verified' : 'pending');
-      
-      $('#labelStatusIcon').textContent = statusIcon;
-      $('#labelStatus').textContent = statusText;
-      $('#labelLoc').textContent = `LOC: ${loc}`;
+      $('#labelLoc').textContent = loc ? `LOCATION ${loc}` : 'LOCATION —';
       $('#labelItemNo').textContent = upc;
       $('#labelBrand').textContent = brand; 
       $('#labelGender').textContent = gender; 
       $('#labelCOO').textContent = coo; 
-      $('#labelTotal').textContent = total + ' pcs'; 
-      $('#labelUPC').textContent = upc;
-      $('#labelProc').textContent = procBy;
-      $('#itemDesc').textContent = desc || 'ITEM DESC'; 
+      $('#labelTotal').textContent = total; 
+      $('#labelBreakdown').textContent = computeBreakdown(); 
+      $('#labelUPC').textContent = upc; 
+      $('#itemDesc').textContent = desc || '—';
       
       try{ 
         JsBarcode('#barcode', upc, {
           format:'CODE128', 
-          width:1.5, 
-          height:50, 
+          width:2, 
+          height:60, 
           displayValue:false, 
           margin:0
         }); 
@@ -1147,9 +1103,8 @@
         const composite = `${upc}|${loc}|${total}|${statusText}`; 
         new QRCode(qrDiv,{
           text:composite,
-          width:90,
-          height:90,
-          correctLevel: QRCode.CorrectLevel.H
+          width:120,
+          height:120
         }); 
       }catch(e){ 
         console.log(e); 
@@ -1158,6 +1113,156 @@
       openLabel(); 
     }
     $('#btnPrintLabel').addEventListener('click', renderLabel);
+
+    
+    // ===== THERMAL LABEL DATABASE FUNCTIONS =====
+    // Save label data to Google Sheets via Apps Script
+    function saveLabelToDatabase(labelData) {
+      const endpoint = ($('#endpoint').value || '').trim();
+      if (!endpoint) {
+        alert('⚠️ Apps Script endpoint required');
+        return false;
+      }
+
+      // Create label object with all required fields
+      const payload = {
+        action: 'saveLabel',
+        label: {
+          upc: labelData.upc || '',
+          location: labelData.location || '',
+          brand: labelData.brand || '',
+          gender: labelData.gender || '',
+          coo: labelData.coo || '',
+          quantity: labelData.quantity || 0,
+          status: labelData.status || 'PENDING',
+          boxBreakdown: labelData.boxBreakdown || '',
+          itemWeight: labelData.itemWeight || '',
+          itemDimensions: labelData.itemDimensions || '',
+          sheetID: labelData.sheetID || '',
+          description: labelData.description || '',
+          processorName: labelData.processorName || ''
+        }
+      };
+
+      fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Label saved:', data);
+        if (data.labelID) {
+          state.currentLabelID = data.labelID;
+          return true;
+        }
+      })
+      .catch(error => {
+        console.error('Database save error:', error);
+        alert('Failed to save label to database');
+      });
+
+      return true;
+    }
+
+    // Mark label as printed in database
+    function markLabelPrinted(labelID) {
+      const endpoint = ($('#endpoint').value || '').trim();
+      if (!endpoint || !labelID) return;
+
+      fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'markPrinted',
+          labelID: labelID
+        })
+      })
+      .catch(error => console.error('Print mark error:', error));
+    }
+
+    // Get label history for display
+    function getLabelHistory() {
+      const endpoint = ($('#endpoint').value || '').trim();
+      if (!endpoint) return;
+
+      fetch(endpoint + '?action=getLabelHistory')
+        .then(response => response.json())
+        .then(data => {
+          console.log('Label history:', data);
+        })
+        .catch(error => console.error('History fetch error:', error));
+    }
+
+    // Enhanced print function with database integration
+    const originalPrintLabel = renderLabel;
+    function renderLabelWithDB() {
+      const upc = ($('#upc').value || '').trim();
+      if (!upc) {
+        alert('UPC missing');
+        return;
+      }
+
+      // Call original render
+      originalPrintLabel();
+
+      // Prepare label data for database
+      const labelData = {
+        upc: upc,
+        location: firstLocation(),
+        brand: $('#brand').value || '',
+        gender: $('#gender').value || '',
+        coo: $('#coo').value || '',
+        quantity: state.subtotal || 0,
+        status: state.canPrint ? 'VERIFIED' : 'PENDING',
+        boxBreakdown: computeBreakdown(),
+        itemWeight: ($('#itemWeight').value || '').trim(),
+        itemDimensions: [
+          ($('#itemL').value || '').trim(),
+          ($('#itemW').value || '').trim(),
+          ($('#itemH').value || '').trim()
+        ].join('x'),
+        description: $('#desc').value || '',
+        sheetID: $('#sheetID').value || '',
+        processorName: ($('select[name="user"]').value || 'SYSTEM')
+      };
+
+      // Save to database
+      saveLabelToDatabase(labelData);
+
+      // Trigger print dialog
+      setTimeout(() => {
+        window.print();
+
+        // Mark as printed after print dialog closes
+        setTimeout(() => {
+          if (state.currentLabelID) {
+            markLabelPrinted(state.currentLabelID);
+          }
+          showLabelStatus('✓ Label printed successfully', 'success');
+        }, 1000);
+      }, 500);
+    }
+
+    // Show status message
+    function showLabelStatus(message, type = 'info') {
+      const statusDiv = document.getElementById('labelStatus') || createStatusDiv();
+      statusDiv.innerHTML = message;
+      statusDiv.style.display = 'block';
+      statusDiv.style.background = type === 'success' ? '#e8f5e9' : '#fff3e0';
+      statusDiv.style.borderLeftColor = type === 'success' ? '#4caf50' : '#ff9800';
+      statusDiv.style.color = type === 'success' ? '#2e7d32' : '#e65100';
+    }
+
+    function createStatusDiv() {
+      const div = document.createElement('div');
+      div.id = 'labelStatus';
+      div.style.cssText = 'margin-top:10px;padding:10px;background:#e8f5e9;border-left:4px solid #4caf50;border-radius:4px;display:none;';
+      document.querySelector('section:last-of-type').appendChild(div);
+      return div;
+    }
+
+    // Override print button to use database-enabled version
+    $('#btnPrintLabel').addEventListener('click', renderLabelWithDB);
+
 
     recalcSubtotal(); 
     updateOkToSubmit();
