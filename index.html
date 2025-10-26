@@ -55,7 +55,17 @@
     .scan-status{position:fixed;bottom:20px;right:20px;background:#0c142b;border:2px solid #38bdf8;padding:16px;border-radius:8px;font-size:13px;max-width:300px;z-index:99}
     .scan-status.match{border-color:#22c55e}
     .scan-status.nomatch{border-color:#ef4444}
-    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} }
+    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} 
+#interactive canvas {
+    position: absolute;
+    top: 40%;
+    left: 15%;
+    width: 70%;
+    height: 20%;
+    border: 2px solid #0ea5e9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+}
   </style>
 </head>
 <body>
@@ -575,12 +585,20 @@
       barcodeScans = [];
       
       Quagga.init({
-        inputStream: {
-          name: "Live",
-          type: "LiveStream",
-          target: document.querySelector('#interactive'),
-          constraints: {
+    inputStream: {
+        name: "Live",
+        type: "LiveStream",
+        target: document.querySelector("#interactive"),
+        constraints: {
+            width: 800,
+            height: 600,
             facingMode: "environment"
+        },
+        area: {
+            top: "35%",
+            right: "10%",
+            left: "10%",
+            bottom: "35%"
           }
         },
         decoder: {
