@@ -66,7 +66,42 @@
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(14, 165, 233, 0.8);
 }
+// ===== SHIPMENT ID GENERATOR =====
+function generateShipmentID() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${year}${month}${day}`;
+    
+    // Get counter from localStorage (persists during session)
+    let counter = parseInt(localStorage.getItem('shipment_counter_' + dateStr) || '0');
+    counter++;
+    localStorage.setItem('shipment_counter_' + dateStr, counter);
+    
+    const shipmentID = `${dateStr}-${String(counter).padStart(5, '0')}`;
+    return shipmentID;
+}
+
+// Generate QR code using external library
+function generateQRCode(text, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = ''; // Clear previous
+    
+    // Using QR code library (add to your HTML head):
+    // <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    new QRCode(container, {
+        text: text,
+        width: 150,
+        height: 150,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
+}
   </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
   <header>
@@ -210,6 +245,7 @@
       <div class="actions" style="margin-top:10px">
         <button class="btn warn" id="btnCheck" disabled>Check Discrepancy</button>
         <button class="btn success" id="toPage2" disabled>Next → Putaway (Page 2)</button>
+	<button onclick="showPage('pickpack')">📦 Pick & Pack</button>
       </div>
 
       <div id="upcScanner" class="scanner">
@@ -338,7 +374,106 @@
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+// ===== PICK & PACK FUNCTIONS =====
 
+function handleOrderTypeChange() {
+    const orderType = document.getElementById('order-type').value;
+    
+    // Hide all workflows
+    document.getElementById('tj-workflow').style.display = 'none';
+    document.getElementById('other-workflow').style.display = 'none';
+    
+    // Show selected workflow
+    if (orderType === 'tj-maxx') {
+        document.getElementById('tj-workflow').style.display = 'block';
+        // Auto-generate first shipment ID on load
+        generateNewShipmentID();
+    } else if (orderType) {
+        document.getElementById('other-workflow').style.display = 'block';
+    }
+}
+
+function generateNewShipmentID() {
+    const shipmentID = generateShipmentID();
+    document.getElementById('tj-shipment').value = shipmentID;
+    
+    // Generate QR code for shipment ID
+    generateQRCode(shipmentID, 'tj-qr');
+}
+
+function generateTJLabels() {
+    const data = {
+        po: document.getElementById('tj-po').value,
+        dept: document.getElementById('tj-dept').value,
+        address: document.getElementById('tj-address').value,
+        item: document.getElementById('tj-item').value,
+        boxes: document.getElementById('tj-boxes').value,
+        qty: document.getElementById('tj-qty').value,
+        upc: document.getElementById('tj-upc').value,
+        shipment: document.getElementById('tj-shipment').value
+    };
+    
+    // Validation
+    if (!data.po || !data.item || !data.boxes) {
+        document.getElementById('tj-status').innerHTML = 
+            '<div class="status error">❌ Fill all required fields</div>';
+        return;
+    }
+    
+    // Generate labels
+    generateTJCartonLabels(data);
+    generateTJSummaryLabel(data);
+    
+    document.getElementById('tj-status').innerHTML = 
+        '<div class="status success">✅ ' + data.boxes + 
+        ' carton label(s) + 1 summary label generated!<br>Ready to print on 4"×6" thermal printer.</div>';
+}
+
+function generateTJCartonLabels(data) {
+    const totalBoxes = parseInt(data.boxes);
+    const totalQty = totalBoxes * parseInt(data.qty);
+    
+    for (let box = 1; box <= totalBoxes; box++) {
+        const label = `
+FROM: RISONA INC
+      1 KEATS PLACE
+      HICKSVILLE, NY 11801 USA
+
+TO:   TJ MAXX - ${data.dept}
+      ${data.address}
+
+PO#: ${data.po}
+Item: ${data.item}
+Box: ${box} of ${totalBoxes}
+Qty: ${data.qty}
+UPC: ${data.upc}
+Shipment ID: ${data.shipment}
+        `;
+        
+        console.log('=== CARTON LABEL ' + box + ' ===');
+        console.log(label);
+        console.log('QR Code Data: ' + data.shipment);
+        // TODO: Send to thermal printer (4"×6")
+    }
+}
+
+function generateTJSummaryLabel(data) {
+    const totalBoxes = parseInt(data.boxes);
+    const totalQty = totalBoxes * parseInt(data.qty);
+    
+    const label = `
+SUMMARY LABEL
+ITEM: ${data.item}
+Total Boxes: ${totalBoxes}
+Total Qty: ${totalQty}
+Shipment ID: ${data.shipment}
+    `;
+    
+    console.log('=== SUMMARY LABEL ===');
+    console.log(label);
+    console.log('QR Code Data: ' + data.shipment);
+    // TODO: Send to thermal printer (4"×6")
+}
   <script>
     // ====== EMBEDDED 6412-ITEM DATABASE ======
     const ITEM_MASTER_DB = {"857152000000":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC L 3.4OZ EDP SPRAY","g":"LADIES"},"85715166029":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1.7OZ EDT SPRAY","g":"MENS"},"85715166036":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1OZ EDT SPRAY","g":"MENS"},"85715169327":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY TONIGHT M 1OZ EDT SPRAY","g":"MENS"},"85715169419":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY WEEKEND M 1.7OZ EDT SPRAY","g":"MENS"}};
@@ -602,8 +737,12 @@
           }
         },
         decoder: {
-          readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader", "upc_reader", "upc_e_reader", "codabar_reader"]
+          readers: ["ean_reader", "upc_reader", "upc_e_reader"],
+    multiple: false
         }
+	locate: true,
+	frequency: 10,
+	numOfWorkers: 2,
       }, function(err) {
         if (err) {
           console.error(err);
