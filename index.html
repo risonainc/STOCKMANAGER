@@ -7,8 +7,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>STOCK TAKER APP - FINAL</title>
-    <!-- ZXing JS for barcode scanning (more reliable) -->
-    <script async src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0"></script>
+    <!-- QuaggaJS for reliable barcode scanning -->
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <style>
         :root {
             --bg: #0f172a;
@@ -58,8 +58,10 @@
         .status-warn { color: var(--warn); font-weight: 600; }
         .grid-box { background: var(--panel); border: 1px solid #374151; padding: 12px; border-radius: 6px; width: 100%; }
         .hidden { display: none !important; }
-        .camera-container { background: var(--panel); border: 2px dashed var(--link); padding: 20px; border-radius: 8px; text-align: center; margin: 12px 0; width: 100%; }
-        #scanner { width: 100%; max-width: 100%; display: block; height: 300px; }
+        .camera-container { background: var(--panel); border: 2px dashed var(--link); padding: 20px; border-radius: 8px; text-align: center; margin: 12px 0; width: 100%; position: relative; }
+        #interactive { width: 100%; height: 400px; position: relative; }
+        #interactive video, #interactive canvas { width: 100%; height: 100%; }
+        .drawingBuffer { position: absolute; top: 0; left: 0; }
         video { width: 100% !important; max-width: 100%; border-radius: 6px; display: block; margin: 12px 0; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 0; }
         .modal.active { display: flex; }
@@ -184,7 +186,7 @@
                         <option>FRANCE</option>
                         <option>ITALY</option>
                         <option>GERMANY</option>
-                        <option>POLAND</option>
+                        <option>OPTION>POLAND</option>
                         <option>UAE</option>
                         <option>UK</option>
                         <option>SPAIN</option>
@@ -332,15 +334,14 @@
     <div class="modal" id="cameraModal">
         <div class="modal-content">
             <span class="modal-close" onclick="closeCamera()">✕</span>
-            <h3>📷 Camera Scanner</h3>
+            <h3 id="scanTitle">📷 Camera Scanner</h3>
             <div class="camera-container">
-                <video id="video" autoplay muted playsinline></video>
-                <canvas id="canvas" style="display: none;"></canvas>
+                <div id="interactive"></div>
             </div>
             <div style="text-align: center; margin-top: 16px;">
                 <button onclick="closeCamera()" class="danger">Cancel</button>
             </div>
-            <small style="display: block; margin-top: 12px; color: var(--muted); text-align: center;">Point camera at barcode or QR code. Auto-detect in progress...</small>
+            <small id="scanHint" style="display: block; margin-top: 12px; color: var(--ok); text-align: center; font-weight: 600;">Point camera at barcode. Hold steady...</small>
         </div>
     </div>
 
@@ -353,8 +354,8 @@
             locations: [],
             cameraType: 'upc'
         };
-        let cameraStream = null;
-        let scanningActive = false;
+        let quaggaActive = false;
+        let detectionCounts = {};
 
         function init() {
             const saved = localStorage.getItem('stockTakerState');
@@ -412,154 +413,142 @@
             }
         }
 
-        // ===== CAMERA & BARCODE SCANNING WITH MANUAL DETECTION =====
+        // ===== CAMERA & BARCODE SCANNING WITH QUAGGAJS =====
         function scanUpc() {
             state.cameraType = 'upc';
+            document.getElementById('scanTitle').textContent = '📷 Scanning UPC Barcode';
             openCamera();
         }
 
         function scanLocation() {
             state.cameraType = 'location';
+            document.getElementById('scanTitle').textContent = '📷 Scanning QR / Location Code';
             openCamera();
         }
 
         function openCamera() {
             document.getElementById('cameraModal').classList.add('active');
-            const video = document.getElementById('video');
+            detectionCounts = {};
             
-            navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-            })
-            .then(stream => {
-                cameraStream = stream;
-                video.srcObject = stream;
-                video.play();
-                showStatus('📷 Camera open. Scanning for barcodes...', 'info');
-                scanningActive = true;
-                startBarcodeScanning();
-            })
-            .catch(err => {
-                showStatus('❌ Camera access denied. Ensure HTTPS and grant permissions.', 'error');
-                console.error('Camera error:', err);
+            if (typeof Quagga === 'undefined') {
+                showStatus('❌ Camera library not loaded. Refresh page.', 'error');
                 closeCamera();
-            });
-        }
+                return;
+            }
 
-        function startBarcodeScanning() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            let consecutiveDetections = 0;
-            let lastCode = null;
-            
-            const scanFrame = () => {
-                if (!scanningActive) return;
-                
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0);
-                    
-                    try {
-                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        const code = decodeBarcode(imageData);
-                        
-                        if (code && code === lastCode) {
-                            consecutiveDetections++;
-                            if (consecutiveDetections >= 3) {
-                                fillScannedCode(code);
-                                scanningActive = false;
-                                return;
-                            }
-                        } else {
-                            consecutiveDetections = 0;
-                            lastCode = code;
-                            if (code) {
-                                showStatus(`📲 Detecting: ${code}...`, 'info');
-                            }
-                        }
-                    } catch (e) {
-                        // Continue scanning
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#interactive'),
+                    constraints: {
+                        width: { min: 640, ideal: 1280, max: 1920 },
+                        height: { min: 480, ideal: 720, max: 1080 },
+                        facingMode: "environment",
+                        aspectRatio: { min: 1, max: 2 }
+                    },
+                    area: {
+                        top: "20%",
+                        right: "10%",
+                        left: "10%",
+                        bottom: "20%"
                     }
+                },
+                decoder: {
+                    readers: [
+                        "code_128_reader",
+                        "ean_reader",
+                        "ean_8_reader",
+                        "code_39_reader",
+                        "code_39_vin_reader",
+                        "codabar_reader",
+                        "upc_reader",
+                        "upc_e_reader",
+                        "i2of5_reader"
+                    ],
+                    debug: {
+                        drawBoundingBox: true,
+                        showFrequency: true,
+                        drawScanline: true,
+                        showPattern: true
+                    },
+                    multiple: false
+                },
+                locate: true,
+                locator: {
+                    halfSample: true,
+                    patchSize: "medium"
+                },
+                numOfWorkers: (navigator.hardwareConcurrency || 4),
+                frequency: 10
+            }, function(err) {
+                if (err) {
+                    console.error('Quagga init error:', err);
+                    showStatus('❌ Camera error. Grant permission and ensure HTTPS.', 'error');
+                    closeCamera();
+                    return;
                 }
                 
-                setTimeout(scanFrame, 100);
-            };
-            
-            scanFrame();
+                console.log("Quagga initialized successfully");
+                Quagga.start();
+                quaggaActive = true;
+                showStatus('📷 Camera ready. Scanning...', 'info');
+                document.getElementById('scanHint').textContent = '🎯 Hold barcode steady in frame...';
+            });
+
+            Quagga.onDetected(onBarcodeDetected);
         }
 
-        function decodeBarcode(imageData) {
-            // Simple barcode detection - looks for dark vertical lines pattern
-            const data = imageData.data;
-            const width = imageData.width;
-            const height = imageData.height;
-            
-            // Convert to grayscale and detect edges
-            let barPattern = '';
-            let threshold = 128;
-            
-            for (let i = 0; i < data.length; i += 4) {
-                let gray = (data[i] + data[i+1] + data[i+2]) / 3;
-                barPattern += gray < threshold ? '1' : '0';
-            }
-            
-            // Try to extract potential barcode using ZXing if available
-            if (typeof ZXing !== 'undefined') {
-                try {
-                    const codeReader = new ZXing.BrowserMultiFormatReader();
-                    const result = codeReader.decodeFromCanvas(imageData.canvas || createCanvasFromImageData(imageData));
-                    if (result) return result.text;
-                } catch (e) {
-                    // Fallback to pattern matching
-                }
-            }
-            
-            // Fallback: return extracted pattern or null
-            return extractBarcodeFromPattern(barPattern, width);
-        }
+        function onBarcodeDetected(result) {
+            if (!quaggaActive) return;
 
-        function extractBarcodeFromPattern(pattern, width) {
-            // Simple pattern matching for common barcodes
-            let potentialCodes = [];
+            const code = result.codeResult.code;
+            const format = result.codeResult.format;
             
-            // Look for repeating patterns that resemble barcode structure
-            for (let i = 0; i < pattern.length - 20; i++) {
-                let segment = pattern.substring(i, i + 95); // Standard 95-module barcode
-                if (segment.includes('1110010')) { // START marker for Code128
-                    potentialCodes.push(segment);
-                }
+            // Track detections for reliability
+            if (!detectionCounts[code]) {
+                detectionCounts[code] = 0;
             }
+            detectionCounts[code]++;
             
-            // Return first viable candidate or null
-            return potentialCodes.length > 0 ? generateMockCode() : null;
-        }
-
-        function generateMockCode() {
-            // If pattern detection isn't reliable, generate a placeholder
-            // In production, integrate proper ZXing or Quagga
-            return null;
+            // Require 3 consecutive detections for confidence
+            if (detectionCounts[code] >= 3) {
+                console.log('Barcode detected:', code, 'Format:', format);
+                document.getElementById('scanHint').textContent = `✅ Detected: ${code}`;
+                document.getElementById('scanHint').style.color = 'var(--ok)';
+                
+                setTimeout(() => {
+                    fillScannedCode(code);
+                }, 500);
+            } else {
+                document.getElementById('scanHint').textContent = `📲 Detecting... (${detectionCounts[code]}/3)`;
+                document.getElementById('scanHint').style.color = 'var(--warn)';
+            }
         }
 
         function fillScannedCode(code) {
             if (state.cameraType === 'upc') {
                 document.getElementById('upcInput').value = code;
                 lookupUpc(code);
+                showStatus(`✓ UPC Scanned: ${code}`, 'ok');
             } else if (state.cameraType === 'location') {
                 document.getElementById('locInput').value = code;
+                showStatus(`✓ Location Scanned: ${code}`, 'ok');
             }
-            showStatus(`✓ Scanned: ${code}`, 'ok');
             closeCamera();
         }
 
         function closeCamera() {
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(t => t.stop());
-                cameraStream = null;
+            if (quaggaActive) {
+                Quagga.stop();
+                quaggaActive = false;
+                console.log("Quagga stopped");
             }
-            scanningActive = false;
-            document.getElementById('video').srcObject = null;
             document.getElementById('cameraModal').classList.remove('active');
+            document.getElementById('interactive').innerHTML = '';
+            document.getElementById('scanHint').textContent = 'Point camera at barcode. Hold steady...';
+            document.getElementById('scanHint').style.color = 'var(--ok)';
+            detectionCounts = {};
         }
 
         function generateUpc() {
