@@ -141,6 +141,11 @@ function generateQRCode(text, containerId) {
             </div>
 
             <script>
+// Auto-login
+if (!localStorage.getItem('loggedInUser')) {
+    localStorage.setItem('loggedInUser', 'WarehouseUser1');
+}
+
             document.getElementById('upc').addEventListener('input', function(e) {
               let val = e.target.value.replace(/\s+/g, '');
               if (/[^0-9]/.test(val)) {
@@ -154,7 +159,7 @@ function generateQRCode(text, containerId) {
             </script>
         </div>
         <div class="actions" style="align-items:end">
-          <button class="btn primary" id="btnScanUPC" disabled>Scan UPC</button>
+          <<button onclick="enableScanning()">Scan UPC</button>
           <button class="btn ghost" id="btnGenUPC" disabled>Generate</button>
         </div>
         <div>
@@ -234,7 +239,15 @@ function generateQRCode(text, containerId) {
         <div><label>Item H (in) <span class="required">*</span></label><input id="itemH" type="number" step="0.01" min="0" placeholder="H" disabled/></div>
       </div>
 
-      <h3>Box Breakdown (Styles 1–4) <span class="required">* At least one required</span></h3>
+      <h3>Box Breakdown (Styles 1–4) <span class="required">* At least one required
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+  <div><label>Style 1 (Qty):</label><input type="number" id="box_style1" value="0" /></div>
+  <div><label>Style 2 (Qty):</label><input type="number" id="box_style2" value="0" /></div>
+  <div><label>Style 3 (Qty):</label><input type="number" id="box_style3" value="0" /></div>
+  <div><label>Style 4 (Qty):</label><input type="number" id="box_style4" value="0" /></div>
+</div>
+
+Subtotal Pcs:
       <div id="boxStyles" class="grid g1"></div>
 
       <div class="row" style="justify-content:space-between;margin-top:10px">
