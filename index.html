@@ -11,6 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <!-- jsQR for QR code scanning -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <!-- JsBarcode for UPC barcode generation -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <!-- QRCode.js for QR code generation -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
     <style>
         :root {
             --bg: #0f172a;
@@ -40,9 +44,6 @@
         .row-1 { grid-template-columns: 1fr; }
         .row-2 { grid-template-columns: 1fr 1fr; }
         .row-3 { grid-template-columns: 1fr 1fr 1fr; }
-        .row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-        .row-5 { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
-        .row-6 { grid-template-columns: repeat(6, 1fr); }
         label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
         input, select, textarea { background: var(--panel); color: #fff; border: 1px solid #374151; padding: 8px; border-radius: 4px; font-size: 14px; font-family: inherit; width: 100%; box-sizing: border-box; }
         input:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -57,30 +58,43 @@
         button.warn { background: var(--warn); color: #000; }
         .status-ok { color: var(--ok); font-weight: 600; }
         .status-bad { color: var(--bad); font-weight: 600; }
-        .status-warn { color: var(--warn); font-weight: 600; }
         .grid-box { background: var(--panel); border: 1px solid #374151; padding: 12px; border-radius: 6px; width: 100%; }
         .hidden { display: none !important; }
         .camera-container { background: var(--panel); border: 2px dashed var(--link); padding: 20px; border-radius: 8px; text-align: center; margin: 12px 0; width: 100%; position: relative; }
         #interactive { width: 100%; height: 400px; position: relative; }
         #interactive video, #interactive canvas { width: 100%; height: 100%; }
         #qrVideo { width: 100%; height: 400px; border-radius: 6px; }
-        .drawingBuffer { position: absolute; top: 0; left: 0; }
         video { width: 100% !important; max-width: 100%; border-radius: 6px; display: block; margin: 12px 0; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 0; }
         .modal.active { display: flex; }
         .modal-content { background: var(--card); padding: 20px; border-radius: 8px; max-width: 95vw; max-height: 95vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .modal-close { float: right; cursor: pointer; font-size: 24px; color: var(--muted); }
-        table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
-        th { background: var(--panel); padding: 8px; text-align: left; border: 1px solid #374151; }
-        td { padding: 8px; border: 1px solid #374151; }
-        .cuft-display { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--ok); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: var(--ok); text-align: center; }
         .flex-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .flex-buttons button { flex: 1; min-width: 100px; }
+        .cuft-display { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--ok); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: var(--ok); text-align: center; }
+        
+        /* LABEL STYLES - 4x6 Landscape */
+        .label-container { background: white; color: black; padding: 0; margin: 0; width: 6in; height: 4in; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; position: relative; page-break-inside: avoid; }
+        .label-border-accurate { border: 3px solid #22c55e; }
+        .label-border-recheck { border: 3px solid #ef4444; }
+        .label-header { background: black; color: white; padding: 8px 12px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+        .label-status { background: #22c55e; color: black; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .label-status.recheck { background: #ef4444; color: white; }
+        .label-body { flex: 1; display: flex; padding: 12px; gap: 12px; overflow: hidden; }
+        .label-main { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+        .label-info { font-size: 11px; line-height: 1.4; }
+        .label-info-row { display: flex; justify-content: space-between; margin: 3px 0; }
+        .label-info-label { font-weight: bold; min-width: 60px; }
+        .label-info-value { flex: 1; text-align: left; word-break: break-word; }
+        .label-barcode-section { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; gap: 4px; }
+        .label-barcode-image { height: 45px; display: flex; align-items: center; }
+        .label-barcode-image svg { height: 100%; max-width: 150px; }
+        .label-barcode-text { font-size: 10px; font-weight: bold; text-align: center; min-width: 150px; }
+        .label-qr { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border: 1px solid black; }
+        .label-description { background: #f0f0f0; padding: 8px; font-size: 13px; font-weight: bold; line-height: 1.3; margin-top: 8px; border-top: 1px solid black; }
+        
         @media (max-width: 768px) {
-            .row-2, .row-3, .row-4, .row-5, .row-6 { grid-template-columns: 1fr; }
-            .row-1 { grid-template-columns: 1fr; }
-            header h1 { font-size: 16px; }
-            .main-content { padding: 12px; }
+            .row-2, .row-3 { grid-template-columns: 1fr; }
             body { font-size: 14px; }
             input, select, textarea, button { font-size: 14px; padding: 10px; }
             .flex-buttons { flex-direction: column; }
@@ -89,7 +103,8 @@
         @media print {
             body { background: white; color: black; }
             button, .no-print, header { display: none; }
-            section { page-break-inside: avoid; border: 1px solid #000; }
+            section { page-break-inside: avoid; }
+            .label-container { page-break-inside: avoid; width: 6in; height: 4in; }
         }
     </style>
 </head>
@@ -133,7 +148,6 @@
                 <div>
                     <label>📊 Expected Inventory Sheet ID:</label>
                     <input type="text" id="sheetId" placeholder="Paste sheet ID (from URL bar)" value="1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA">
-                    <small style="color: var(--muted); display: block; margin-top: 4px;">This loads baseline inventory to compare against counted items</small>
                 </div>
             </div>
             <div class="row flex-buttons">
@@ -309,13 +323,13 @@
 
         <!-- LABELS SECTION -->
         <section id="labelSection" class="hidden">
-            <h2>🏷️ INVENTORIED LABEL (Print Ready)</h2>
-            <div id="labelPreview" style="background: white; color: black; padding: 20px; margin: 12px 0; border-radius: 6px; border: 2px dashed #000; overflow-x: auto;">
+            <h2>🏷️ INVENTORIED LABEL - 4×6 LANDSCAPE</h2>
+            <div id="labelPreview" style="background: #f5f5f5; padding: 20px; margin: 12px 0; border-radius: 6px; display: flex; justify-content: center;">
                 <!-- Label will render here -->
             </div>
             <div class="row flex-buttons">
                 <button onclick="window.print()" class="success">🖨️ Print Label</button>
-                <button onclick="saveLabelToSheet()" id="btnSaveLabel" disabled class="success">💾 Save & Log Label</button>
+                <button onclick="saveLabelToSheet()" id="btnSaveLabel" disabled class="success">💾 Save & Log</button>
             </div>
         </section>
 
@@ -324,8 +338,8 @@
             <h2>ℹ️ Quick Reference</h2>
             <div style="font-size: 13px; line-height: 1.6; color: var(--muted);">
                 <strong>Camera Access:</strong> App requires HTTPS and camera permission. Grant when prompted on tablet.<br>
-                <strong>Google Sheets:</strong> Apps Script URL is pre-configured. Connection will test when you click "Test Connection".<br>
-                <strong>Expected Inventory:</strong> Load baseline from your master sheet. System will show discrepancies.<br>
+                <strong>Google Sheets:</strong> Apps Script URL is pre-configured for data submission.<br>
+                <strong>Labels:</strong> 4×6 landscape labels with smart borders (green = accurate count, red = recheck).<br>
                 <strong>Login:</strong> Password is your username spelled backwards (e.g., "Rikki" → "ikkiR").<br>
                 <strong>Saving:</strong> All data auto-saves to browser. Submit to sync with Google Sheet.
             </div>
@@ -346,6 +360,40 @@
                 <button onclick="closeCamera()" class="danger">Cancel</button>
             </div>
             <small id="scanHint" style="display: block; margin-top: 12px; color: var(--ok); text-align: center; font-weight: 600;">Point camera at barcode. Hold steady...</small>
+        </div>
+    </div>
+
+    <!-- SUBMISSION CONFIRMATION MODAL -->
+    <div class="modal" id="confirmationModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="modal-close" onclick="closeConfirmation()">✕</span>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
+                <h2 style="margin: 0; color: var(--ok);">Inventory Submitted Successfully!</h2>
+            </div>
+            
+            <div style="background: var(--panel); padding: 16px; border-radius: 6px; margin-bottom: 16px; font-size: 13px;">
+                <div style="margin-bottom: 12px; border-bottom: 1px solid #374151; padding-bottom: 12px;">
+                    <strong>📦 Item Details:</strong><br>
+                    UPC: <span id="confUpc">—</span><br>
+                    Brand: <span id="confBrand">—</span><br>
+                    Qty: <span id="confQty">0</span> pcs
+                </div>
+                <div style="margin-bottom: 12px; border-bottom: 1px solid #374151; padding-bottom: 12px;">
+                    <strong>📍 Putaway:</strong><br>
+                    Locations: <span id="confLocs">—</span><br>
+                    Timestamp: <span id="confTime">—</span>
+                </div>
+                <div>
+                    <strong>✅ Status:</strong><br>
+                    Data saved to Google Sheet
+                </div>
+            </div>
+
+            <div class="row flex-buttons">
+                <button onclick="printLabel()" class="success">🖨️ Print Label</button>
+                <button onclick="nextItemReset()" id="btnNextItem" class="success" style="flex: 1.2;">📦 Next Item →</button>
+            </div>
         </div>
     </div>
 
@@ -436,15 +484,12 @@
             detectionCounts = {};
             
             if (state.cameraType === 'location') {
-                // Use jsQR for QR codes
                 openQRScanner();
             } else {
-                // Use QuaggaJS for barcodes
                 openBarcodeScanner();
             }
         }
 
-        // ===== QUAGGA BARCODE SCANNER (Page 1) =====
         function openBarcodeScanner() {
             if (typeof Quagga === 'undefined') {
                 showStatus('❌ Camera library not loaded. Refresh page.', 'error');
@@ -519,7 +564,6 @@
             if (!quaggaActive) return;
 
             const code = result.codeResult.code;
-            const format = result.codeResult.format;
             
             if (!detectionCounts[code]) {
                 detectionCounts[code] = 0;
@@ -527,7 +571,7 @@
             detectionCounts[code]++;
             
             if (detectionCounts[code] >= 3) {
-                console.log('Barcode detected:', code, 'Format:', format);
+                console.log('Barcode detected:', code);
                 document.getElementById('scanHint').textContent = `✅ Detected: ${code}`;
                 document.getElementById('scanHint').style.color = 'var(--ok)';
                 
@@ -540,7 +584,6 @@
             }
         }
 
-        // ===== JSQR QR CODE SCANNER (Page 2) =====
         function openQRScanner() {
             if (typeof jsQR === 'undefined') {
                 showStatus('❌ QR library not loaded. Refresh page.', 'error');
@@ -643,7 +686,6 @@
             if (quaggaActive) {
                 Quagga.stop();
                 quaggaActive = false;
-                console.log("Quagga stopped");
             }
             if (qrScanActive) {
                 const video = document.getElementById('qrVideo');
@@ -653,12 +695,9 @@
                 qrScanActive = false;
                 video.classList.add('hidden');
                 document.getElementById('interactive').style.display = 'block';
-                console.log("QR Scanner stopped");
             }
             document.getElementById('cameraModal').classList.remove('active');
             document.getElementById('interactive').innerHTML = '';
-            document.getElementById('scanHint').textContent = 'Point camera at barcode. Hold steady...';
-            document.getElementById('scanHint').style.color = 'var(--ok)';
             detectionCounts = {};
         }
 
@@ -714,6 +753,10 @@
                 return;
             }
             
+            const expected = parseInt(document.getElementById('expectedQty').value || 0);
+            const entered = getSubtotalPcs();
+            const isAccurate = entered === expected && expected > 0;
+            
             const payload = {
                 action: 'addInventory',
                 data: {
@@ -725,13 +768,14 @@
                     coo: document.getElementById('coo').value,
                     description: document.getElementById('itemDesc').value,
                     isClean: document.getElementById('isClean').value,
-                    expectedQty: parseInt(document.getElementById('expectedQty').value || 0),
-                    countedQty: getSubtotalPcs(),
+                    expectedQty: expected,
+                    countedQty: entered,
                     breakdown: getBreakdownSummary(),
                     totalCubicFeet: parseFloat(document.getElementById('totalCuFt').textContent),
                     locations: JSON.stringify(state.locations),
                     notes: document.getElementById('putawayNotes').value,
-                    status: 'completed'
+                    status: 'completed',
+                    accurate: isAccurate
                 }
             };
             
@@ -745,12 +789,38 @@
             })
             .then(() => {
                 showStatus(`✓ Submitted to Sheet successfully!`, 'ok');
-                generateLabel();
+                showConfirmation(payload.data);
             })
             .catch(e => {
-                showStatus(`⚠️ Data sent. If not appearing in sheet, check Apps Script. Error: ${e.message}`, 'warn');
-                generateLabel();
+                showStatus(`⚠️ Data sent. Check Google Sheet.`, 'warn');
+                showConfirmation(payload.data);
             });
+        }
+
+        function showConfirmation(data) {
+            document.getElementById('confUpc').textContent = data.upc || '—';
+            document.getElementById('confBrand').textContent = data.brand || '—';
+            document.getElementById('confQty').textContent = data.countedQty;
+            document.getElementById('confLocs').textContent = data.locations.replace(/"/g, '').replace(/\[|\]/g, '');
+            document.getElementById('confTime').textContent = new Date(data.timestamp).toLocaleString();
+            document.getElementById('confirmationModal').classList.add('active');
+        }
+
+        function closeConfirmation() {
+            document.getElementById('confirmationModal').classList.remove('active');
+        }
+
+        function printLabel() {
+            generateLabel();
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        function nextItemReset() {
+            closeConfirmation();
+            resetForm();
+            showStatus('✓ Ready for next item!', 'ok');
         }
 
         // ===== UPLOAD EXPECTED INVENTORY =====
@@ -855,13 +925,10 @@
                 const qty = parseInt(document.getElementById(`box${i}Qty`).value || 0);
                 const pcs = parseInt(document.getElementById(`box${i}Pcs`).value || 0);
                 if (qty > 0) {
-                    const l = parseFloat(document.getElementById(`box${i}Length`).value || 0);
-                    const w = parseFloat(document.getElementById(`box${i}Width`).value || 0);
-                    const h = parseFloat(document.getElementById(`box${i}Height`).value || 0);
-                    boxes.push(`S${i}:${qty}x${pcs}(${l}×${w}×${h})`);
+                    boxes.push(`S${i}:${qty}×${pcs}`);
                 }
             }
-            return boxes.join(' | ') || 'N/A';
+            return boxes.join('|') || 'N/A';
         }
 
         function checkDiscrepancy() {
@@ -974,32 +1041,99 @@
         }
 
         function generateLabel() {
+            const expected = parseInt(document.getElementById('expectedQty').value || 0);
+            const entered = getSubtotalPcs();
+            const isAccurate = entered === expected && expected > 0;
+            
+            const upc = document.getElementById('upcInput').value || '000000000000';
+            const brand = document.getElementById('brand').value || 'N/A';
+            const gender = document.getElementById('gender').value || '—';
+            const coo = document.getElementById('coo').value || '—';
+            const desc = document.getElementById('itemDesc').value || 'Item Description';
+            
+            const statusText = isAccurate ? 'ACCURATE' : 'RECHECK';
+            const borderClass = isAccurate ? 'label-border-accurate' : 'label-border-recheck';
+            const statusBadgeClass = isAccurate ? '' : 'recheck';
+            
             const label = `
-                <div style="border: 2px solid black; padding: 20px; text-align: center; width: 4in; font-family: Arial;">
-                    <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">📦 INVENTORIED</div>
-                    <div style="border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 10px;">
-                        <div style="font-size: 12px; color: #666;">LOCATION</div>
-                        <div style="font-size: 14px; font-weight: bold;">${state.locations[0] || 'TBD'}</div>
+                <div class="label-container ${borderClass}">
+                    <div class="label-header">
+                        <div style="flex: 1;">📦 INVENTORIED<br>NOV.2025</div>
+                        <div class="label-status ${statusBadgeClass}">${statusText}</div>
                     </div>
-                    <div style="text-align: left; font-size: 11px; margin-bottom: 10px;">
-                        <div><strong>UPC:</strong> ${document.getElementById('upcInput').value}</div>
-                        <div><strong>Brand:</strong> ${document.getElementById('brand').value}</div>
-                        <div><strong>Gender:</strong> ${document.getElementById('gender').value}</div>
-                        <div><strong>COO:</strong> ${document.getElementById('coo').value}</div>
-                    </div>
-                    <div style="border-top: 2px solid black; padding-top: 10px;">
-                        <div style="font-size: 12px; color: #666;">TOTAL QTY</div>
-                        <div style="font-size: 28px; font-weight: bold;">${getSubtotalPcs()}</div>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 10px; word-break: break-all;">
-                        <strong>Breakdown:</strong> ${getBreakdownSummary()}
-                    </div>
-                    <div style="margin-top: 8px; font-size: 10px;">
-                        <strong>Volume:</strong> ${document.getElementById('totalCuFt').textContent} cu ft
+                    
+                    <div class="label-body">
+                        <div class="label-main">
+                            <div class="label-info">
+                                <div class="label-info-row">
+                                    <span class="label-info-label">Location:</span>
+                                    <span class="label-info-value">${state.locations[0] || 'TBD'}</span>
+                                </div>
+                                <div class="label-info-row">
+                                    <span class="label-info-label">Brand:</span>
+                                    <span class="label-info-value">${brand}</span>
+                                </div>
+                                <div class="label-info-row">
+                                    <span class="label-info-label">Gender:</span>
+                                    <span class="label-info-value">${gender}</span>
+                                </div>
+                                <div class="label-info-row">
+                                    <span class="label-info-label">COO:</span>
+                                    <span class="label-info-value">${coo}</span>
+                                </div>
+                                <div class="label-info-row" style="font-weight: bold; margin-top: 6px; border-top: 1px solid black; padding-top: 6px;">
+                                    <span class="label-info-label">Qty:</span>
+                                    <span class="label-info-value">${entered} pcs</span>
+                                </div>
+                            </div>
+                            
+                            <div class="label-description">
+                                ${desc}
+                            </div>
+                        </div>
+                        
+                        <div class="label-barcode-section">
+                            <div class="label-qr">
+                                <svg id="qrcode" width="70" height="70"></svg>
+                            </div>
+                            <div class="label-barcode-image">
+                                <svg id="barcode"></svg>
+                            </div>
+                            <div class="label-barcode-text">${upc}</div>
+                        </div>
                     </div>
                 </div>
             `;
+            
             document.getElementById('labelPreview').innerHTML = label;
+            
+            // Generate barcode
+            setTimeout(() => {
+                try {
+                    JsBarcode("#barcode", upc, {
+                        format: "code128",
+                        width: 2,
+                        height: 45,
+                        margin: 0
+                    });
+                } catch (e) {
+                    console.log('Barcode generation skipped');
+                }
+            }, 100);
+            
+            // Generate QR code
+            setTimeout(() => {
+                try {
+                    const qrElement = document.getElementById('qrcode');
+                    if (qrElement) qrElement.innerHTML = '';
+                    QRCode.toCanvas(document.getElementById('qrcode'), `UPC:${upc}|LOC:${state.locations[0] || 'TBD'}`, { width: 70 }, (error) => {
+                        if (error) console.log('QR skipped');
+                    });
+                } catch (e) {
+                    console.log('QR generation skipped');
+                }
+            }, 150);
+            
             document.getElementById('labelSection').classList.remove('hidden');
             document.getElementById('btnSaveLabel').disabled = false;
         }
@@ -1018,8 +1152,7 @@
                     location: state.locations[0] || 'N/A',
                     upc: document.getElementById('upcInput').value,
                     qty: getSubtotalPcs(),
-                    breakdown: getBreakdownSummary(),
-                    cubicFeet: document.getElementById('totalCuFt').textContent
+                    breakdown: getBreakdownSummary()
                 }
             };
             
@@ -1031,11 +1164,9 @@
             })
             .then(() => {
                 showStatus(`✓ Label logged to sheet`, 'ok');
-                resetForm();
             })
             .catch(e => {
                 showStatus(`⚠️ Data sent: ${e.message}`, 'warn');
-                resetForm();
             });
         }
 
@@ -1080,18 +1211,14 @@
             for (let i = 1; i <= 4; i++) {
                 const qty = parseInt(document.getElementById(`box${i}Qty`).value || 0);
                 if (qty > 0) {
-                    const l = parseFloat(document.getElementById(`box${i}Length`).value || 0);
-                    const w = parseFloat(document.getElementById(`box${i}Width`).value || 0);
-                    const h = parseFloat(document.getElementById(`box${i}Height`).value || 0);
                     boxes.push({
                         style: i,
                         quantity: qty,
                         pcsPerBox: document.getElementById(`box${i}Pcs`).value,
                         weight: document.getElementById(`box${i}Weight`).value,
-                        length: l,
-                        width: w,
-                        height: h,
-                        cubicFeetEach: ((l * w * h) / 1728).toFixed(3)
+                        length: document.getElementById(`box${i}Length`).value,
+                        width: document.getElementById(`box${i}Width`).value,
+                        height: document.getElementById(`box${i}Height`).value
                     });
                 }
             }
@@ -1125,7 +1252,6 @@
             document.getElementById('page1').classList.remove('hidden');
             
             calcTotals();
-            showStatus('✓ Form reset for next item', 'ok');
             saveState();
         }
 
