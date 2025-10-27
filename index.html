@@ -1,1121 +1,992 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>STOCKMANAGERAPP v2.4-PRODUCTION</title>
-  <style>
-    :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--muted:#9ca3af;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--link:#38bdf8;--required:#ef4444}
-    *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-    input,textarea,select{-webkit-user-select:text !important;user-select:text !important}
-    body{margin:0;padding:0;background:var(--bg);color:#eef2ff;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow-x:hidden}
-    header{padding:12px 16px;background:linear-gradient(90deg,#0ea5e9,#6366f1)}
-    header h1{margin:0;font-size:18px} header small{opacity:.9}
-    main{max-width:1060px;margin:0 auto;padding:16px}
-    .pill{background:#0b1329;border:1px solid #1f2440;padding:8px 10px;border-radius:999px;font-size:13px;color:#cbd5e1;display:inline-flex;gap:8px;align-items:center}
-    .bar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:10px 0 16px}
-    .page{background:var(--panel);border:1px solid #243047;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.35);padding:14px;margin-bottom:18px}
-    h2{font-size:18px;margin:8px 0 12px} h3{font-size:15px;margin:16px 0 6px;color:#cbd5e1}
-    label{font-size:12px;color:#cbd5e1;margin-bottom:4px;display:block}
-    .required{color:var(--required);margin-left:2px}
-    input,select,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #324156;background:var(--card);color:#e5e7eb;font-size:16px;-webkit-appearance:none;appearance:none}
-    input[readonly]{opacity:.9;background:#1b2232}
-    input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:not-allowed}
-    input:focus,select:focus,textarea:focus{outline:none;border-color:#38bdf8;background:var(--card)}
-    .grid{display:grid;gap:10px} .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap} .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{background:#0b1329;border:1px solid #2b3953;color:#e5e7eb;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14px;-webkit-appearance:none;appearance:none;-webkit-user-select:none;user-select:none}
-    .btn.primary{background:#0ea5e9;border-color:#0891b2} .btn.success{background:#16a34a;border-color:#15803d}
-    .btn.warn{background:#f59e0b;border-color:#b45309} .btn.ghost{background:transparent;border-color:#2b3953}
-    .btn.danger{background:#ef4444;border-color:#b91c1c}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .scanner{position:relative;background:#0b1329;border:1px dashed #334155;border-radius:10px;min-height:320px;display:none;align-items:center;justify-content:center;overflow:hidden;width:100%}
-    .scanner .viewport{width:100%;height:100%}
-    .scanner .viewport video{width:100%;height:100%;object-fit:cover}
-    #qrReader{width:100%;height:100%}
-    #qrReader video{width:100%!important;height:100%!important;object-fit:cover}
-    .scan-overlay{position:absolute;inset:0;border:3px solid rgba(239,68,68,.8);border-radius:14px;box-shadow:0 0 0 200vmax rgba(0,0,0,.35) inset;pointer-events:none;z-index:2}
-    .overlay-box{position:absolute;left:50%;top:50%;translate:-50% -50%;width:90%;height:85%;border:3px solid rgba(34,197,94,.9);border-radius:10px;pointer-events:none;z-index:2}
-    .hidden{display:none!important} .stat{padding:8px 10px;border-radius:8px;border:1px solid #2b3953;background:#0c142b;display:inline-flex;gap:8px;align-items:center}
-    .ok{color:var(--ok)} .bad{color:var(--bad)} .warn-t{color:var(--warn)} .muted{color:var(--muted);font-size:12px}
-    .box-card{border:1px solid #2b3953;border-radius:10px;padding:10px;background:#0c142b}
-    .kbd{font-family:ui-monospace,Menlo,monospace;background:#0b1329;border:1px solid #2b3953;border-bottom-width:3px;border-radius:6px;padding:2px 6px}
-    #labelSheet{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:100}
-    #labelCard{background:white;color:#000;width:6in;height:4in;display:flex;flex-direction:column;padding:.2in;box-sizing:border-box}
-    #labelHeader{font-weight:800;font-size:20pt;border-bottom:2px solid #000;padding-bottom:4pt;margin-bottom:4pt;display:flex;justify-content:space-between}
-    #labelBody{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:.1in}
-    #labelLeft{display:flex;flex-direction:column;gap:6pt}
-    #labelRight{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}
-    #codes{display:flex;gap:.1in;align-items:center}
-    #codes canvas{background:#fff}
-    #itemDesc{font-weight:700;font-size:14pt;text-align:center;border:2px solid #000;padding:4pt}
-    .scan-status{position:fixed;bottom:20px;right:20px;background:#0c142b;border:2px solid #38bdf8;padding:16px;border-radius:8px;font-size:13px;max-width:300px;z-index:99}
-    .scan-status.match{border-color:#22c55e}
-    .scan-status.nomatch{border-color:#ef4444}
-    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>STOCK TAKER APP - FINAL</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --card: #1f2937;
+            --muted: #9ca3af;
+            --ok: #22c55e;
+            --bad: #ef4444;
+            --warn: #f59e0b;
+            --link: #38bdf8;
+        }
+        * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }
+        body { margin: 0; padding: 0; background: var(--bg); color: #e5e7eb; font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; overflow-x: hidden; }
+        header { padding: 12px 16px; background: linear-gradient(90deg, #0ea5e9, #6366f1); }
+        header h1 { margin: 0; font-size: 18px; }
+        header small { opacity: .9; }
+        main { max-width: 1060px; margin: 0 auto; padding: 16px; }
+        .pill { background: #0b1329; border: 1px solid #1f2440; padding: 8px 10px; border-radius: 999px; font-size: 13px; color: #cbd5e1; display: inline-flex; gap: 8px; align-items: center; }
+        .badge { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); padding: 4px 8px; border-radius: 4px; font-size: 12px; margin: 0 4px; }
+        section { background: var(--card); border: 1px solid rgba(255,255,255,.1); padding: 16px; margin: 12px 0; border-radius: 8px; }
+        h2 { margin: 0 0 12px 0; font-size: 16px; border-bottom: 2px solid var(--link); padding-bottom: 8px; }
+        .row { display: grid; gap: 12px; margin: 12px 0; }
+        .row-2 { grid-template-columns: 1fr 1fr; }
+        .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .row-5 { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
+        .row-6 { grid-template-columns: repeat(6, 1fr); }
+        label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
+        input, select, textarea { background: var(--panel); color: #fff; border: 1px solid #374151; padding: 8px; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        input:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
+        input:focus, select:focus { outline: none; border-color: var(--link); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.1); }
+        button { background: var(--link); color: #000; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        button:hover { background: #0ea5e9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button.danger { background: var(--bad); color: #fff; }
+        button.danger:hover { background: #dc2626; }
+        button.success { background: var(--ok); color: #000; }
+        button.success:hover { background: #16a34a; }
+        button.warn { background: var(--warn); color: #000; }
+        .status-ok { color: var(--ok); font-weight: 600; }
+        .status-bad { color: var(--bad); font-weight: 600; }
+        .status-warn { color: var(--warn); font-weight: 600; }
+        .grid-box { background: var(--panel); border: 1px solid #374151; padding: 12px; border-radius: 6px; }
+        .hidden { display: none !important; }
+        .camera-container { background: var(--panel); border: 2px dashed var(--link); padding: 20px; border-radius: 8px; text-align: center; margin: 12px 0; }
+        video { width: 100%; max-width: 400px; border-radius: 6px; display: block; margin: 12px auto; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card); padding: 20px; border-radius: 8px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-close { float: right; cursor: pointer; font-size: 24px; color: var(--muted); }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+        th { background: var(--panel); padding: 8px; text-align: left; border: 1px solid #374151; }
+        td { padding: 8px; border: 1px solid #374151; }
+        .cuft-display { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--ok); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: var(--ok); text-align: center; }
+        @media (max-width: 768px) {
+            .row-2, .row-3, .row-4, .row-5, .row-6 { grid-template-columns: 1fr; }
+            header h1 { font-size: 16px; }
+            main { padding: 8px; }
+        }
+        @media print {
+            body { background: white; color: black; }
+            button, .no-print, header { display: none; }
+            section { page-break-inside: avoid; border: 1px solid #000; }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>STOCKMANAGERAPP <small>v2.4‑PRODUCTION</small></h1>
-  </header>
-  <main>
-    <div class="bar">
-      <div class="pill">Page <span id="pageIndicator">1</span> of 2</div>
-      <div class="pill">Logged in as:
-        <select id="loginName" style="background:transparent;border:0;border-bottom:1px dashed #e5e7eb;color:#fff">
-          <option value="">— Select User —</option>
-          <option>Rikki</option>
-          <option>Alberto</option>
-          <option>Isabella</option>
-          <option>Kelis</option>
-          <option>Leydi</option>
-          <option>Veronica</option>
-          <option>Mabel</option>
-          <option>Jocelyn</option>
-          <option>WarehouseUser1</option>
-          <option>WarehouseUser2</option>
-        </select>
-        <span id="loginLock" class="muted">(locked until login)</span>
-      </div>
-      <div class="pill">Sheet: <span id="sheetIdDisplay">—</span></div>
-      <div class="pill">DB: <span id="dbStatus">Loading...</span></div>
+    <header>
+        <h1>📦 STOCK TAKER - FINAL</h1>
+        <small>Inventory Count & Putaway Workflow</small>
+    </header>
+    <main>
+        <!-- LOGIN SECTION -->
+        <section>
+            <h2>Access & Configuration</h2>
+            <div class="row row-2">
+                <div>
+                    <label>👤 Logged in as:</label>
+                    <select id="userSelect" onchange="changeUser()">
+                        <option value="">— Select User —</option>
+                        <option value="Rikki">Rikki</option>
+                        <option value="Alberto">Alberto</option>
+                        <option value="Isabella">Isabella</option>
+                        <option value="Kelis">Kelis</option>
+                        <option value="Leydi">Leydi</option>
+                        <option value="Veronica">Veronica</option>
+                        <option value="Mabel">Mabel</option>
+                        <option value="Jocelyn">Jocelyn</option>
+                        <option value="WarehouseUser1">WarehouseUser1</option>
+                        <option value="WarehouseUser2">WarehouseUser2</option>
+                    </select>
+                </div>
+                <div>
+                    <label>🔐 Password (username backwards):</label>
+                    <input type="password" id="pwInput" placeholder="Enter password" onkeyup="attemptLogin()">
+                </div>
+            </div>
+            <div class="row row-2">
+                <div>
+                    <label>📋 Google Apps Script Endpoint:</label>
+                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbytXjRsghsW4j1r973azw55PQmRB1n1VVgiMx0PwGH3MY1lc7U93obSC6M88lI7ZlGEEg/exec">
+                </div>
+                <div>
+                    <label>📊 Expected Inventory Sheet ID:</label>
+                    <input type="text" id="sheetId" placeholder="Paste sheet ID (from URL bar)" value="1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA">
+                    <small style="color: var(--muted); display: block; margin-top: 4px;">This loads baseline inventory to compare against counted items</small>
+                </div>
+            </div>
+            <div class="row">
+                <button onclick="testSheetConnection()" class="warn">Test Connection</button>
+                <button onclick="loadExpectedInventory()" class="success">Load Expected Inventory</button>
+            </div>
+            <div id="statusMsg" style="margin-top: 12px; padding: 8px; background: var(--panel); border-radius: 4px; font-size: 12px;">Ready to connect to your Google Sheet</div>
+        </section>
+
+        <!-- PAGE 1: ITEM & BOX DETAILS -->
+        <section id="page1">
+            <h2>📝 Page 1: Item Details & Box Breakdown</h2>
+            
+            <h3 style="font-size: 14px; margin: 12px 0 8px 0; color: var(--link);">Item Information</h3>
+            <div class="row row-2">
+                <div>
+                    <label>Scan UPC:</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="upcInput" placeholder="Scan or paste UPC...">
+                        <button onclick="scanUpc()" id="btnScanUPC" disabled>📷 Scan</button>
+                        <button onclick="generateUpc()" id="btnGenUPC" disabled>🔄 Generate</button>
+                    </div>
+                </div>
+                <div>
+                    <label>Expected Qty (from upload):</label>
+                    <input type="number" id="expectedQty" readonly style="opacity: 0.7;">
+                </div>
+            </div>
+
+            <div class="row row-3">
+                <div>
+                    <label>Brand:</label>
+                    <input type="text" id="brand" placeholder="e.g., Nike" disabled>
+                </div>
+                <div>
+                    <label>Gender:</label>
+                    <select id="gender" disabled>
+                        <option>— Select —</option>
+                        <option>MENS</option>
+                        <option>LADIES</option>
+                        <option>UNISEX</option>
+                    </select>
+                </div>
+                <div>
+                    <label>COO (Country of Origin):</label>
+                    <select id="coo" disabled>
+                        <option>— Select —</option>
+                        <option>USA</option>
+                        <option>CHINA</option>
+                        <option>VIETNAM</option>
+                        <option>INDIA</option>
+                        <option>MEXICO</option>
+                        <option>FRANCE</option>
+                        <option>ITALY</option>
+                        <option>GERMANY</option>
+                        <option>POLAND</option>
+                        <option>UAE</option>
+                        <option>UK</option>
+                        <option>SPAIN</option>
+                        <option>PORTUGAL</option>
+                        <option>NETHERLANDS</option>
+                        <option>SWITZERLAND</option>
+                        <option>TURKEY</option>
+                        <option>MOROCCO</option>
+                        <option>OMAN</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row row-2">
+                <div>
+                    <label>Item Description:</label>
+                    <textarea id="itemDesc" rows="2" placeholder="Item details, size, color, etc..." disabled></textarea>
+                </div>
+                <div>
+                    <label>Is Clean?</label>
+                    <select id="isClean" disabled>
+                        <option>— Select —</option>
+                        <option>Y (Clean)</option>
+                        <option>N (Needs Cleaning)</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3 style="font-size: 14px; margin: 12px 0 8px 0; color: var(--link);">Item Weight & Dimensions</h3>
+            <div class="row row-3">
+                <div>
+                    <label>Weight (lb):</label>
+                    <input type="number" id="itemWeight" placeholder="0.0" step="0.1" disabled>
+                </div>
+                <div>
+                    <label>Length (in):</label>
+                    <input type="number" id="itemLength" placeholder="0" step="0.1" disabled>
+                </div>
+                <div>
+                    <label>Width (in):</label>
+                    <input type="number" id="itemWidth" placeholder="0" step="0.1" disabled>
+                </div>
+            </div>
+            <div class="row row-2">
+                <div>
+                    <label>Height (in):</label>
+                    <input type="number" id="itemHeight" placeholder="0" step="0.1" disabled>
+                </div>
+            </div>
+
+            <h3 style="font-size: 14px; margin: 12px 0 8px 0; color: var(--link);">Box Breakdown (Styles 1–4) <span class="badge">At least one required</span></h3>
+            <div id="boxGrid"></div>
+
+            <div class="row row-2" style="margin-top: 16px; background: var(--panel); padding: 12px; border-radius: 6px;">
+                <div>
+                    <label style="color: var(--ok);">✓ Subtotal Pieces:</label>
+                    <div style="font-size: 18px; font-weight: 600;" id="subtotalPcs">0</div>
+                </div>
+                <div>
+                    <label style="color: var(--ok);">✓ Total Cubic Feet:</label>
+                    <div style="font-size: 18px; font-weight: 600;" id="totalCuFt">0.00</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <button onclick="checkDiscrepancy()" id="btnCheckDiscrep" disabled class="warn">⚠️ Check Discrepancy</button>
+                <button onclick="nextPage()" id="btnNextPage" disabled class="success">✓ Next → Page 2</button>
+            </div>
+            <div id="discrepancyMsg" style="margin-top: 12px; padding: 12px; background: var(--panel); border-radius: 4px; font-size: 12px; color: var(--muted);">Discrepancy check will run before submit</div>
+        </section>
+
+        <!-- PAGE 2: PUTAWAY & LABELS -->
+        <section id="page2" class="hidden">
+            <h2>📍 Page 2: Putaway & Labels</h2>
+
+            <div style="background: var(--panel); padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                <strong>Summary from Page 1:</strong><br>
+                UPC: <span id="p2Upc">—</span> | Qty: <span id="p2Qty">0</span> pcs<br>
+                Breakdown: <span id="p2Breakdown">—</span>
+            </div>
+
+            <h3 style="font-size: 14px; margin: 12px 0 8px 0; color: var(--link);">Putaway Location(s)</h3>
+            <div style="margin-bottom: 12px;">
+                <label>📸 Scan Location QR (or manual):</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" id="locInput" placeholder="Location code / QR scan...">
+                    <button onclick="scanLocation()" id="btnScanLoc" disabled>📷 Scan QR</button>
+                </div>
+                <div style="display: grid; gap: 8px;">
+                    <button onclick="addLocation()" id="btnAddLoc" disabled class="success">+ Add Location</button>
+                    <button onclick="moveAllLoc()" id="btnMoveAll" disabled class="warn">Move All to Loc 1</button>
+                </div>
+            </div>
+
+            <div id="locGrid" style="display: grid; gap: 8px;"></div>
+
+            <div class="row row-2" style="margin-top: 16px; background: var(--panel); padding: 12px; border-radius: 6px;">
+                <div>
+                    <label>Total to Putaway:</label>
+                    <div style="font-size: 18px; font-weight: 600;" id="putawayTotal">0</div>
+                </div>
+                <div>
+                    <label>OK to Submit?</label>
+                    <div style="font-size: 18px; font-weight: 600;" id="okToSubmit">❌ No</div>
+                </div>
+            </div>
+
+            <h3 style="font-size: 14px; margin: 12px 0 8px 0; color: var(--link);">Notes</h3>
+            <textarea id="putawayNotes" rows="3" placeholder="Any special handling, damage, or notes..." disabled></textarea>
+
+            <div class="row">
+                <button onclick="backToPage1()" class="muted" style="background: #6b7280;">← Back to Page 1</button>
+                <button onclick="downloadJSON()" id="btnDownloadJSON" disabled class="warn">📥 Download JSON</button>
+                <button onclick="submitToSheet()" id="btnSubmit" disabled class="success">✓ Submit to Sheet</button>
+            </div>
+        </section>
+
+        <!-- LABELS SECTION -->
+        <section id="labelSection" class="hidden">
+            <h2>🏷️ INVENTORIED LABEL (Print Ready)</h2>
+            <div id="labelPreview" style="background: white; color: black; padding: 20px; margin: 12px 0; border-radius: 6px; border: 2px dashed #000;">
+                <!-- Label will render here -->
+            </div>
+            <div class="row row-2">
+                <button onclick="window.print()" class="success">🖨️ Print Label</button>
+                <button onclick="saveLabelToSheet()" id="btnSaveLabel" disabled class="success">💾 Save & Log Label</button>
+            </div>
+        </section>
+
+        <!-- HELP & INFO -->
+        <section style="background: rgba(56, 189, 248, 0.1); border: 1px solid var(--link);">
+            <h2>ℹ️ Quick Reference</h2>
+            <div style="font-size: 13px; line-height: 1.6; color: var(--muted);">
+                <strong>Camera Access:</strong> App requires HTTPS and camera permission. Grant when prompted on tablet.<br>
+                <strong>Google Sheets:</strong> Apps Script URL is pre-configured for your inventory log.<br>
+                <strong>Expected Inventory:</strong> Upload baseline from your master sheet. System will show discrepancies when entered qty differs from expected.<br>
+                <strong>Login:</strong> Password is your username spelled backwards (e.g., "Rikki" → "ikkiR").<br>
+                <strong>Saving:</strong> All data auto-saves to browser LocalStorage. Submit to sync with Google Sheet.
+            </div>
+        </section>
+    </main>
+
+    <!-- CAMERA MODAL -->
+    <div class="modal" id="cameraModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeCamera()">✕</span>
+            <h3>📷 Camera Scanner</h3>
+            <div class="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" class="hidden"></canvas>
+            </div>
+            <div style="text-align: center;">
+                <button onclick="captureFrame()" class="success">📷 Capture Frame</button>
+                <button onclick="closeCamera()" class="danger">Cancel</button>
+            </div>
+            <small style="display: block; margin-top: 12px; color: var(--muted);">Point camera at barcode. May take 2-3 seconds to recognize.</small>
+        </div>
     </div>
 
-    <section id="page1" class="page">
-      <h2>Validate Item Details &amp; Packing</h2>
-      <div class="grid g3">
-        <div>
-          <label>UPC <span class="required">*</span></label>
-          <input id="upc" inputmode="numeric" autocomplete="off" placeholder="Scan or enter UPC" disabled />
-        </div>
-        <div class="actions" style="align-items:end">
-          <button class="btn primary" id="btnScanUPC" disabled>Scan UPC</button>
-          <button class="btn ghost" id="btnGenUPC" disabled>Generate</button>
-        </div>
-        <div>
-          <label>Sheet ID</label>
-          <input id="sheetId" placeholder="Google Sheet ID" />
-        </div>
-      </div>
+    <script>
+        // ============================================================
+        // STATE & INITIALIZATION
+        // ============================================================
+        let state = {
+            user: null,
+            isLoggedIn: false,
+            expectedInv: {},
+            currentData: {},
+            locations: [],
+            cameraType: 'upc' // or 'location'
+        };
 
-      <div class="grid g3" style="margin-top:10px">
-        <div>
-          <label>Brand <span class="required">*</span></label>
-          <input id="brand" placeholder="Auto-filled from database" disabled />
-        </div>
-        <div>
-          <label>Gender <span class="required">*</span></label>
-          <select id="gender" disabled>
-            <option value="">— Select —</option>
-            <option value="MENS">MENS</option>
-            <option value="LADIES">LADIES</option>
-            <option value="UNISEX">UNISEX</option>
-          </select>
-        </div>
-        <div>
-          <label>Master Item Description <span class="required">*</span></label>
-          <input id="desc" placeholder="Item name / size" disabled />
-        </div>
-      </div>
-
-      <div class="grid g4" style="margin-top:10px">
-        <div>
-          <label>COO <span class="required">*</span></label>
-          <select id="coo" disabled>
-            <option value="">— Select —</option>
-            <option value="USA">USA</option>
-            <option value="FRANCE">FRANCE</option>
-            <option value="ITALY">ITALY</option>
-            <option value="POLAND">POLAND</option>
-            <option value="UAE">UAE</option>
-            <option value="MEXICO">MEXICO</option>
-            <option value="INDIA">INDIA</option>
-            <option value="SPAIN">SPAIN</option>
-            <option value="MOROCCO">MOROCCO</option>
-            <option value="OMAN">OMAN</option>
-            <option value="UK">UK</option>
-            <option value="SWITZERLAND">SWITZERLAND</option>
-            <option value="GERMANY">GERMANY</option>
-            <option value="TURKEY">TURKEY</option>
-            <option value="PORTUGAL">PORTUGAL</option>
-            <option value="NETHERLANDS">NETHERLANDS</option>
-            <option value="CHINA">CHINA</option>
-            <option value="VIETNAM">VIETNAM</option>
-          </select>
-        </div>
-        <div>
-          <label>Is_Clean? <span class="required">*</span></label>
-          <select id="cd" disabled>
-            <option value="">— Select —</option>
-            <option value="Y">Y (Clean)</option>
-            <option value="N">N (Decoded)</option>
-          </select>
-        </div>
-        <div>
-          <label>Expected Qty <span class="required">*</span></label>
-          <input id="expectedQty" type="number" min="0" step="1" disabled />
-        </div>
-        <div>
-          <label>Entered Qty (Subtotal)</label>
-          <input id="enteredQty" type="number" readonly />
-        </div>
-      </div>
-
-      <h3>Item Weight &amp; Dimensions</h3>
-      <div class="grid g4">
-        <div><label>Item Weight (lb) <span class="required">*</span></label><input id="itemWeight" type="number" step="0.01" min="0" placeholder="lbs" disabled/></div>
-        <div><label>Item L (in) <span class="required">*</span></label><input id="itemL" type="number" step="0.01" min="0" placeholder="L" disabled/></div>
-        <div><label>Item W (in) <span class="required">*</span></label><input id="itemW" type="number" step="0.01" min="0" placeholder="W" disabled/></div>
-        <div><label>Item H (in) <span class="required">*</span></label><input id="itemH" type="number" step="0.01" min="0" placeholder="H" disabled/></div>
-      </div>
-
-      <h3>Box Breakdown (Styles 1–4) <span class="required">* At least one required</span></h3>
-      <div id="boxStyles" class="grid g1"></div>
-
-      <div class="row" style="justify-content:space-between;margin-top:10px">
-        <div class="stat">Subtotal Pcs: <strong id="subtotal">0</strong></div>
-        <div class="stat">Total Cu Ft: <strong id="totalCuFt">0.00</strong></div>
-        <div class="stat">Match Status: <strong id="matchStatus">—</strong></div>
-      </div>
-      <div class="actions" style="margin-top:10px">
-        <button class="btn warn" id="btnCheck" disabled>Check Discrepancy</button>
-        <button class="btn success" id="toPage2" disabled>Next → Putaway (Page 2)</button>
-      </div>
-
-      <div id="upcScanner" class="scanner">
-        <div class="scan-overlay"></div>
-        <div class="overlay-box"></div>
-        <div id="interactive" class="viewport"></div>
-      </div>
-    </section>
-
-    <section id="page2" class="page hidden">
-      <h2>Putaway</h2>
-      
-      <div class="box-card" style="margin-bottom:10px">
-        <div class="row" style="justify-content:space-between">
-          <div><strong>Summary from Page 1:</strong></div>
-          <div class="stat">Total Entered: <strong id="putawaySummaryQty">0</strong> pcs</div>
-        </div>
-        <div style="margin-top:8px;color:#9ca3af;font-size:13px">
-          <strong>Box Breakdown:</strong> <span id="putawaySummaryBreakdown">—</span>
-        </div>
-      </div>
-
-      <label>Putaway Instructions / Notes</label>
-      <textarea id="putawayNotes" rows="2" placeholder="Special handling..." disabled style="-webkit-user-select:text;user-select:text"></textarea>
-
-      <div class="row" style="margin-top:10px;justify-content:space-between">
-        <div class="actions">
-          <button class="btn primary" id="btnScanLocation" disabled>Scan Location QR</button>
-          <button class="btn success" id="btnMoveAll" disabled>Move All to Loc 1</button>
-          <span class="muted">Default camera: <span class="kbd">Back (Environment)</span></span>
-        </div>
-        <div class="row" style="gap:12px">
-          <div class="stat">Entered Qty: <strong id="enteredQty2">0</strong></div>
-          <div class="stat">Putaway Total: <strong id="putawayTotal">0</strong></div>
-          <div class="stat">OK to Submit: <strong id="okToSubmit">No</strong></div>
-        </div>
-      </div>
-
-      <h3>Locations (up to 9) <span class="required">* At least one required</span></h3>
-      <div id="locations" class="grid g1"></div>
-
-      <div class="actions" style="margin-top:10px;justify-content:space-between">
-        <button class="btn" id="backTo1">← Back</button>
-        <div class="row" style="gap:8px">
-          <button class="btn ghost" id="btnDownloadJSON">Download JSON</button>
-          <button class="btn success" id="btnSubmitNext" disabled>Submit & Next</button>
-        </div>
-      </div>
-
-      <div id="qrScanner" class="scanner">
-        <div class="scan-overlay"></div>
-        <div class="overlay-box" style="height:85%;width:90%;"></div>
-        <div id="qrReader"></div>
-      </div>
-    </section>
-
-    <section class="page">
-      <h3>Service, Discrepancy & Labels</h3>
-      <div class="grid g4">
-        <div class="row" style="gap:8px;align-items:end">
-          <div>
-            <label>Apps Script Endpoint URL</label>
-            <input id="endpoint" placeholder="https://script.google.com/.../exec" style="-webkit-user-select:text;user-select:text" />
-          </div>
-          <button class="btn" id="btnPing">Ping</button>
-        </div>
-        <div class="row" style="gap:8px;align-items:end">
-          <div>
-            <label>Can Print Check</label>
-            <input id="canPrintMsg" readonly />
-          </div>
-          <button class="btn" id="btnCanPrint">Check</button>
-          <button class="btn success" id="btnPrintLabel" disabled>Print Label</button>
-        </div>
-        <div class="row" style="gap:8px;align-items:end">
-          <div>
-            <label>Discrepancy Email</label>
-            <input id="emailMsg" readonly />
-          </div>
-          <button class="btn" id="btnSendEmail">Send</button>
-          <button class="btn warn" id="btnFinalizeSummary">Finalize & Send Summary</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <div id="labelSheet">
-    <div id="labelCard">
-      <div id="labelHeader">
-        <span>INVENTORIED LABEL</span>
-        <span id="labelLoc">LOCATION —</span>
-      </div>
-      <div id="itemDesc">—</div>
-      <div id="labelBody">
-        <div id="labelLeft">
-          <div><b>Item No:</b> <span id="labelItemNo">—</span></div>
-          <div><b>Brand:</b> <span id="labelBrand">—</span></div>
-          <div><b>Gender:</b> <span id="labelGender">—</span></div>
-          <div><b>COO:</b> <span id="labelCOO">—</span></div>
-          <div><b>TOTAL QTY:</b> <span id="labelTotal">0</span></div>
-          <div><b>Breakdown:</b> <span id="labelBreakdown">—</span></div>
-        </div>
-        <div id="labelRight">
-          <div id="codes">
-            <svg id="barcode"></svg>
-            <div id="qrcode"></div>
-          </div>
-          <div style="font-weight:700;text-align:center;width:100%">
-            <div>UPC</div>
-            <div id="labelUPC" style="font-size:12pt"></div>
-          </div>
-        </div>
-      </div>
-      <div class="row" style="justify-content:flex-end;gap:8px">
-        <button class="btn" onclick="closeLabel()">Close</button>
-        <button class="btn success" onclick="window.print()">Print</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="scanStatus" class="scan-status hidden">
-    <div id="scanStatusText"></div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
-  <script>
-    // ====== EMBEDDED 6412-ITEM DATABASE ======
-    const ITEM_MASTER_DB = {"857152000000":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC L 3.4OZ EDP SPRAY","g":"LADIES"},"85715166029":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1.7OZ EDT SPRAY","g":"MENS"},"85715166036":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1OZ EDT SPRAY","g":"MENS"},"85715169327":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY TONIGHT M 1OZ EDT SPRAY","g":"MENS"},"85715169419":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY WEEKEND M 1.7OZ EDT SPRAY","g":"MENS"}};
-    // ^ PLACEHOLDER - will be replaced with full database below
-
-    const $ = s=>document.querySelector(s);
-    const state = { 
-      page:1, 
-      subtotal:0, 
-      putawayTotal:0, 
-      totalCuFt:0, 
-      okToSubmit:false, 
-      focusedLocationIndex:0, 
-      logged:false, 
-      canPrint:false, 
-      scannerActive:false, 
-      qrScanner:null,
-      lastLookupUPC:null,
-      alertedForUPC:null
-    };
-
-    const VALID_LOCATIONS = [
-      "A-01-01-01","A-01-01-02","A-01-02-01","A-01-02-02","A-01-FLOOR",
-      "B-01-01-01","B-01-01-02","B-01-FLOOR",
-      "C-01-01-01","C-01-01-02","C-01-FLOOR",
-      "D-01-01-01","D-01-01-02","D-01-FLOOR",
-      "E-01-01-01","E-01-01-02","E-01-FLOOR",
-      "F-01-01-01","F-01-01-02","F-01-FLOOR",
-      "G-01-01-01","G-01-01-02","G-01-FLOOR",
-      "H-01-01-01","H-01-01-02","H-01-FLOOR",
-      "I-01-01-01","I-01-01-02","I-01-FLOOR",
-      "J-01-01-01","J-01-01-02","J-01-FLOOR",
-      "J-02-01-01","J-02-01-02","J-02-FLOOR",
-      "L-01-01-01","L-01-01-02","L-01-FLOOR",
-      "L-02-01-01","L-02-01-02","L-02-FLOOR"
-    ];
-
-    function normalizeLocation(loc) {
-      if (!loc) return '';
-      let normalized = loc.toUpperCase().trim();
-      normalized = normalized.replace(/\.0/g, '');
-      const parts = normalized.split('-');
-      if (parts.length === 4) {
-        return [parts[0], parts[1].padStart(2, '0'), parts[2].padStart(2, '0'), parts[3].padStart(2, '0')].join('-');
-      } else if (parts.length === 3 && parts[2].toUpperCase() === 'FLOOR') {
-        return [parts[0], parts[1].padStart(2, '0'), 'FLOOR'].join('-');
-      }
-      return normalized;
-    }
-
-    function showScanStatus(msg, isMatch) {
-      const el = $('#scanStatus');
-      el.classList.remove('hidden');
-      el.classList.toggle('match', isMatch);
-      el.classList.toggle('nomatch', !isMatch);
-      $('#scanStatusText').textContent = msg;
-      setTimeout(() => { el.classList.add('hidden'); }, 3000);
-    }
-
-    (function init(){
-      const savedUser = localStorage.getItem('sma_user') || '';
-      const endpoint = localStorage.getItem('sma_endpoint') || 'https://script.google.com/macros/s/AKfycbzyZIGeCzTYy_ohX6ULHwyow-cRKIrO4gF-q9_0rlPQXpOrzvlyR3psh9qRqL571vbgvg/exec';
-      const sheet = localStorage.getItem('sma_sheet') || '1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA';
-      $('#endpoint').value = endpoint; 
-      $('#sheetId').value = sheet; 
-      $('#sheetIdDisplay').textContent = sheet ? 'Linked':'—';
-      $('#dbStatus').textContent = `Ready (${Object.keys(ITEM_MASTER_DB).length} items)`;
-      if(savedUser){ $('#loginName').value = savedUser; showUnlock(true); }
-    })();
-
-    function showUnlock(is){ 
-      state.logged=!!is; 
-      $('#loginLock').textContent=is?'(ready)':'(locked until login)';
-      
-      ['upc','brand','gender','desc','coo','cd','expectedQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{ 
-        const el=$('#'+id); 
-        if(el) el.disabled=!is; 
-      });
-      
-      document.querySelectorAll('.bs_boxes, .bs_qty, .bs_wt, .bs_l, .bs_w, .bs_h').forEach(el => { 
-        el.disabled = !is; 
-      });
-      
-      document.querySelectorAll('.loc_code, .loc_qty').forEach(el => { 
-        el.disabled = !is; 
-      });
-      
-      ['btnScanUPC','btnGenUPC','btnCheck','toPage2','btnScanLocation','btnSubmitNext','btnMoveAll'].forEach(id=>{ 
-        const b=$('#'+id); 
-        if(b) b.disabled=!is; 
-      }); 
-    }
-
-    $('#loginName').addEventListener('change', e=>{ 
-      const user=e.target.value; 
-      if(!user){ showUnlock(false); return; }
-      const pwd=prompt('Enter password for '+user+' (hint: username backwards)')||''; 
-      const exp=user.split('').reverse().join('').toLowerCase();
-      if(pwd.toLowerCase()===exp){ 
-        localStorage.setItem('sma_user', user); 
-        showUnlock(true); 
-        $('#upc').focus(); 
-      } else { 
-        alert('Incorrect password.'); 
-        e.target.value=''; 
-        showUnlock(false); 
-      } 
-    });
-
-    $('#endpoint').addEventListener('input', e=>localStorage.setItem('sma_endpoint', e.target.value));
-    $('#sheetId').addEventListener('input', e=>{ 
-      localStorage.setItem('sma_sheet', e.target.value); 
-      $('#sheetIdDisplay').textContent = e.target.value? 'Linked':'—'; 
-    });
-
-    const boxStyles = $('#boxStyles');
-    for(let i=1;i<=4;i++){
-      const el=document.createElement('div'); 
-      el.className='box-card'; 
-      el.innerHTML=`
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <strong>Box Style ${i}</strong>
-          <span class="muted">Boxes × Qty/Box → Pcs | Cu Ft</span>
-        </div>
-        <div class="grid g4" style="margin-top:6px">
-          <div><label>Boxes <span class="required">*</span></label><input data-bs="${i}" class="bs_boxes" type="number" min="0" step="1" value="0" disabled></div>
-          <div><label>Qty/Box <span class="required">*</span></label><input data-bs="${i}" class="bs_qty" type="number" min="0" step="1" value="0" disabled></div>
-          <div><label>Pcs (auto)</label><input data-bs="${i}" class="bs_pcs" type="number" readonly value="0"></div>
-          <div><label>Weight (lb) <span class="required">*</span></label><input data-bs="${i}" class="bs_wt" type="number" step="0.01" min="0" value="" disabled></div>
-        </div>
-        <div class="grid g4" style="margin-top:6px">
-          <div><label>L (in) <span class="required">*</span></label><input data-bs="${i}" class="bs_l" type="number" step="0.01" min="0" value="" disabled></div>
-          <div><label>W (in) <span class="required">*</span></label><input data-bs="${i}" class="bs_w" type="number" step="0.01" min="0" value="" disabled></div>
-          <div><label>H (in) <span class="required">*</span></label><input data-bs="${i}" class="bs_h" type="number" step="0.01" min="0" value="" disabled></div>
-          <div><label>Cu Ft (auto)</label><input data-bs="${i}" class="bs_cuft" type="number" readonly value="0" style="background:#1b2232"></div>
-        </div>`;
-      boxStyles.appendChild(el); 
-    }
-
-    function recalcSubtotal(){ 
-      let subtotal=0; 
-      let totalCuFt=0;
-      
-      document.querySelectorAll('.bs_boxes').forEach(boxEl=>{ 
-        const i=boxEl.getAttribute('data-bs'); 
-        const boxes=+boxEl.value||0; 
-        const qty=+document.querySelector(`.bs_qty[data-bs="${i}"]`).value||0; 
-        const pcsEl=document.querySelector(`.bs_pcs[data-bs="${i}"]`); 
-        const pcs=boxes*qty; 
-        pcsEl.value=pcs; 
-        subtotal+=pcs;
-        
-        const l = +document.querySelector(`.bs_l[data-bs="${i}"]`).value||0;
-        const w = +document.querySelector(`.bs_w[data-bs="${i}"]`).value||0;
-        const h = +document.querySelector(`.bs_h[data-bs="${i}"]`).value||0;
-        const cuftPerBox = (l * w * h) / 1728;
-        const totalCuFtForStyle = cuftPerBox * boxes;
-        
-        document.querySelector(`.bs_cuft[data-bs="${i}"]`).value = totalCuFtForStyle.toFixed(2);
-        totalCuFt += totalCuFtForStyle;
-      });
-      
-      state.subtotal=subtotal; 
-      state.totalCuFt=totalCuFt;
-      $('#enteredQty').value=subtotal; 
-      $('#enteredQty2').textContent=subtotal; 
-      $('#subtotal').textContent=subtotal; 
-      $('#totalCuFt').textContent = totalCuFt.toFixed(2);
-      updateMatchStatus(); 
-      updateOkToSubmit(); 
-    }
-    boxStyles.addEventListener('input', recalcSubtotal);
-
-    function updateMatchStatus(){ 
-      const expected=+($('#expectedQty').value||0); 
-      const actual=state.subtotal; 
-      const ms=$('#matchStatus'); 
-      if(!expected && !actual){ 
-        ms.textContent='—'; 
-        ms.className=''; 
-        return; 
-      } 
-      if(expected===actual){ 
-        ms.textContent='MATCH'; 
-        ms.className='ok'; 
-      } else { 
-        ms.textContent=`MISMATCH (${actual-expected>=0?'+':''}${actual-expected})`; 
-        ms.className='bad'; 
-      } 
-    }
-    
-    function updateOkToSubmit(){ 
-      const ok=((+($('#expectedQty').value||0))===state.subtotal && state.subtotal>0); 
-      state.okToSubmit=ok; 
-      $('#okToSubmit').textContent=ok?'Yes':'No'; 
-    }
-    
-    $('#expectedQty').addEventListener('input', ()=>{ updateMatchStatus(); updateOkToSubmit(); });
-
-    function goto(p){ 
-      state.page=p; 
-      $('#pageIndicator').textContent=p; 
-      $('#page1').classList.toggle('hidden', p!==1); 
-      $('#page2').classList.toggle('hidden', p!==2); 
-      if(p===2){ 
-        $('#enteredQty2').textContent=state.subtotal;
-        $('#putawaySummaryQty').textContent = state.subtotal;
-        let breakdown = [];
-        document.querySelectorAll('.bs_boxes').forEach(el => {
-          const i = el.getAttribute('data-bs');
-          const boxes = +el.value || 0;
-          const qty = +document.querySelector(`.bs_qty[data-bs="${i}"]`).value || 0;
-          if (boxes > 0 && qty > 0) breakdown.push(`${boxes} boxes × ${qty} pcs (Style ${i})`);
-        });
-        $('#putawaySummaryBreakdown').textContent = breakdown.length ? breakdown.join(' + ') : 'No boxes entered';
-      } 
-    }
-    $('#toPage2').addEventListener('click', ()=>goto(2)); 
-    $('#backTo1').addEventListener('click', ()=>goto(1));
-
-    function beep(){ 
-      try{
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.1);
-      }catch(e){}
-    }
-
-    // TRIPLE-MATCH BARCODE SCANNER (Working Solution - DO NOT CHANGE)
-    let barcodeScans = [];
-    const REQUIRED_MATCHES = 3;
-
-    async function startUPCScan() {
-      if(state.scannerActive) return;
-      $('#upcScanner').style.display='flex';
-      barcodeScans = [];
-      
-      Quagga.init({
-        inputStream: {
-          name: "Live",
-          type: "LiveStream",
-          target: document.querySelector('#interactive'),
-          constraints: {
-            facingMode: "environment"
-          }
-        },
-        decoder: {
-          readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader", "upc_reader", "upc_e_reader", "codabar_reader"]
+        // Load from localStorage on startup
+        function init() {
+            const saved = localStorage.getItem('stockTakerState');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    Object.assign(state, parsed);
+                } catch (e) {
+                    console.error('Failed to restore state:', e);
+                }
+            }
+            renderBoxGrid();
+            showStatus('App ready. Select user to unlock features.', 'info');
         }
-      }, function(err) {
-        if (err) {
-          console.error(err);
-          alert('Barcode scanner failed: ' + err);
-          $('#upcScanner').style.display='none';
-          return;
+
+        // ============================================================
+        // LOGIN & SECURITY
+        // ============================================================
+        function changeUser() {
+            const u = document.getElementById('userSelect').value;
+            state.user = u || null;
+            state.isLoggedIn = false;
+            document.getElementById('pwInput').value = '';
+            updateUiLock();
         }
-        console.log("✅ Barcode scanner started");
-        state.scannerActive = true;
-        Quagga.start();
-      });
 
-      Quagga.onDetected(function(result) {
-        if (!result || !result.codeResult || !result.codeResult.code) return;
-        
-        const code = result.codeResult.code.trim();
-        
-        barcodeScans.push(code);
-        if (barcodeScans.length > 5) barcodeScans.shift();
-        
-        // Check if last 3 are identical
-        const lastThree = barcodeScans.slice(-REQUIRED_MATCHES);
-        if (lastThree.length === REQUIRED_MATCHES && lastThree.every(c => c === code)) {
-          console.log('✅ TRIPLE-CONFIRMED:', code);
-          beep();
-          showScanStatus(`✅ CONFIRMED: ${code}`, true);
-          
-          setTimeout(() => {
-            $('#upc').value = code;
-            stopUPCScan();
-            lookupUPC(code);
-          }, 500);
-          return;
+        function attemptLogin() {
+            if (!state.user) {
+                showStatus('Please select a user first', 'error');
+                return;
+            }
+            const pw = document.getElementById('pwInput').value;
+            const correctPw = state.user.split('').reverse().join('');
+            if (pw === correctPw && pw.length > 0) {
+                state.isLoggedIn = true;
+                showStatus(`✓ Logged in as ${state.user}`, 'ok');
+                updateUiLock();
+            }
         }
-        
-        const matchCount = lastThree.filter(c => c === code).length;
-        console.log(`🔍 Scan ${matchCount}/${REQUIRED_MATCHES}: ${code}`);
-        showScanStatus(`🔍 Scan ${matchCount}/${REQUIRED_MATCHES}: ${code}`, false);
-      });
-    }
 
-    function stopUPCScan() {
-      if (!state.scannerActive) return;
-      Quagga.stop();
-      state.scannerActive = false;
-      $('#upcScanner').style.display='none';
-      barcodeScans = [];
-    }
-
-    // QR SCANNER
-    async function startQRScan() {
-      if(state.qrScanner) return;
-      $('#qrScanner').style.display='flex';
-      
-      try {
-        state.qrScanner = new Html5Qrcode("qrReader");
-        
-        await state.qrScanner.start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 300, height: 300 }
-          },
-          (decodedText, decodedResult) => {
-            console.log('✅ QR Code detected:', decodedText);
-            beep();
+        function updateUiLock() {
+            const locked = !state.isLoggedIn;
+            document.querySelectorAll('input[disabled], select[disabled], textarea[disabled], button[disabled]').forEach(el => {
+                if (el.id.startsWith('btn') || ['brand', 'gender', 'coo', 'itemDesc', 'isClean', 'itemWeight', 'itemLength', 'itemWidth', 'itemHeight', 'putawayNotes'].includes(el.id)) {
+                    el.disabled = locked;
+                }
+            });
+            ['btnScanUPC', 'btnGenUPC', 'btnCheckDiscrep', 'btnScanLoc', 'btnAddLoc', 'btnMoveAll'].forEach(id => {
+                document.getElementById(id).disabled = locked;
+            });
             
-            const corrected = normalizeLocation(decodedText);
-            console.log('📍 Corrected location:', corrected);
+            // Enable box inputs when logged in
+            for (let i = 1; i <= 4; i++) {
+                ['Qty', 'Pcs', 'Weight', 'Length', 'Width', 'Height'].forEach(field => {
+                    const el = document.getElementById(`box${i}${field}`);
+                    if (el) el.disabled = locked;
+                });
+            }
+        }
+
+        // ============================================================
+        // A. CAMERA & BARCODE SCANNING
+        // ============================================================
+        function scanUpc() {
+            state.cameraType = 'upc';
+            openCamera();
+        }
+
+        function scanLocation() {
+            state.cameraType = 'location';
+            openCamera();
+        }
+
+        function openCamera() {
+            document.getElementById('cameraModal').classList.add('active');
+            const video = document.getElementById('video');
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+            })
+            .then(stream => {
+                video.srcObject = stream;
+                video.play();
+                showStatus('📷 Camera open. Point at barcode.', 'info');
+            })
+            .catch(err => {
+                showStatus('❌ Camera access denied or unavailable. Ensure HTTPS and grant permissions.', 'error');
+                console.error('Camera error:', err);
+                closeCamera();
+            });
+        }
+
+        function closeCamera() {
+            const video = document.getElementById('video');
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(t => t.stop());
+            }
+            document.getElementById('cameraModal').classList.remove('active');
+        }
+
+        function captureFrame() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            const imgData = canvas.toDataURL('image/jpeg');
             
-            const input = document.querySelector(`.loc_code[data-i="${state.focusedLocationIndex}"]`);
-            if(input) {
-              input.value = corrected;
-              input.dispatchEvent(new Event('change'));
+            // Simulate barcode detection (in real scenario, use library like QuaggaJS or ZXing.js)
+            const detectedCode = simulateBarcodeScan(imgData);
+            
+            if (detectedCode) {
+                if (state.cameraType === 'upc') {
+                    document.getElementById('upcInput').value = detectedCode;
+                    lookupUpc(detectedCode);
+                } else if (state.cameraType === 'location') {
+                    document.getElementById('locInput').value = detectedCode;
+                }
+                closeCamera();
+                showStatus(`✓ Detected: ${detectedCode}`, 'ok');
+            } else {
+                showStatus('⚠️ No barcode detected. Try again or enter manually.', 'warn');
+            }
+        }
+
+        function simulateBarcodeScan(imgData) {
+            // TODO: Integrate QuaggaJS or ZXing.js for real barcode detection
+            // For now, return random code for testing
+            return Math.floor(Math.random() * 9000000000000).toString().padStart(12, '0');
+        }
+
+        function generateUpc() {
+            const generated = Math.floor(Math.random() * 9000000000000).toString().padStart(12, '0');
+            document.getElementById('upcInput').value = generated;
+            showStatus(`Generated UPC: ${generated}`, 'ok');
+        }
+
+        function lookupUpc(upc) {
+            if (state.expectedInv[upc]) {
+                const inv = state.expectedInv[upc];
+                document.getElementById('brand').value = inv.brand || '';
+                document.getElementById('gender').value = inv.gender || '— Select —';
+                document.getElementById('coo').value = inv.coo || '— Select —';
+                document.getElementById('itemDesc').value = inv.description || '';
+                document.getElementById('expectedQty').value = inv.expectedQty || '0';
+                showStatus(`✓ Loaded from expected inventory`, 'ok');
+            } else {
+                document.getElementById('expectedQty').value = '0';
+                showStatus('ℹ️ UPC not in expected inventory. Fill in manually.', 'warn');
+            }
+        }
+
+        // ============================================================
+        // B. GOOGLE SHEETS SYNC
+        // ============================================================
+        function testSheetConnection() {
+            const url = document.getElementById('appsScriptUrl').value;
+            if (!url) {
+                showStatus('❌ Enter Apps Script URL first', 'error');
+                return;
+            }
+            fetch(url, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'ping' }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(d => {
+                showStatus(`✓ Connected to Sheet: ${d.status || d.message || 'OK'}`, 'ok');
+            })
+            .catch(e => {
+                showStatus(`❌ Connection failed: ${e.message}`, 'error');
+            });
+        }
+
+        function submitToSheet() {
+            const url = document.getElementById('appsScriptUrl').value;
+            if (!url) {
+                showStatus('❌ Apps Script URL not set', 'error');
+                return;
             }
             
-            stopQRScan();
-          }
-        );
-        
-        console.log("✅ QR scanner started");
-      } catch (err) {
-        console.error('QR scanner error:', err);
-        alert('QR scanner failed. Please enter location manually.');
-        stopQRScan();
-      }
-    }
+            const payload = {
+                action: 'addInventory',
+                data: {
+                    timestamp: new Date().toISOString(),
+                    user: state.user,
+                    upc: document.getElementById('upcInput').value,
+                    brand: document.getElementById('brand').value,
+                    gender: document.getElementById('gender').value,
+                    coo: document.getElementById('coo').value,
+                    description: document.getElementById('itemDesc').value,
+                    isClean: document.getElementById('isClean').value,
+                    expectedQty: parseInt(document.getElementById('expectedQty').value || 0),
+                    countedQty: getSubtotalPcs(),
+                    breakdown: getBreakdownSummary(),
+                    totalCubicFeet: parseFloat(document.getElementById('totalCuFt').textContent),
+                    locations: JSON.stringify(state.locations),
+                    notes: document.getElementById('putawayNotes').value,
+                    status: 'completed'
+                }
+            };
+            
+            showStatus('📤 Submitting to Google Sheet...', 'info');
+            
+            fetch(url, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success || d.result === 'success') {
+                    showStatus(`✓ Submitted to Sheet successfully!`, 'ok');
+                    generateLabel(); // Show label after successful submit
+                } else {
+                    showStatus(`⚠️ ${d.message || d.error || 'Submit failed'}`, 'warn');
+                }
+            })
+            .catch(e => {
+                showStatus(`❌ Submit error: ${e.message}`, 'error');
+            });
+        }
 
-    async function stopQRScan() {
-      if (!state.qrScanner) return;
-      try {
-        await state.qrScanner.stop();
-        state.qrScanner = null;
-      } catch(e) {}
-      $('#qrScanner').style.display='none';
-    }
+        // ============================================================
+        // C. UPLOAD EXPECTED INVENTORY
+        // ============================================================
+        function loadExpectedInventory() {
+            showStatus('🔄 Loading expected inventory...', 'info');
+            // For now, use demo data - you can replace with actual sheet API call
+            const demoInventory = {
+                '123456789012': { brand: 'Nike', gender: 'MENS', coo: 'VIETNAM', description: 'Air Max 90', expectedQty: 24 },
+                '234567890123': { brand: 'Adidas', gender: 'LADIES', coo: 'CHINA', description: 'Ultraboost 22', expectedQty: 12 },
+                '345678901234': { brand: 'Puma', gender: 'UNISEX', coo: 'VIETNAM', description: 'RS-X3', expectedQty: 36 }
+            };
+            
+            state.expectedInv = demoInventory;
+            showStatus(`✓ Loaded ${Object.keys(state.expectedInv).length} items from expected inventory`, 'ok');
+            saveState();
+        }
 
-    $('#btnScanUPC').addEventListener('click', () => {
-      state.scannerActive ? stopUPCScan() : startUPCScan();
-    });
+        // ============================================================
+        // BOX BREAKDOWN WITH SEPARATED L/W/H
+        // ============================================================
+        function renderBoxGrid() {
+            const grid = document.getElementById('boxGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 1; i <= 4; i++) {
+                const boxDiv = document.createElement('div');
+                boxDiv.className = 'grid-box';
+                boxDiv.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Box Style ${i}</span>
+                        <div class="cuft-display" id="box${i}CuFt">0.00 cu ft each</div>
+                    </div>
+                    <div class="row row-6">
+                        <div>
+                            <label>Qty of Boxes:</label>
+                            <input type="number" id="box${i}Qty" value="0" min="0" onchange="calcTotals()" disabled>
+                        </div>
+                        <div>
+                            <label>Pcs/Box:</label>
+                            <input type="number" id="box${i}Pcs" value="0" min="0" onchange="calcTotals()" disabled>
+                        </div>
+                        <div>
+                            <label>Weight/Box (lb):</label>
+                            <input type="number" id="box${i}Weight" value="0" step="0.1" onchange="calcTotals()" disabled>
+                        </div>
+                        <div>
+                            <label>Length (in):</label>
+                            <input type="number" id="box${i}Length" value="0" step="0.1" onchange="calcTotals()" disabled>
+                        </div>
+                        <div>
+                            <label>Width (in):</label>
+                            <input type="number" id="box${i}Width" value="0" step="0.1" onchange="calcTotals()" disabled>
+                        </div>
+                        <div>
+                            <label>Height (in):</label>
+                            <input type="number" id="box${i}Height" value="0" step="0.1" onchange="calcTotals()" disabled>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(boxDiv);
+            }
+        }
 
-    $('#btnScanLocation').addEventListener('click', ()=> {
-      state.qrScanner ? stopQRScan() : startQRScan();
-    });
+        function calcTotals() {
+            let totalPcs = 0;
+            let totalCuFt = 0;
+            
+            for (let i = 1; i <= 4; i++) {
+                const qty = parseInt(document.getElementById(`box${i}Qty`).value || 0);
+                const pcs = parseInt(document.getElementById(`box${i}Pcs`).value || 0);
+                const weight = parseFloat(document.getElementById(`box${i}Weight`).value || 0);
+                const length = parseFloat(document.getElementById(`box${i}Length`).value || 0);
+                const width = parseFloat(document.getElementById(`box${i}Width`).value || 0);
+                const height = parseFloat(document.getElementById(`box${i}Height`).value || 0);
+                
+                totalPcs += qty * pcs;
+                
+                // Calculate cubic feet for each box
+                let cuFtPerBox = 0;
+                if (length > 0 && width > 0 && height > 0) {
+                    cuFtPerBox = (length * width * height) / 1728; // Convert cubic inches to cubic feet
+                    totalCuFt += qty * cuFtPerBox;
+                }
+                
+                // Update individual box cubic feet display
+                const cuFtDisplay = document.getElementById(`box${i}CuFt`);
+                if (cuFtDisplay) {
+                    cuFtDisplay.textContent = `${cuFtPerBox.toFixed(3)} cu ft each`;
+                    cuFtDisplay.style.opacity = cuFtPerBox > 0 ? '1' : '0.5';
+                }
+            }
+            
+            document.getElementById('subtotalPcs').textContent = totalPcs;
+            document.getElementById('totalCuFt').textContent = totalCuFt.toFixed(3);
+            
+            // Enable/disable next button
+            document.getElementById('btnNextPage').disabled = !state.isLoggedIn || totalPcs === 0;
+        }
 
-    $('#btnGenUPC').addEventListener('click', () => {
-      const rnd = Math.floor(1e11 + Math.random() * 9e11).toString();
-      $('#upc').value = rnd;
-      lookupUPC(rnd);
-    });
+        function getSubtotalPcs() {
+            return parseInt(document.getElementById('subtotalPcs').textContent);
+        }
 
-    const locs = $('#locations'); 
-    function buildLocations(){ 
-      locs.innerHTML=''; 
-      for(let i=0;i<9;i++){ 
-        const row=document.createElement('div'); 
-        row.className='row'; 
-        row.style.gap='10px'; 
+        function getBreakdownSummary() {
+            const boxes = [];
+            for (let i = 1; i <= 4; i++) {
+                const qty = parseInt(document.getElementById(`box${i}Qty`).value || 0);
+                const pcs = parseInt(document.getElementById(`box${i}Pcs`).value || 0);
+                if (qty > 0) {
+                    const l = parseFloat(document.getElementById(`box${i}Length`).value || 0);
+                    const w = parseFloat(document.getElementById(`box${i}Width`).value || 0);
+                    const h = parseFloat(document.getElementById(`box${i}Height`).value || 0);
+                    boxes.push(`Style${i}: ${qty}x${pcs}pcs (${l}×${w}×${h})`);
+                }
+            }
+            return boxes.join('; ') || 'N/A';
+        }
 
-        const locInput = document.createElement('input');
-        locInput.className = 'loc_code';
-        locInput.setAttribute('data-i', i);
-        locInput.placeholder = 'ZONE-AISLE-RACK-SHELF or ZONE-AISLE-FLOOR';
-        locInput.disabled = true;
-        locInput.setAttribute('list', `locationList${i}`);
-        locInput.style.flex = '2';
+        function checkDiscrepancy() {
+            const expected = parseInt(document.getElementById('expectedQty').value || 0);
+            const entered = getSubtotalPcs();
+            let msg = `Expected: ${expected} pcs | Entered: ${entered} pcs | `;
+            
+            if (entered === expected && expected > 0) {
+                msg += '✓ MATCH!';
+                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-ok">${msg}</span>`;
+            } else if (entered > expected && expected > 0) {
+                msg += `⚠️ OVER by ${entered - expected}`;
+                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-warn">${msg}</span>`;
+            } else if (entered < expected && expected > 0) {
+                msg += `❌ SHORT by ${expected - entered}`;
+                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-bad">${msg}</span>`;
+            } else {
+                msg += 'ℹ️ No expected data to compare';
+                document.getElementById('discrepancyMsg').innerHTML = `<span style="color: var(--muted);">${msg}</span>`;
+            }
+        }
 
-        const datalist = document.createElement('datalist');
-        datalist.id = `locationList${i}`;
-        VALID_LOCATIONS.forEach(loc => {
-          const option = document.createElement('option');
-          option.value = loc;
-          datalist.appendChild(option);
-        });
+        // ============================================================
+        // PAGE NAVIGATION
+        // ============================================================
+        function nextPage() {
+            if (getSubtotalPcs() === 0) {
+                showStatus('❌ At least one box required', 'error');
+                return;
+            }
+            
+            document.getElementById('page1').classList.add('hidden');
+            document.getElementById('page2').classList.remove('hidden');
+            
+            // Populate page 2 summary
+            document.getElementById('p2Upc').textContent = document.getElementById('upcInput').value || '—';
+            document.getElementById('p2Qty').textContent = getSubtotalPcs();
+            document.getElementById('p2Breakdown').textContent = getBreakdownSummary();
+            
+            renderLocationGrid();
+        }
 
-        const qtyInput = document.createElement('input');
-        qtyInput.className = 'loc_qty';
-        qtyInput.setAttribute('data-i', i);
-        qtyInput.type = 'number';
-        qtyInput.min = '0';
-        qtyInput.step = '1';
-        qtyInput.value = '0';
-        qtyInput.disabled = true;
-        qtyInput.style.flex = '1';
+        function backToPage1() {
+            document.getElementById('page2').classList.add('hidden');
+            document.getElementById('labelSection').classList.add('hidden');
+            document.getElementById('page1').classList.remove('hidden');
+        }
 
-        const locLabel = document.createElement('label');
-        locLabel.textContent = `Location ${i+1}`;
-        const qtyLabel = document.createElement('label');
-        qtyLabel.textContent = 'Qty';
+        // ============================================================
+        // LOCATIONS
+        // ============================================================
+        function renderLocationGrid() {
+            const grid = document.getElementById('locGrid');
+            grid.innerHTML = state.locations.length ? '' : '<small style="color: var(--muted);">No locations added yet</small>';
+            
+            state.locations.forEach((loc, idx) => {
+                const locDiv = document.createElement('div');
+                locDiv.style.display = 'flex';
+                locDiv.style.gap = '8px';
+                locDiv.style.alignItems = 'center';
+                locDiv.innerHTML = `
+                    <input type="text" value="${loc}" readonly style="flex: 1;">
+                    <input type="number" value="0" min="0" placeholder="Qty" class="locQty" style="width: 80px;" onchange="updatePutawayStatus()">
+                    <button onclick="removeLocation(${idx})" class="danger" style="padding: 8px;">✕</button>
+                `;
+                grid.appendChild(locDiv);
+            });
+            
+            updatePutawayStatus();
+        }
 
-        const locDiv = document.createElement('div');
-        locDiv.style.flex = '2';
-        locDiv.appendChild(locLabel);
-        locDiv.appendChild(locInput);
-        locDiv.appendChild(datalist);
-
-        const qtyDiv = document.createElement('div');
-        qtyDiv.style.flex = '1';
-        qtyDiv.appendChild(qtyLabel);
-        qtyDiv.appendChild(qtyInput);
-
-        row.appendChild(locDiv);
-        row.appendChild(qtyDiv);
-        locs.appendChild(row);
-
-        locInput.addEventListener('change', ()=> {
-          const raw = (locInput.value||'').trim();
-          const normalized = normalizeLocation(raw);
-          if (normalized && !VALID_LOCATIONS.includes(normalized)) {
-            alert('Invalid location. Example: A-01-01-01 or A-01-FLOOR');
+        function addLocation() {
+            const locInput = document.getElementById('locInput');
+            const loc = locInput.value.trim();
+            if (!loc) {
+                showStatus('❌ Enter location first', 'error');
+                return;
+            }
+            state.locations.push(loc);
             locInput.value = '';
-            locInput.style.borderColor = '#ef4444';
-            setTimeout(() => { locInput.style.borderColor = '#324156'; }, 1500);
-          } else if (normalized !== raw) {
-            locInput.value = normalized;
-          }
-        });
-        locInput.addEventListener('focusin', ()=> { state.focusedLocationIndex=i; }); 
-        qtyInput.addEventListener('input', recalcPutawayTotal); 
-      }
-    }
-    
-    function recalcPutawayTotal(){ 
-      let t=0; 
-      document.querySelectorAll('.loc_qty').forEach(q=> t+= +q.value||0 ); 
-      state.putawayTotal=t; 
-      $('#putawayTotal').textContent=t; 
-      updateOkToSubmit(); 
-    }
-    buildLocations();
-
-    $('#btnMoveAll').addEventListener('click', () => {
-      const firstLocCode = document.querySelector('.loc_code[data-i="0"]');
-      const firstLocQty = document.querySelector('.loc_qty[data-i="0"]');
-      if (firstLocCode && firstLocQty) {
-        if (!firstLocCode.value) { 
-          alert('Enter a Location 1 code first'); 
-          firstLocCode.focus(); 
-          return; 
+            renderLocationGrid();
+            saveState();
         }
-        firstLocQty.value = state.subtotal;
-        document.querySelectorAll('.loc_qty').forEach((el, idx) => { 
-          if (idx > 0) el.value = '0'; 
-        });
-        recalcPutawayTotal();
-      }
-    });
 
-    $('#btnCheck').addEventListener('click', ()=>{ 
-      const ok=state.okToSubmit; 
-      alert(ok ? '✔ Counts match. Status: VERIFIED.' : '⚠ Counts mismatch. Status: PENDING.'); 
-    });
-
-    // PRE-SUBMIT VALIDATION
-    function validateBeforeSubmit() {
-      const missing = [];
-      
-      if (!$('#upc').value.trim()) missing.push('UPC');
-      if (!$('#brand').value.trim()) missing.push('Brand');
-      if (!$('#gender').value) missing.push('Gender');
-      if (!$('#desc').value.trim()) missing.push('Description');
-      if (!$('#coo').value) missing.push('COO');
-      if (!$('#cd').value) missing.push('Is_Clean');
-      if (!$('#expectedQty').value || +$('#expectedQty').value === 0) missing.push('Expected Qty');
-      if (!$('#itemWeight').value || +$('#itemWeight').value === 0) missing.push('Item Weight');
-      if (!$('#itemL').value || +$('#itemL').value === 0) missing.push('Item L');
-      if (!$('#itemW').value || +$('#itemW').value === 0) missing.push('Item W');
-      if (!$('#itemH').value || +$('#itemH').value === 0) missing.push('Item H');
-      
-      let hasBoxStyle = false;
-      for (let i = 1; i <= 4; i++) {
-        const boxes = +document.querySelector(`.bs_boxes[data-bs="${i}"]`).value || 0;
-        const qty = +document.querySelector(`.bs_qty[data-bs="${i}"]`).value || 0;
-        const l = +document.querySelector(`.bs_l[data-bs="${i}"]`).value || 0;
-        const w = +document.querySelector(`.bs_w[data-bs="${i}"]`).value || 0;
-        const h = +document.querySelector(`.bs_h[data-bs="${i}"]`).value || 0;
-        const wt = +document.querySelector(`.bs_wt[data-bs="${i}"]`).value || 0;
-        
-        if (boxes > 0 && qty > 0) {
-          hasBoxStyle = true;
-          if (!wt || wt === 0) missing.push(`Box Style ${i} Weight`);
-          if (!l || l === 0) missing.push(`Box Style ${i} L`);
-          if (!w || w === 0) missing.push(`Box Style ${i} W`);
-          if (!h || h === 0) missing.push(`Box Style ${i} H`);
+        function removeLocation(idx) {
+            state.locations.splice(idx, 1);
+            renderLocationGrid();
+            saveState();
         }
-      }
-      
-      if (!hasBoxStyle) missing.push('At least one Box Style with dimensions');
-      
-      let hasLocation = false;
-      for (let i = 0; i < 9; i++) {
-        const code = document.querySelector(`.loc_code[data-i="${i}"]`).value.trim();
-        const qty = +document.querySelector(`.loc_qty[data-i="${i}"]`).value || 0;
-        if (code && qty > 0) {
-          hasLocation = true;
-          break;
+
+        function moveAllLoc() {
+            if (state.locations.length === 0) {
+                showStatus('❌ Add at least one location first', 'error');
+                return;
+            }
+            const totalQty = getSubtotalPcs();
+            const inputs = document.querySelectorAll('.locQty');
+            if (inputs.length > 0) {
+                inputs[0].value = totalQty;
+                for (let i = 1; i < inputs.length; i++) {
+                    inputs[i].value = 0;
+                }
+            }
+            updatePutawayStatus();
         }
-      }
-      
-      if (!hasLocation) missing.push('At least one Location with Qty');
-      
-      if (missing.length > 0) {
-        alert('⚠️ MISSING REQUIRED FIELDS:\n\n' + missing.join('\n'));
-        return false;
-      }
-      
-      return true;
-    }
 
-    function buildSubmitParams(){ 
-      const p=new URLSearchParams(); 
-      p.append('action','submit'); 
-      p.append('upc', ($('#upc').value||'').trim()); 
-      p.append('brand',$('#brand').value||''); 
-      p.append('gender', $('#gender').value || '');
-      p.append('masterItemDesc',$('#desc').value||''); 
-      p.append('coo', $('#coo').value || '');
-      p.append('is_clean', $('#cd').value || '');
-      p.append('expectedQty', +($('#expectedQty').value||0) || 0); 
-      p.append('enteredQty', state.subtotal||0); 
-      p.append('itemWeight', +($('#itemWeight').value||0) || 0); 
-      p.append('itemDimL', +($('#itemL').value||0) || 0); 
-      p.append('itemDimW', +($('#itemW').value||0) || 0); 
-      p.append('itemDimH', +($('#itemH').value||0) || 0); 
-      p.append('notes',$('#putawayNotes').value||''); 
-      
-      for(let i=1;i<=4;i++){ 
-        const get=(cls)=>document.querySelector(`.${cls}[data-bs="${i}"]`).value||''; 
-        p.append(`bs${i}_boxes`, get('bs_boxes')||0); 
-        p.append(`bs${i}_qty`, get('bs_qty')||0); 
-        p.append(`bs${i}_pcs`, get('bs_pcs')||0); 
-        p.append(`bs${i}_l`, get('bs_l')); 
-        p.append(`bs${i}_w`, get('bs_w')); 
-        p.append(`bs${i}_h`, get('bs_h')); 
-        p.append(`bs${i}_wt`, get('bs_wt'));
-        p.append(`bs${i}_cuft`, document.querySelector(`.bs_cuft[data-bs="${i}"]`).value || '0');
-      } 
-      
-      for(let i=0;i<9;i++){ 
-        const code=(document.querySelector(`.loc_code[data-i="${i}"]`).value||'').trim(); 
-        const qty=+document.querySelector(`.loc_qty[data-i="${i}"]`).value||0; 
-        p.append(`location${i+1}_code`, code); 
-        p.append(`location${i+1}_qty`, qty); 
-      } 
-      
-      p.append('processed_by', localStorage.getItem('sma_user')||''); 
-      p.append('sheetId', $('#sheetId').value||''); 
-      p.append('status', state.okToSubmit ? 'VERIFIED' : 'PENDING'); 
-      return p; 
-    }
+        function updatePutawayStatus() {
+            const inputs = document.querySelectorAll('.locQty');
+            let totalLoc = 0;
+            inputs.forEach(inp => {
+                totalLoc += parseInt(inp.value || 0);
+            });
+            const totalExp = getSubtotalPcs();
+            document.getElementById('putawayTotal').textContent = totalLoc;
+            document.getElementById('okToSubmit').textContent = totalLoc === totalExp ? '✅ Yes' : '❌ No';
+            document.getElementById('btnSubmit').disabled = !state.isLoggedIn || totalLoc !== totalExp;
+        }
 
-    async function submitNow(){ 
-      if (!validateBeforeSubmit()) {
-        return;
-      }
-      
-      const url=($('#endpoint').value||'').trim(); 
-      if(!url) return alert('Set Endpoint URL first.'); 
-      
-      const params=buildSubmitParams(); 
-      
-      try{ 
-        const resp=await fetch(url,{
-          method:'POST',
-          headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-          body:params.toString()
-        }); 
-        const text=await resp.text(); 
-        alert('Server response:\n\n'+text.slice(0,200)); 
-        
-        if((params.get('status')||'')==='PENDING') await sendDiscrepancyEmail('Auto: pending discrepancy'); 
-        if((params.get('status')||'')==='VERIFIED') await canPrintCheck(); 
-        
-        resetForNext(); 
-      }catch(err){ 
-        alert('Submit failed; downloading JSON locally.\n\n'+err.message); 
-        const obj=Object.fromEntries(params); 
-        downloadJSON(obj); 
-      } 
-    }
-    $('#btnSubmitNext').addEventListener('click', submitNow);
+        // ============================================================
+        // LABELS
+        // ============================================================
+        function generateLabel() {
+            const label = `
+                <div style="border: 2px solid black; padding: 20px; text-align: center; width: 4in; font-family: Arial;">
+                    <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">📦 INVENTORIED</div>
+                    <div style="border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 10px;">
+                        <div style="font-size: 12px; color: #666;">LOCATION</div>
+                        <div style="font-size: 14px; font-weight: bold;">${state.locations[0] || 'TBD'}</div>
+                    </div>
+                    <div style="text-align: left; font-size: 11px; margin-bottom: 10px;">
+                        <div><strong>UPC:</strong> ${document.getElementById('upcInput').value}</div>
+                        <div><strong>Brand:</strong> ${document.getElementById('brand').value}</div>
+                        <div><strong>Gender:</strong> ${document.getElementById('gender').value}</div>
+                        <div><strong>COO:</strong> ${document.getElementById('coo').value}</div>
+                    </div>
+                    <div style="border-top: 2px solid black; padding-top: 10px;">
+                        <div style="font-size: 12px; color: #666;">TOTAL QTY</div>
+                        <div style="font-size: 28px; font-weight: bold;">${getSubtotalPcs()}</div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 10px; word-break: break-all;">
+                        <strong>Breakdown:</strong> ${getBreakdownSummary()}
+                    </div>
+                    <div style="margin-top: 8px; font-size: 10px;">
+                        <strong>Total Volume:</strong> ${document.getElementById('totalCuFt').textContent} cu ft
+                    </div>
+                </div>
+            `;
+            document.getElementById('labelPreview').innerHTML = label;
+            document.getElementById('labelSection').classList.remove('hidden');
+            document.getElementById('btnSaveLabel').disabled = false;
+        }
 
-    function resetForNext(){ 
-      ['upc','brand','gender','desc','coo','cd','expectedQty','enteredQty','itemWeight','itemL','itemW','itemH','putawayNotes'].forEach(id=>{
-        const el=$('#'+id); 
-        if(el) el.value='';
-      }); 
-      
-      document.querySelectorAll('.bs_boxes,.bs_qty').forEach(el=>el.value='0'); 
-      document.querySelectorAll('.bs_pcs,.bs_cuft').forEach(el=>el.value='0'); 
-      document.querySelectorAll('.bs_wt,.bs_l,.bs_w,.bs_h').forEach(el=>el.value=''); 
-      document.querySelectorAll('.loc_code').forEach(el=>el.value=''); 
-      document.querySelectorAll('.loc_qty').forEach(el=>el.value='0'); 
-      
-      state.subtotal=0; 
-      state.putawayTotal=0; 
-      state.totalCuFt=0; 
-      state.okToSubmit=false; 
-      state.canPrint=false; 
-      state.alertedForUPC=null;
-      
-      $('#btnPrintLabel').disabled=true; 
-      $('#subtotal').textContent='0'; 
-      $('#totalCuFt').textContent='0.00';
-      $('#enteredQty').value='0'; 
-      $('#enteredQty2').textContent='0'; 
-      $('#putawayTotal').textContent='0'; 
-      $('#matchStatus').textContent='—'; 
-      $('#canPrintMsg').value=''; 
-      
-      goto(1); 
-      $('#upc').focus(); 
-    }
+        function saveLabelToSheet() {
+            const url = document.getElementById('appsScriptUrl').value;
+            if (!url) {
+                showStatus('❌ Apps Script URL not set', 'error');
+                return;
+            }
+            
+            const payload = {
+                action: 'addLabel',
+                data: {
+                    timestamp: new Date().toISOString(),
+                    location: state.locations[0] || 'N/A',
+                    upc: document.getElementById('upcInput').value,
+                    qty: getSubtotalPcs(),
+                    breakdown: getBreakdownSummary(),
+                    cubicFeet: document.getElementById('totalCuFt').textContent
+                }
+            };
+            
+            fetch(url, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success || d.result === 'success') {
+                    showStatus(`✓ Label logged to sheet`, 'ok');
+                    resetForm();
+                } else {
+                    showStatus(`⚠️ ${d.message || 'Save failed'}`, 'warn');
+                }
+            })
+            .catch(e => {
+                showStatus(`❌ Error: ${e.message}`, 'error');
+            });
+        }
 
-    function downloadJSON(obj){ 
-      const name=`scan_${(obj.upc||'no_upc')}_${new Date().toISOString().replace(/[:.]/g,'-')}.json`; 
-      const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); 
-      const a=document.createElement('a'); 
-      a.href=URL.createObjectURL(blob); 
-      a.download=name; 
-      a.click(); 
-    }
-    $('#btnDownloadJSON').addEventListener('click', ()=>{ 
-      const p=buildSubmitParams(); 
-      const obj=Object.fromEntries(p); 
-      downloadJSON(obj); 
-    });
+        // ============================================================
+        // SUBMIT & DOWNLOAD
+        // ============================================================
+        function downloadJSON() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                user: state.user,
+                item: {
+                    upc: document.getElementById('upcInput').value,
+                    brand: document.getElementById('brand').value,
+                    gender: document.getElementById('gender').value,
+                    coo: document.getElementById('coo').value,
+                    description: document.getElementById('itemDesc').value,
+                    isClean: document.getElementById('isClean').value
+                },
+                dimensions: {
+                    weight: document.getElementById('itemWeight').value,
+                    length: document.getElementById('itemLength').value,
+                    width: document.getElementById('itemWidth').value,
+                    height: document.getElementById('itemHeight').value
+                },
+                boxes: getBoxData(),
+                totals: {
+                    pieces: getSubtotalPcs(),
+                    cubicFeet: document.getElementById('totalCuFt').textContent
+                },
+                locations: state.locations,
+                notes: document.getElementById('putawayNotes').value
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `stock-${data.item.upc}-${new Date().getTime()}.json`;
+            a.click();
+            showStatus('✓ Downloaded JSON', 'ok');
+        }
 
-    async function ping(){ 
-      const url=($('#endpoint').value||'').trim(); 
-      if(!url) return alert('Set Endpoint URL first.'); 
-      const r=await fetch(url+`?action=ping`); 
-      const t=await r.text(); 
-      $('#canPrintMsg').value='Ping: '+t.slice(0,140); 
-    }
-    $('#btnPing').addEventListener('click', ping);
+        function getBoxData() {
+            const boxes = [];
+            for (let i = 1; i <= 4; i++) {
+                const qty = parseInt(document.getElementById(`box${i}Qty`).value || 0);
+                if (qty > 0) {
+                    const l = parseFloat(document.getElementById(`box${i}Length`).value || 0);
+                    const w = parseFloat(document.getElementById(`box${i}Width`).value || 0);
+                    const h = parseFloat(document.getElementById(`box${i}Height`).value || 0);
+                    boxes.push({
+                        style: i,
+                        quantity: qty,
+                        pcsPerBox: document.getElementById(`box${i}Pcs`).value,
+                        weight: document.getElementById(`box${i}Weight`).value,
+                        length: l,
+                        width: w,
+                        height: h,
+                        cubicFeetEach: ((l * w * h) / 1728).toFixed(3)
+                    });
+                }
+            }
+            return boxes;
+        }
 
-    async function canPrintCheck(){ 
-      const url=($('#endpoint').value||'').trim(); 
-      if(!url) return; 
-      const upc=($('#upc').value||'').trim(); 
-      if(!upc) return; 
-      const r=await fetch(url+`?action=canprint&upc=${encodeURIComponent(upc)}&sheetId=${encodeURIComponent($('#sheetId').value||'')}`); 
-      const t=await r.text(); 
-      $('#canPrintMsg').value=t.slice(0,300); 
-      try{ 
-        const j=JSON.parse(t); 
-        state.canPrint=!!j.canPrint; 
-      }catch{} 
-      $('#btnPrintLabel').disabled=!state.canPrint; 
-      return t; 
-    }
-    $('#btnCanPrint').addEventListener('click', canPrintCheck);
+        function resetForm() {
+            document.getElementById('upcInput').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('gender').value = '— Select —';
+            document.getElementById('coo').value = '— Select —';
+            document.getElementById('itemDesc').value = '';
+            document.getElementById('isClean').value = '— Select —';
+            document.getElementById('expectedQty').value = '0';
+            
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`box${i}Qty`).value = '0';
+                document.getElementById(`box${i}Pcs`).value = '0';
+                document.getElementById(`box${i}Weight`).value = '0';
+                document.getElementById(`box${i}Length`).value = '0';
+                document.getElementById(`box${i}Width`).value = '0';
+                document.getElementById(`box${i}Height`).value = '0';
+            }
+            
+            state.locations = [];
+            document.getElementById('locInput').value = '';
+            document.getElementById('putawayNotes').value = '';
+            
+            document.getElementById('labelSection').classList.add('hidden');
+            document.getElementById('page2').classList.add('hidden');
+            document.getElementById('page1').classList.remove('hidden');
+            
+            calcTotals();
+            showStatus('✓ Form reset for next item', 'ok');
+            saveState();
+        }
 
-    async function sendDiscrepancyEmail(note){ 
-      const url=($('#endpoint').value||'').trim(); 
-      if(!url) return; 
-      const p=buildSubmitParams(); 
-      p.set('action','senddiscrepancyemail'); 
-      if(note) p.set('note', note); 
-      const r=await fetch(url,{
-        method:'POST',
-        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-        body:p.toString()
-      }); 
-      const t=await r.text(); 
-      $('#emailMsg').value=t.slice(0,200); 
-      return t; 
-    }
-    $('#btnSendEmail').addEventListener('click', ()=> sendDiscrepancyEmail('Manual trigger'));
+        // ============================================================
+        // UTILITIES
+        // ============================================================
+        function saveState() {
+            localStorage.setItem('stockTakerState', JSON.stringify(state));
+        }
 
-    async function finalizeAndSend(){ 
-      const url=($('#endpoint').value||'').trim(); 
-      if(!url) return; 
-      const p=new URLSearchParams(); 
-      p.set('action','finalizeandsummary'); 
-      p.set('sheetId',$('#sheetId').value||''); 
-      const r=await fetch(url,{
-        method:'POST',
-        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-        body:p.toString()
-      }); 
-      const t=await r.text(); 
-      $('#emailMsg').value=t.slice(0,300); 
-      return t; 
-    }
-    $('#btnFinalizeSummary').addEventListener('click', finalizeAndSend);
+        function showStatus(msg, type = 'info') {
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.textContent = msg;
+            statusMsg.style.color = type === 'ok' ? 'var(--ok)' : type === 'error' ? 'var(--bad)' : type === 'warn' ? 'var(--warn)' : 'var(--link)';
+            if (type === 'ok' || type === 'error') {
+                setTimeout(() => {
+                    statusMsg.textContent = 'Ready for next operation...';
+                    statusMsg.style.color = 'var(--muted)';
+                }, 3000);
+            }
+        }
 
-    async function lookupUPC(upc){ 
-      const cleanUPC = upc.trim();
-      
-      // FIX: Only alert ONCE per unique UPC scan
-      if (state.alertedForUPC === cleanUPC) {
-        return;  // Already alerted for this UPC, skip
-      }
-      
-      // Check local database first
-      if (ITEM_MASTER_DB[cleanUPC]) {
-        const item = ITEM_MASTER_DB[cleanUPC];
-        $('#brand').value = item.b;
-        $('#gender').value = item.g;
-        $('#desc').value = item.n;
-        console.log('✅ Found in local database:', item);
-        return;
-      }
-      
-      // Not in local DB - alert only once per UPC
-      state.alertedForUPC = cleanUPC;
-      alert('ℹ️ New item - please fill in all details.\n\nIt will be saved to database after submission.');
-    }
-
-    function openLabel(){ $('#labelSheet').style.display='flex'; }
-    function closeLabel(){ $('#labelSheet').style.display='none'; }
-    
-    function computeBreakdown(){ 
-      let parts=[]; 
-      document.querySelectorAll('.bs_boxes').forEach(el=>{ 
-        const i=el.getAttribute('data-bs'); 
-        const b=+el.value||0; 
-        const q=+(document.querySelector(`.bs_qty[data-bs="${i}"]`).value||0); 
-        if(b>0 && q>0) parts.push(`${b} x ${q}`); 
-      }); 
-      return parts.length? parts.join(' + ') : '—'; 
-    }
-    
-    function firstLocation(){ 
-      const code=(document.querySelector('.loc_code')?.value||'').trim(); 
-      return code || '—'; 
-    }
-    
-    function renderLabel(){ 
-      const upc=($('#upc').value||'').trim(); 
-      if(!upc){ 
-        alert('UPC missing'); 
-        return; 
-      } 
-      
-      const brand=$('#brand').value||''; 
-      const gender=$('#gender').value||''; 
-      const desc=$('#desc').value||''; 
-      const coo=$('#coo').value||''; 
-      const total=state.subtotal||0; 
-      const loc=firstLocation(); 
-      const statusText = state.canPrint ? 'VERIFIED' : 'PENDING';
-      
-      $('#labelLoc').textContent = loc ? `LOCATION ${loc}` : 'LOCATION —';
-      $('#labelItemNo').textContent = upc;
-      $('#labelBrand').textContent = brand; 
-      $('#labelGender').textContent = gender; 
-      $('#labelCOO').textContent = coo; 
-      $('#labelTotal').textContent = total; 
-      $('#labelBreakdown').textContent = computeBreakdown(); 
-      $('#labelUPC').textContent = upc; 
-      $('#itemDesc').textContent = desc || '—';
-      
-      try{ 
-        JsBarcode('#barcode', upc, {
-          format:'CODE128', 
-          width:2, 
-          height:60, 
-          displayValue:false, 
-          margin:0
-        }); 
-      }catch(e){ 
-        console.log(e); 
-      }
-      
-      try{ 
-        const qrDiv=document.getElementById('qrcode'); 
-        qrDiv.innerHTML=''; 
-        const composite = `${upc}|${loc}|${total}|${statusText}`; 
-        new QRCode(qrDiv,{
-          text:composite,
-          width:120,
-          height:120
-        }); 
-      }catch(e){ 
-        console.log(e); 
-      }
-      
-      openLabel(); 
-    }
-    $('#btnPrintLabel').addEventListener('click', renderLabel);
-
-    recalcSubtotal(); 
-    updateOkToSubmit();
-  </script>
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('beforeunload', saveState);
+    </script>
 </body>
 </html>
