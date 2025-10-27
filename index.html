@@ -7,13 +7,9 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>STOCK TAKER APP - FINAL</title>
-    <!-- QuaggaJS for reliable barcode scanning -->
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
-    <!-- jsQR for QR code scanning -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-    <!-- JsBarcode for UPC barcode generation -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <!-- QRCode.js for QR code generation -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
     <style>
         :root {
@@ -35,7 +31,6 @@
         header small { opacity: .9; }
         main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; width: 100%; padding: 0; }
         .main-content { max-width: 100%; padding: 16px; }
-        .pill { background: #0b1329; border: 1px solid #1f2440; padding: 8px 10px; border-radius: 999px; font-size: 13px; color: #cbd5e1; display: inline-flex; gap: 8px; align-items: center; }
         .badge { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); padding: 4px 8px; border-radius: 4px; font-size: 12px; margin: 0 4px; }
         section { background: var(--card); border: 1px solid rgba(255,255,255,.1); padding: 16px; margin: 12px 0; border-radius: 8px; width: 100%; }
         h2 { margin: 0 0 12px 0; font-size: 16px; border-bottom: 2px solid var(--link); padding-bottom: 8px; }
@@ -57,7 +52,6 @@
         button.success:hover { background: #16a34a; }
         button.warn { background: var(--warn); color: #000; }
         .status-ok { color: var(--ok); font-weight: 600; }
-        .status-bad { color: var(--bad); font-weight: 600; }
         .grid-box { background: var(--panel); border: 1px solid #374151; padding: 12px; border-radius: 6px; width: 100%; }
         .hidden { display: none !important; }
         .camera-container { background: var(--panel); border: 2px dashed var(--link); padding: 20px; border-radius: 8px; text-align: center; margin: 12px 0; width: 100%; position: relative; }
@@ -73,13 +67,15 @@
         .flex-buttons button { flex: 1; min-width: 100px; }
         .cuft-display { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--ok); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: var(--ok); text-align: center; }
         
-        /* LABEL STYLES - 4x6 Landscape */
+        /* LABEL STYLES - 4x6 Landscape B&W */
         .label-container { background: white; color: black; padding: 0; margin: 0; width: 6in; height: 4in; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; position: relative; page-break-inside: avoid; }
-        .label-border-accurate { border: 3px solid #22c55e; }
-        .label-border-recheck { border: 3px solid #ef4444; }
-        .label-header { background: black; color: white; padding: 8px 12px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
-        .label-status { background: #22c55e; color: black; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
-        .label-status.recheck { background: #ef4444; color: white; }
+        .label-border-accurate { border: 3px solid black; }
+        .label-border-recheck { border: 5px dashed black; }
+        .label-header { background: black; color: white; padding: 8px 12px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .label-header-recheck { background: repeating-linear-gradient(45deg, black, black 10px, #555 10px, #555 20px); }
+        .label-status { font-weight: bold; font-size: 12px; padding: 4px 8px; border: 2px solid black; background: white; color: black; }
+        .label-status-accurate { text-decoration: underline; }
+        .label-status-recheck { border: 3px solid black; transform: rotate(-5deg); }
         .label-body { flex: 1; display: flex; padding: 12px; gap: 12px; overflow: hidden; }
         .label-main { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
         .label-info { font-size: 11px; line-height: 1.4; }
@@ -91,7 +87,7 @@
         .label-barcode-image svg { height: 100%; max-width: 150px; }
         .label-barcode-text { font-size: 10px; font-weight: bold; text-align: center; min-width: 150px; }
         .label-qr { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border: 1px solid black; }
-        .label-description { background: #f0f0f0; padding: 8px; font-size: 13px; font-weight: bold; line-height: 1.3; margin-top: 8px; border-top: 1px solid black; }
+        .label-description { background: white; padding: 8px; font-size: 13px; font-weight: bold; line-height: 1.3; margin-top: 8px; border-top: 1px solid black; }
         
         @media (max-width: 768px) {
             .row-2, .row-3 { grid-template-columns: 1fr; }
@@ -143,7 +139,7 @@
             <div class="row row-2">
                 <div>
                     <label>📋 Google Apps Script Endpoint:</label>
-                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbytXjRsghsW4j1r973azw55PQmRB1n1VVgiMx0PwGH3MY1lc7U93obSC6M88lI7ZlGEEg/exec">
+                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbyVuStBWKsMnr1AmqP9gtWjHG4DPOlW-Br0g4Ifii5pUbIT2H7P7eBI1p7DjrwuVDAdkQ/exec">
                 </div>
                 <div>
                     <label>📊 Expected Inventory Sheet ID:</label>
@@ -339,7 +335,7 @@
             <div style="font-size: 13px; line-height: 1.6; color: var(--muted);">
                 <strong>Camera Access:</strong> App requires HTTPS and camera permission. Grant when prompted on tablet.<br>
                 <strong>Google Sheets:</strong> Apps Script URL is pre-configured for data submission.<br>
-                <strong>Labels:</strong> 4×6 landscape labels with smart borders (green = accurate count, red = recheck).<br>
+                <strong>Labels (B&W):</strong> ACCURATE = solid border | RECHECK = dashed border + hatching header<br>
                 <strong>Login:</strong> Password is your username spelled backwards (e.g., "Rikki" → "ikkiR").<br>
                 <strong>Saving:</strong> All data auto-saves to browser. Submit to sync with Google Sheet.
             </div>
@@ -386,7 +382,7 @@
                 </div>
                 <div>
                     <strong>✅ Status:</strong><br>
-                    Data saved to Google Sheet
+                    Data saved to Google Sheet - Inventory_Verification_Log
                 </div>
             </div>
 
@@ -404,7 +400,11 @@
             expectedInv: {},
             currentData: {},
             locations: [],
-            cameraType: 'upc'
+            cameraType: 'upc',
+            itemWeight: 0,
+            itemLength: 0,
+            itemWidth: 0,
+            itemHeight: 0
         };
         let quaggaActive = false;
         let qrScanActive = false;
@@ -466,7 +466,6 @@
             }
         }
 
-        // ===== CAMERA & BARCODE SCANNING WITH QUAGGAJS =====
         function scanUpc() {
             state.cameraType = 'upc';
             document.getElementById('scanTitle').textContent = '📷 Scanning UPC Barcode';
@@ -550,7 +549,6 @@
                     return;
                 }
                 
-                console.log("Quagga initialized successfully");
                 Quagga.start();
                 quaggaActive = true;
                 showStatus('📷 Camera ready. Scanning barcodes...', 'info');
@@ -571,7 +569,6 @@
             detectionCounts[code]++;
             
             if (detectionCounts[code] >= 3) {
-                console.log('Barcode detected:', code);
                 document.getElementById('scanHint').textContent = `✅ Detected: ${code}`;
                 document.getElementById('scanHint').style.color = 'var(--ok)';
                 
@@ -642,7 +639,6 @@
                             }
                             
                             if (detectionStreak >= 2) {
-                                console.log('QR Code detected:', detectedData);
                                 document.getElementById('scanHint').textContent = `✅ Detected: ${detectedData}`;
                                 document.getElementById('scanHint').style.color = 'var(--ok)';
                                 
@@ -722,7 +718,6 @@
             }
         }
 
-        // ===== GOOGLE SHEETS SYNC =====
         function testSheetConnection() {
             const url = document.getElementById('appsScriptUrl').value.trim();
             if (!url) {
@@ -757,6 +752,14 @@
             const entered = getSubtotalPcs();
             const isAccurate = entered === expected && expected > 0;
             
+            const location1_code = state.locations.length > 0 ? state.locations[0] : '';
+            
+            let location1_qty = 0;
+            const locQtyInputs = document.querySelectorAll('.locQty');
+            if (locQtyInputs.length > 0) {
+                location1_qty = parseInt(locQtyInputs[0].value || 0);
+            }
+            
             const payload = {
                 action: 'addInventory',
                 data: {
@@ -770,8 +773,14 @@
                     isClean: document.getElementById('isClean').value,
                     expectedQty: expected,
                     countedQty: entered,
+                    itemWeight: parseFloat(document.getElementById('itemWeight').value || 0),
+                    itemLength: parseFloat(document.getElementById('itemLength').value || 0),
+                    itemWidth: parseFloat(document.getElementById('itemWidth').value || 0),
+                    itemHeight: parseFloat(document.getElementById('itemHeight').value || 0),
                     breakdown: getBreakdownSummary(),
                     totalCubicFeet: parseFloat(document.getElementById('totalCuFt').textContent),
+                    location1_code: location1_code,
+                    location1_qty: location1_qty,
                     locations: JSON.stringify(state.locations),
                     notes: document.getElementById('putawayNotes').value,
                     status: 'completed',
@@ -801,7 +810,7 @@
             document.getElementById('confUpc').textContent = data.upc || '—';
             document.getElementById('confBrand').textContent = data.brand || '—';
             document.getElementById('confQty').textContent = data.countedQty;
-            document.getElementById('confLocs').textContent = data.locations.replace(/"/g, '').replace(/\[|\]/g, '');
+            document.getElementById('confLocs').textContent = data.location1_code || 'N/A';
             document.getElementById('confTime').textContent = new Date(data.timestamp).toLocaleString();
             document.getElementById('confirmationModal').classList.add('active');
         }
@@ -823,7 +832,6 @@
             showStatus('✓ Ready for next item!', 'ok');
         }
 
-        // ===== UPLOAD EXPECTED INVENTORY =====
         function loadExpectedInventory() {
             showStatus('🔄 Loading expected inventory...', 'info');
             const demoInventory = {
@@ -837,7 +845,6 @@
             saveState();
         }
 
-        // ===== BOX BREAKDOWN WITH SEPARATED L/W/H =====
         function renderBoxGrid() {
             const grid = document.getElementById('boxGrid');
             grid.innerHTML = '';
@@ -941,10 +948,10 @@
                 document.getElementById('discrepancyMsg').innerHTML = `<span class="status-ok">${msg}</span>`;
             } else if (entered > expected && expected > 0) {
                 msg += `⚠️ OVER by ${entered - expected}`;
-                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-warn">${msg}</span>`;
+                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-ok">${msg}</span>`;
             } else if (entered < expected && expected > 0) {
                 msg += `❌ SHORT by ${expected - entered}`;
-                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-bad">${msg}</span>`;
+                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-ok">${msg}</span>`;
             } else {
                 msg += 'ℹ️ No expected data';
                 document.getElementById('discrepancyMsg').innerHTML = `<span style="color: var(--muted);">${msg}</span>`;
@@ -1051,15 +1058,16 @@
             const coo = document.getElementById('coo').value || '—';
             const desc = document.getElementById('itemDesc').value || 'Item Description';
             
-            const statusText = isAccurate ? 'ACCURATE' : 'RECHECK';
             const borderClass = isAccurate ? 'label-border-accurate' : 'label-border-recheck';
-            const statusBadgeClass = isAccurate ? '' : 'recheck';
+            const headerClass = isAccurate ? '' : 'label-header-recheck';
+            const statusText = isAccurate ? '✓ VERIFIED' : '⚠️ RECHECK';
+            const statusClass = isAccurate ? 'label-status-accurate' : 'label-status-recheck';
             
             const label = `
                 <div class="label-container ${borderClass}">
-                    <div class="label-header">
+                    <div class="label-header ${headerClass}">
                         <div style="flex: 1;">📦 INVENTORIED<br>NOV.2025</div>
-                        <div class="label-status ${statusBadgeClass}">${statusText}</div>
+                        <div class="label-status ${statusClass}">${statusText}</div>
                     </div>
                     
                     <div class="label-body">
@@ -1107,7 +1115,6 @@
             
             document.getElementById('labelPreview').innerHTML = label;
             
-            // Generate barcode
             setTimeout(() => {
                 try {
                     JsBarcode("#barcode", upc, {
@@ -1121,7 +1128,6 @@
                 }
             }, 100);
             
-            // Generate QR code
             setTimeout(() => {
                 try {
                     const qrElement = document.getElementById('qrcode');
@@ -1233,6 +1239,10 @@
             document.getElementById('itemDesc').value = '';
             document.getElementById('isClean').value = '— Select —';
             document.getElementById('expectedQty').value = '0';
+            document.getElementById('itemWeight').value = '0';
+            document.getElementById('itemLength').value = '0';
+            document.getElementById('itemWidth').value = '0';
+            document.getElementById('itemHeight').value = '0';
             
             for (let i = 1; i <= 4; i++) {
                 document.getElementById(`box${i}Qty`).value = '0';
