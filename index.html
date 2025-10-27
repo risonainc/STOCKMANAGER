@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>STOCK TAKER APP - FINAL</title>
+    <title>STOCK TAKER APP - PRODUCTION v2</title>
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -66,28 +66,29 @@
         .flex-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .flex-buttons button { flex: 1; min-width: 100px; }
         .cuft-display { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--ok); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: var(--ok); text-align: center; }
+        .discrepancy-section { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--bad); padding: 12px; border-radius: 6px; margin-top: 12px; }
         
-        /* LABEL STYLES - 4x6 Landscape B&W */
+        /* LABEL STYLES - 4x6 Landscape B&W IMPROVED */
         .label-container { background: white; color: black; padding: 0; margin: 0; width: 6in; height: 4in; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; position: relative; page-break-inside: avoid; }
         .label-border-accurate { border: 3px solid black; }
         .label-border-recheck { border: 5px dashed black; }
-        .label-header { background: black; color: white; padding: 8px 12px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .label-header { background: black; color: white; padding: 6px 12px; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; align-items: center; position: relative; }
         .label-header-recheck { background: repeating-linear-gradient(45deg, black, black 10px, #555 10px, #555 20px); }
-        .label-status { font-weight: bold; font-size: 12px; padding: 4px 8px; border: 2px solid black; background: white; color: black; }
+        .label-status { font-weight: bold; font-size: 11px; padding: 3px 6px; border: 2px solid black; background: white; color: black; }
         .label-status-accurate { text-decoration: underline; }
         .label-status-recheck { border: 3px solid black; transform: rotate(-5deg); }
-        .label-body { flex: 1; display: flex; padding: 12px; gap: 12px; overflow: hidden; }
-        .label-main { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
-        .label-info { font-size: 11px; line-height: 1.4; }
-        .label-info-row { display: flex; justify-content: space-between; margin: 3px 0; }
-        .label-info-label { font-weight: bold; min-width: 60px; }
-        .label-info-value { flex: 1; text-align: left; word-break: break-word; }
-        .label-barcode-section { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; gap: 4px; }
-        .label-barcode-image { height: 45px; display: flex; align-items: center; }
-        .label-barcode-image svg { height: 100%; max-width: 150px; }
-        .label-barcode-text { font-size: 10px; font-weight: bold; text-align: center; min-width: 150px; }
-        .label-qr { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border: 1px solid black; }
-        .label-description { background: white; padding: 8px; font-size: 13px; font-weight: bold; line-height: 1.3; margin-top: 8px; border-top: 1px solid black; }
+        .label-body { flex: 1; display: flex; flex-direction: column; padding: 8px 10px; gap: 6px; overflow: hidden; }
+        .label-description { background: white; padding: 6px 8px; font-size: 18px; font-weight: bold; line-height: 1.2; border: 1px solid black; border-bottom: 2px solid black; text-align: center; }
+        .label-info { font-size: 13px; line-height: 1.3; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
+        .label-info-row { display: flex; gap: 4px; }
+        .label-info-label { font-weight: bold; min-width: 50px; }
+        .label-info-value { flex: 1; }
+        .label-codes { display: flex; gap: 8px; justify-content: space-between; align-items: flex-end; flex-shrink: 0; }
+        .label-qr { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border: 1px solid black; flex-shrink: 0; }
+        .label-barcode-section { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .label-barcode-image { height: 50px; display: flex; align-items: center; }
+        .label-barcode-image svg { height: 100%; max-width: 160px; }
+        .label-barcode-text { font-size: 10px; font-weight: bold; text-align: center; }
         
         @media (max-width: 768px) {
             .row-2, .row-3 { grid-template-columns: 1fr; }
@@ -106,7 +107,7 @@
 </head>
 <body>
     <header>
-        <h1>📦 STOCK TAKER - FINAL</h1>
+        <h1>📦 STOCK TAKER - PRODUCTION v2</h1>
         <small>Inventory Count & Putaway Workflow</small>
     </header>
     <main>
@@ -219,6 +220,13 @@
                     <textarea id="itemDesc" rows="2" placeholder="Item details, size, color, etc..." disabled></textarea>
                 </div>
                 <div>
+                    <label>EdgeNo (from old system):</label>
+                    <input type="text" id="edgeNo" placeholder="EdgeNo..." disabled>
+                </div>
+            </div>
+
+            <div class="row row-2">
+                <div>
                     <label>Is Clean?</label>
                     <select id="isClean" disabled>
                         <option>— Select —</option>
@@ -226,6 +234,7 @@
                         <option>N (Needs Cleaning)</option>
                     </select>
                 </div>
+                <div></div>
             </div>
 
             <h3>Item Weight & Dimensions</h3>
@@ -308,7 +317,22 @@
             </div>
 
             <h3>Notes</h3>
-            <textarea id="putawayNotes" rows="3" placeholder="Any special handling, damage, or notes..." disabled></textarea>
+            <textarea id="putawayNotes" rows="2" placeholder="Any special handling, damage, or notes..." disabled></textarea>
+
+            <!-- DISCREPANCY REASON (Only shows if count doesn't match) -->
+            <div id="discrepancyReasonSection" class="discrepancy-section hidden">
+                <h3 style="margin-top: 0;">⚠️ Inventory Discrepancy Detected</h3>
+                <label>Please select reason for discrepancy:</label>
+                <select id="discrepancyReason" disabled style="margin-bottom: 8px;">
+                    <option value="">— Select Reason —</option>
+                    <option value="Pending Recount">Pending Recount</option>
+                    <option value="Friend/Family Purchase">Friend/Family Purchase</option>
+                    <option value="Damaged Goods">Damaged Goods</option>
+                    <option value="Long Time Discrepancy">Long Time Discrepancy</option>
+                    <option value="Investigate">Investigate</option>
+                    <option value="Other">Other (explain in notes)</option>
+                </select>
+            </div>
 
             <div class="row flex-buttons">
                 <button onclick="backToPage1()" class="muted" style="background: #6b7280;">← Back to Page 1</button>
@@ -334,10 +358,11 @@
             <h2>ℹ️ Quick Reference</h2>
             <div style="font-size: 13px; line-height: 1.6; color: var(--muted);">
                 <strong>Camera Access:</strong> App requires HTTPS and camera permission. Grant when prompted on tablet.<br>
-                <strong>Google Sheets:</strong> Apps Script URL is pre-configured for data submission.<br>
+                <strong>Item Master:</strong> Auto-populated on first UPC scan, reused for future scans (no re-entry!).<br>
                 <strong>Labels (B&W):</strong> ACCURATE = solid border | RECHECK = dashed border + hatching header<br>
+                <strong>Discrepancy Reasons:</strong> Required field when count doesn't match expected quantity.<br>
                 <strong>Login:</strong> Password is your username spelled backwards (e.g., "Rikki" → "ikkiR").<br>
-                <strong>Saving:</strong> All data auto-saves to browser. Submit to sync with Google Sheet.
+                <strong>Saving:</strong> Data syncs to BOTH item_master (lookup) and inventory (log).
             </div>
         </section>
         </div>
@@ -382,7 +407,7 @@
                 </div>
                 <div>
                     <strong>✅ Status:</strong><br>
-                    Data saved to Google Sheet - Inventory_Verification_Log
+                    Data synced to item_master & inventory logs
                 </div>
             </div>
 
@@ -398,13 +423,10 @@
             user: null,
             isLoggedIn: false,
             expectedInv: {},
+            itemMaster: {},
             currentData: {},
             locations: [],
-            cameraType: 'upc',
-            itemWeight: 0,
-            itemLength: 0,
-            itemWidth: 0,
-            itemHeight: 0
+            cameraType: 'upc'
         };
         let quaggaActive = false;
         let qrScanActive = false;
@@ -449,7 +471,7 @@
         function updateUiLock() {
             const locked = !state.isLoggedIn;
             document.querySelectorAll('input[disabled], select[disabled], textarea[disabled], button[disabled]').forEach(el => {
-                if (el.id.startsWith('btn') || ['brand', 'gender', 'coo', 'itemDesc', 'isClean', 'itemWeight', 'itemLength', 'itemWidth', 'itemHeight', 'putawayNotes'].includes(el.id)) {
+                if (el.id.startsWith('btn') || ['brand', 'gender', 'coo', 'itemDesc', 'edgeNo', 'isClean', 'itemWeight', 'itemLength', 'itemWidth', 'itemHeight', 'putawayNotes', 'discrepancyReason'].includes(el.id)) {
                     el.disabled = locked;
                 }
             });
@@ -704,7 +726,21 @@
         }
 
         function lookupUpc(upc) {
-            if (state.expectedInv[upc]) {
+            if (state.itemMaster[upc]) {
+                const inv = state.itemMaster[upc];
+                document.getElementById('brand').value = inv.brand || '';
+                document.getElementById('gender').value = inv.gender || '— Select —';
+                document.getElementById('coo').value = inv.coo || '— Select —';
+                document.getElementById('itemDesc').value = inv.description || '';
+                document.getElementById('edgeNo').value = inv.edgeNo || '';
+                document.getElementById('itemWeight').value = inv.itemWeight || '0';
+                document.getElementById('itemLength').value = inv.itemLength || '0';
+                document.getElementById('itemWidth').value = inv.itemWidth || '0';
+                document.getElementById('itemHeight').value = inv.itemHeight || '0';
+                document.getElementById('expectedQty').value = inv.expectedQty || '0';
+                showStatus(`✓ Loaded from Item Master (previously scanned)`, 'ok');
+            }
+            else if (state.expectedInv[upc]) {
                 const inv = state.expectedInv[upc];
                 document.getElementById('brand').value = inv.brand || '';
                 document.getElementById('gender').value = inv.gender || '— Select —';
@@ -714,7 +750,7 @@
                 showStatus(`✓ Loaded from expected inventory`, 'ok');
             } else {
                 document.getElementById('expectedQty').value = '0';
-                showStatus('ℹ️ UPC not in expected inventory. Fill in manually.', 'warn');
+                showStatus('ℹ️ UPC not found. Fill in details (will be saved to Item Master).', 'warn');
             }
         }
 
@@ -750,6 +786,16 @@
             
             const expected = parseInt(document.getElementById('expectedQty').value || 0);
             const entered = getSubtotalPcs();
+            const hasDiscrepancy = entered !== expected && expected > 0;
+            
+            if (hasDiscrepancy) {
+                const reason = document.getElementById('discrepancyReason').value;
+                if (!reason) {
+                    showStatus('❌ Please select a discrepancy reason', 'error');
+                    return;
+                }
+            }
+            
             const isAccurate = entered === expected && expected > 0;
             
             const location1_code = state.locations.length > 0 ? state.locations[0] : '';
@@ -770,6 +816,7 @@
                     gender: document.getElementById('gender').value,
                     coo: document.getElementById('coo').value,
                     description: document.getElementById('itemDesc').value,
+                    edgeNo: document.getElementById('edgeNo').value,
                     isClean: document.getElementById('isClean').value,
                     expectedQty: expected,
                     countedQty: entered,
@@ -782,6 +829,7 @@
                     location1_code: location1_code,
                     location1_qty: location1_qty,
                     locations: JSON.stringify(state.locations),
+                    discrepancyReason: document.getElementById('discrepancyReason').value || '',
                     notes: document.getElementById('putawayNotes').value,
                     status: 'completed',
                     accurate: isAccurate
@@ -798,6 +846,22 @@
             })
             .then(() => {
                 showStatus(`✓ Submitted to Sheet successfully!`, 'ok');
+                
+                const upc = document.getElementById('upcInput').value;
+                state.itemMaster[upc] = {
+                    brand: document.getElementById('brand').value,
+                    gender: document.getElementById('gender').value,
+                    coo: document.getElementById('coo').value,
+                    description: document.getElementById('itemDesc').value,
+                    edgeNo: document.getElementById('edgeNo').value,
+                    itemWeight: parseFloat(document.getElementById('itemWeight').value || 0),
+                    itemLength: parseFloat(document.getElementById('itemLength').value || 0),
+                    itemWidth: parseFloat(document.getElementById('itemWidth').value || 0),
+                    itemHeight: parseFloat(document.getElementById('itemHeight').value || 0),
+                    expectedQty: expected
+                };
+                saveState();
+                
                 showConfirmation(payload.data);
             })
             .catch(e => {
@@ -972,6 +1036,25 @@
             document.getElementById('p2Breakdown').textContent = getBreakdownSummary();
             
             renderLocationGrid();
+            updateDiscrepancyDisplay();
+        }
+
+        function updateDiscrepancyDisplay() {
+            const expected = parseInt(document.getElementById('expectedQty').value || 0);
+            const entered = getSubtotalPcs();
+            const hasDiscrepancy = entered !== expected && expected > 0;
+            
+            const section = document.getElementById('discrepancyReasonSection');
+            const reasonSelect = document.getElementById('discrepancyReason');
+            
+            if (hasDiscrepancy) {
+                section.classList.remove('hidden');
+                reasonSelect.disabled = false;
+            } else {
+                section.classList.add('hidden');
+                reasonSelect.disabled = true;
+                reasonSelect.value = '';
+            }
         }
 
         function backToPage1() {
@@ -1057,6 +1140,7 @@
             const gender = document.getElementById('gender').value || '—';
             const coo = document.getElementById('coo').value || '—';
             const desc = document.getElementById('itemDesc').value || 'Item Description';
+            const location = state.locations[0] || 'TBD';
             
             const borderClass = isAccurate ? 'label-border-accurate' : 'label-border-recheck';
             const headerClass = isAccurate ? '' : 'label-header-recheck';
@@ -1066,48 +1150,27 @@
             const label = `
                 <div class="label-container ${borderClass}">
                     <div class="label-header ${headerClass}">
-                        <div style="flex: 1;">📦 INVENTORIED<br>NOV.2025</div>
+                        <div>📦 INVENTORIED NOV.2025</div>
                         <div class="label-status ${statusClass}">${statusText}</div>
                     </div>
                     
                     <div class="label-body">
-                        <div class="label-main">
-                            <div class="label-info">
-                                <div class="label-info-row">
-                                    <span class="label-info-label">Location:</span>
-                                    <span class="label-info-value">${state.locations[0] || 'TBD'}</span>
-                                </div>
-                                <div class="label-info-row">
-                                    <span class="label-info-label">Brand:</span>
-                                    <span class="label-info-value">${brand}</span>
-                                </div>
-                                <div class="label-info-row">
-                                    <span class="label-info-label">Gender:</span>
-                                    <span class="label-info-value">${gender}</span>
-                                </div>
-                                <div class="label-info-row">
-                                    <span class="label-info-label">COO:</span>
-                                    <span class="label-info-value">${coo}</span>
-                                </div>
-                                <div class="label-info-row" style="font-weight: bold; margin-top: 6px; border-top: 1px solid black; padding-top: 6px;">
-                                    <span class="label-info-label">Qty:</span>
-                                    <span class="label-info-value">${entered} pcs</span>
-                                </div>
-                            </div>
-                            
-                            <div class="label-description">
-                                ${desc}
-                            </div>
+                        <div class="label-description">${desc}</div>
+                        
+                        <div class="label-info">
+                            <div class="label-info-row"><span class="label-info-label">Brand:</span> <span class="label-info-value">${brand}</span></div>
+                            <div class="label-info-row"><span class="label-info-label">Gender:</span> <span class="label-info-value">${gender}</span></div>
+                            <div class="label-info-row"><span class="label-info-label">COO:</span> <span class="label-info-value">${coo}</span></div>
+                            <div class="label-info-row"><span class="label-info-label">Location:</span> <span class="label-info-value"><strong>${location}</strong></span></div>
+                            <div class="label-info-row"><span class="label-info-label">Qty:</span> <span class="label-info-value"><strong>${entered} pcs</strong></span></div>
                         </div>
                         
-                        <div class="label-barcode-section">
-                            <div class="label-qr">
-                                <svg id="qrcode" width="70" height="70"></svg>
+                        <div class="label-codes">
+                            <div class="label-qr"><svg id="qrcode" width="70" height="70"></svg></div>
+                            <div class="label-barcode-section">
+                                <div class="label-barcode-image"><svg id="barcode"></svg></div>
+                                <div class="label-barcode-text">${upc}</div>
                             </div>
-                            <div class="label-barcode-image">
-                                <svg id="barcode"></svg>
-                            </div>
-                            <div class="label-barcode-text">${upc}</div>
                         </div>
                     </div>
                 </div>
@@ -1120,7 +1183,7 @@
                     JsBarcode("#barcode", upc, {
                         format: "code128",
                         width: 2,
-                        height: 45,
+                        height: 50,
                         margin: 0
                     });
                 } catch (e) {
@@ -1132,7 +1195,7 @@
                 try {
                     const qrElement = document.getElementById('qrcode');
                     if (qrElement) qrElement.innerHTML = '';
-                    QRCode.toCanvas(document.getElementById('qrcode'), `UPC:${upc}|LOC:${state.locations[0] || 'TBD'}`, { width: 70 }, (error) => {
+                    QRCode.toCanvas(document.getElementById('qrcode'), `UPC:${upc}|LOC:${location}`, { width: 70 }, (error) => {
                         if (error) console.log('QR skipped');
                     });
                 } catch (e) {
@@ -1186,6 +1249,7 @@
                     gender: document.getElementById('gender').value,
                     coo: document.getElementById('coo').value,
                     description: document.getElementById('itemDesc').value,
+                    edgeNo: document.getElementById('edgeNo').value,
                     isClean: document.getElementById('isClean').value
                 },
                 dimensions: {
@@ -1237,6 +1301,7 @@
             document.getElementById('gender').value = '— Select —';
             document.getElementById('coo').value = '— Select —';
             document.getElementById('itemDesc').value = '';
+            document.getElementById('edgeNo').value = '';
             document.getElementById('isClean').value = '— Select —';
             document.getElementById('expectedQty').value = '0';
             document.getElementById('itemWeight').value = '0';
@@ -1256,6 +1321,7 @@
             state.locations = [];
             document.getElementById('locInput').value = '';
             document.getElementById('putawayNotes').value = '';
+            document.getElementById('discrepancyReason').value = '';
             
             document.getElementById('labelSection').classList.add('hidden');
             document.getElementById('page2').classList.add('hidden');
