@@ -55,53 +55,8 @@
     .scan-status{position:fixed;bottom:20px;right:20px;background:#0c142b;border:2px solid #38bdf8;padding:16px;border-radius:8px;font-size:13px;max-width:300px;z-index:99}
     .scan-status.match{border-color:#22c55e}
     .scan-status.nomatch{border-color:#ef4444}
-    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} 
-#interactive canvas {
-    position: absolute;
-    top: 45%;
-    left: 30%;
-    width: 40%;
-    height: 10%;
-    border: 3px solid #0ea5e9;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.8);
-}
-// ===== SHIPMENT ID GENERATOR =====
-function generateShipmentID() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const dateStr = `${year}${month}${day}`;
-    
-    // Get counter from localStorage (persists during session)
-    let counter = parseInt(localStorage.getItem('shipment_counter_' + dateStr) || '0');
-    counter++;
-    localStorage.setItem('shipment_counter_' + dateStr, counter);
-    
-    const shipmentID = `${dateStr}-${String(counter).padStart(5, '0')}`;
-    return shipmentID;
-}
-
-// Generate QR code using external library
-function generateQRCode(text, containerId) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = ''; // Clear previous
-    
-    // Using QR code library (add to your HTML head):
-    // <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
-    new QRCode(container, {
-        text: text,
-        width: 150,
-        height: 150,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
-}
+    @media print{ body>*:not(#labelSheet){display:none!important} #labelSheet{display:block!important} #labelCard{box-shadow:none} @page{size:landscape;margin:.25in} }
   </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
   <header>
@@ -135,31 +90,10 @@ function generateQRCode(text, containerId) {
       <div class="grid g3">
         <div>
           <label>UPC <span class="required">*</span></label>
-                      <div class="form-group">
-                <label>UPC Code</label>
-                <input type="text" id="upc" placeholder="Scan or enter UPC">
-            </div>
-
-            <script>
-// Auto-login
-if (!localStorage.getItem('loggedInUser')) {
-    localStorage.setItem('loggedInUser', 'WarehouseUser1');
-}
-
-            document.getElementById('upc').addEventListener('input', function(e) {
-              let val = e.target.value.replace(/\s+/g, '');
-              if (/[^0-9]/.test(val)) {
-                val = val.replace(/[^0-9]/g, '');
-              }
-              if (val.length > 14) {
-                val = val.substring(0, 14);
-              }
-              e.target.value = val;
-            });
-            </script>
+          <input id="upc" inputmode="numeric" autocomplete="off" placeholder="Scan or enter UPC" disabled />
         </div>
         <div class="actions" style="align-items:end">
-          <<button onclick="enableScanning()">Scan UPC</button>
+          <button class="btn primary" id="btnScanUPC" disabled>Scan UPC</button>
           <button class="btn ghost" id="btnGenUPC" disabled>Generate</button>
         </div>
         <div>
@@ -239,15 +173,7 @@ if (!localStorage.getItem('loggedInUser')) {
         <div><label>Item H (in) <span class="required">*</span></label><input id="itemH" type="number" step="0.01" min="0" placeholder="H" disabled/></div>
       </div>
 
-      <h3>Box Breakdown (Styles 1–4) <span class="required">* At least one required
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
-  <div><label>Style 1 (Qty):</label><input type="number" id="box_style1" value="0" /></div>
-  <div><label>Style 2 (Qty):</label><input type="number" id="box_style2" value="0" /></div>
-  <div><label>Style 3 (Qty):</label><input type="number" id="box_style3" value="0" /></div>
-  <div><label>Style 4 (Qty):</label><input type="number" id="box_style4" value="0" /></div>
-</div>
-
-Subtotal Pcs:
+      <h3>Box Breakdown (Styles 1–4) <span class="required">* At least one required</span></h3>
       <div id="boxStyles" class="grid g1"></div>
 
       <div class="row" style="justify-content:space-between;margin-top:10px">
@@ -258,7 +184,6 @@ Subtotal Pcs:
       <div class="actions" style="margin-top:10px">
         <button class="btn warn" id="btnCheck" disabled>Check Discrepancy</button>
         <button class="btn success" id="toPage2" disabled>Next → Putaway (Page 2)</button>
-	<button onclick="showPage('pickpack')">📦 Pick & Pack</button>
       </div>
 
       <div id="upcScanner" class="scanner">
@@ -321,7 +246,7 @@ Subtotal Pcs:
         <div class="row" style="gap:8px;align-items:end">
           <div>
             <label>Apps Script Endpoint URL</label>
-            <input id="endpoint" value="https://script.google.com/macros/s/AKfycbytXjRsghsW4j1r973azw55PQmRB1n1VVgiMx0PwGH3MY1lc7U93obSC6M88lI7ZlGEEg/exec" placeholder="https://script.google.com/.../exec" style="-webkit-user-select:text;user-select:text" />
+            <input id="endpoint" placeholder="https://script.google.com/.../exec" style="-webkit-user-select:text;user-select:text" />
           </div>
           <button class="btn" id="btnPing">Ping</button>
         </div>
@@ -387,7 +312,7 @@ Subtotal Pcs:
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-}
+
   <script>
     // ====== EMBEDDED 6412-ITEM DATABASE ======
     const ITEM_MASTER_DB = {"857152000000":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC L 3.4OZ EDP SPRAY","g":"LADIES"},"85715166029":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1.7OZ EDT SPRAY","g":"MENS"},"85715166036":{"b":"ABERCROMBIE & FITCH","n":"A&F AUTHENTIC M 1OZ EDT SPRAY","g":"MENS"},"85715169327":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY TONIGHT M 1OZ EDT SPRAY","g":"MENS"},"85715169419":{"b":"ABERCROMBIE & FITCH","n":"A&F AWAY WEEKEND M 1.7OZ EDT SPRAY","g":"MENS"}};
@@ -634,30 +559,17 @@ Subtotal Pcs:
       barcodeScans = [];
       
       Quagga.init({
-    inputStream: {
-        name: "Live",
-        type: "LiveStream",
-        target: document.querySelector("#interactive"),
-        constraints: {
-            width: 800,
-            height: 600,
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: document.querySelector('#interactive'),
+          constraints: {
             facingMode: "environment"
-        },
-        area: {
-    top: "45%",
-    right: "30%",
-    left: "30%",
-    bottom: "45%"
           }
         },
         decoder: {
-    readers: ["ean_reader", "upc_reader", "upc_e_reader"],
-    multiple: false
-},
-locate: true,
-frequency: 10,
-numOfWorkers: 2,
-
+          readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader", "upc_reader", "upc_e_reader", "codabar_reader"]
+        }
       }, function(err) {
         if (err) {
           console.error(err);
@@ -1202,259 +1114,8 @@ numOfWorkers: 2,
     }
     $('#btnPrintLabel').addEventListener('click', renderLabel);
 
-    
-    // ===== THERMAL LABEL DATABASE FUNCTIONS =====
-    // Save label data to Google Sheets via Apps Script
-    function saveLabelToDatabase(labelData) {
-      const endpoint = ($('#endpoint').value || '').trim();
-      if (!endpoint) {
-        alert('⚠️ Apps Script endpoint required');
-        return false;
-      }
-
-      // Create label object with all required fields
-      const payload = {
-        action: 'saveLabel',
-        label: {
-          upc: labelData.upc || '',
-          location: labelData.location || '',
-          brand: labelData.brand || '',
-          gender: labelData.gender || '',
-          coo: labelData.coo || '',
-          quantity: labelData.quantity || 0,
-          status: labelData.status || 'PENDING',
-          boxBreakdown: labelData.boxBreakdown || '',
-          itemWeight: labelData.itemWeight || '',
-          itemDimensions: labelData.itemDimensions || '',
-          sheetID: labelData.sheetID || '',
-          description: labelData.description || '',
-          processorName: labelData.processorName || ''
-        }
-      };
-
-      fetch(endpoint, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Label saved:', data);
-        if (data.labelID) {
-          state.currentLabelID = data.labelID;
-          return true;
-        }
-      })
-      .catch(error => {
-        console.error('Database save error:', error);
-        alert('Failed to save label to database');
-      });
-
-      return true;
-    }
-
-    // Mark label as printed in database
-    function markLabelPrinted(labelID) {
-      const endpoint = ($('#endpoint').value || '').trim();
-      if (!endpoint || !labelID) return;
-
-      fetch(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'markPrinted',
-          labelID: labelID
-        })
-      })
-      .catch(error => console.error('Print mark error:', error));
-    }
-
-    // Get label history for display
-    function getLabelHistory() {
-      const endpoint = ($('#endpoint').value || '').trim();
-      if (!endpoint) return;
-
-      fetch(endpoint + '?action=getLabelHistory')
-        .then(response => response.json())
-        .then(data => {
-          console.log('Label history:', data);
-        })
-        .catch(error => console.error('History fetch error:', error));
-    }
-
-    // Enhanced print function with database integration
-    const originalPrintLabel = renderLabel;
-    function renderLabelWithDB() {
-      const upc = ($('#upc').value || '').trim();
-      if (!upc) {
-        alert('UPC missing');
-        return;
-      }
-
-      // Call original render
-      originalPrintLabel();
-
-      // Prepare label data for database
-      const labelData = {
-        upc: upc,
-        location: firstLocation(),
-        brand: $('#brand').value || '',
-        gender: $('#gender').value || '',
-        coo: $('#coo').value || '',
-        quantity: state.subtotal || 0,
-        status: state.canPrint ? 'VERIFIED' : 'PENDING',
-        boxBreakdown: computeBreakdown(),
-        itemWeight: ($('#itemWeight').value || '').trim(),
-        itemDimensions: [
-          ($('#itemL').value || '').trim(),
-          ($('#itemW').value || '').trim(),
-          ($('#itemH').value || '').trim()
-        ].join('x'),
-        description: $('#desc').value || '',
-        sheetID: $('#sheetID').value || '',
-        processorName: ($('select[name="user"]').value || 'SYSTEM')
-      };
-
-      // Save to database
-      saveLabelToDatabase(labelData);
-
-      // Trigger print dialog
-      setTimeout(() => {
-        window.print();
-
-        // Mark as printed after print dialog closes
-        setTimeout(() => {
-          if (state.currentLabelID) {
-            markLabelPrinted(state.currentLabelID);
-          }
-          showLabelStatus('✓ Label printed successfully', 'success');
-        }, 1000);
-      }, 500);
-    }
-
-    // Show status message
-    function showLabelStatus(message, type = 'info') {
-      const statusDiv = document.getElementById('labelStatus') || createStatusDiv();
-      statusDiv.innerHTML = message;
-      statusDiv.style.display = 'block';
-      statusDiv.style.background = type === 'success' ? '#e8f5e9' : '#fff3e0';
-      statusDiv.style.borderLeftColor = type === 'success' ? '#4caf50' : '#ff9800';
-      statusDiv.style.color = type === 'success' ? '#2e7d32' : '#e65100';
-    }
-
-    function createStatusDiv() {
-      const div = document.createElement('div');
-      div.id = 'labelStatus';
-      div.style.cssText = 'margin-top:10px;padding:10px;background:#e8f5e9;border-left:4px solid #4caf50;border-radius:4px;display:none;';
-      document.querySelector('section:last-of-type').appendChild(div);
-      return div;
-    }
-
-    // Override print button to use database-enabled version
-    $('#btnPrintLabel').addEventListener('click', renderLabelWithDB);
-
-
     recalcSubtotal(); 
     updateOkToSubmit();
-// ===== PICK & PACK FUNCTIONS =====
-
-function handleOrderTypeChange() {
-    const orderType = document.getElementById('order-type').value;
-    
-    // Hide all workflows
-    document.getElementById('tj-workflow').style.display = 'none';
-    document.getElementById('other-workflow').style.display = 'none';
-    
-    // Show selected workflow
-    if (orderType === 'tj-maxx') {
-        document.getElementById('tj-workflow').style.display = 'block';
-        // Auto-generate first shipment ID on load
-        generateNewShipmentID();
-    } else if (orderType) {
-        document.getElementById('other-workflow').style.display = 'block';
-    }
-}
-
-function generateNewShipmentID() {
-    const shipmentID = generateShipmentID();
-    document.getElementById('tj-shipment').value = shipmentID;
-    
-    // Generate QR code for shipment ID
-    generateQRCode(shipmentID, 'tj-qr');
-}
-
-function generateTJLabels() {
-    const data = {
-        po: document.getElementById('tj-po').value,
-        dept: document.getElementById('tj-dept').value,
-        address: document.getElementById('tj-address').value,
-        item: document.getElementById('tj-item').value,
-        boxes: document.getElementById('tj-boxes').value,
-        qty: document.getElementById('tj-qty').value,
-        upc: document.getElementById('tj-upc').value,
-        shipment: document.getElementById('tj-shipment').value
-    };
-    
-    // Validation
-    if (!data.po || !data.item || !data.boxes) {
-        document.getElementById('tj-status').innerHTML = 
-            '<div class="status error">❌ Fill all required fields</div>';
-        return;
-    }
-    
-    // Generate labels
-    generateTJCartonLabels(data);
-    generateTJSummaryLabel(data);
-    
-    document.getElementById('tj-status').innerHTML = 
-        '<div class="status success">✅ ' + data.boxes + 
-        ' carton label(s) + 1 summary label generated!<br>Ready to print on 4"×6" thermal printer.</div>';
-}
-
-function generateTJCartonLabels(data) {
-    const totalBoxes = parseInt(data.boxes);
-    const totalQty = totalBoxes * parseInt(data.qty);
-    
-    for (let box = 1; box <= totalBoxes; box++) {
-        const label = `
-FROM: RISONA INC
-      1 KEATS PLACE
-      HICKSVILLE, NY 11801 USA
-
-TO:   TJ MAXX - ${data.dept}
-      ${data.address}
-
-PO#: ${data.po}
-Item: ${data.item}
-Box: ${box} of ${totalBoxes}
-Qty: ${data.qty}
-UPC: ${data.upc}
-Shipment ID: ${data.shipment}
-        `;
-        
-        console.log('=== CARTON LABEL ' + box + ' ===');
-        console.log(label);
-        console.log('QR Code Data: ' + data.shipment);
-        // TODO: Send to thermal printer (4"×6")
-    }
-}
-
-function generateTJSummaryLabel(data) {
-    const totalBoxes = parseInt(data.boxes);
-    const totalQty = totalBoxes * parseInt(data.qty);
-    
-    const label = `
-SUMMARY LABEL
-ITEM: ${data.item}
-Total Boxes: ${totalBoxes}
-Total Qty: ${totalQty}
-Shipment ID: ${data.shipment}
-    `;
-    
-    console.log('=== SUMMARY LABEL ===');
-    console.log(label);
-    console.log('QR Code Data: ' + data.shipment);
-    // TODO: Send to thermal printer (4"×6")
-    }
-}
   </script>
 </body>
 </html>
