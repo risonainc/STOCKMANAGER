@@ -103,6 +103,17 @@
             section { page-break-inside: avoid; }
             .label-container { page-break-inside: avoid; width: 6in; height: 4in; }
         }
+    
+    /* Damage + Progress additions */
+    .damage-section { background: rgba(249,115,22,0.1); border: 1px solid #f59e0b; padding: 12px; border-radius: 6px; margin-top: 12px; display: none; }
+    .damage-inputs { display: grid; gap: 8px; margin-top: 8px; }
+    .damage-inputs label { font-size: 12px; color: #9ca3af; margin-bottom: 2px; font-weight: 600; }
+    .damage-inputs input { background: #111827; color: #fff; border: 1px solid #374151; padding: 8px; border-radius: 4px; }
+    .damage-total { background: #111827; padding: 8px; margin-top: 8px; border-radius: 4px; font-weight: bold; text-align: center; color: #22c55e; display: flex; justify-content: space-between; align-items: center; }
+    .progress-tracker { background: #111827; padding: 12px; border-radius: 6px; margin-top: 12px; font-size: 12px; }
+    .progress-bar { background: #374151; height: 6px; border-radius: 3px; overflow: hidden; width: 100%; margin-top: 8px; }
+    .progress-fill { background: #22c55e; height: 100%; width: 0%; transition: width 0.3s; }
+
     </style>
 </head>
 <body>
@@ -152,6 +163,16 @@
                 <button onclick="loadExpectedInventory()" class="success">Load Expected Inventory</button>
             </div>
             <div id="statusMsg" style="margin-top: 12px; padding: 8px; background: var(--panel); border-radius: 4px; font-size: 12px;">Ready to connect to your Google Sheet</div>
+
+      <div class="progress-tracker">
+        <strong>📊 Progress:</strong>
+        <span id="itemsEntered">0</span> of <span id="totalItems">200</span> items
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span id="percentComplete">0%</span>
+      </div>
+
         </section>
 
         <!-- PAGE 1: ITEM & BOX DETAILS -->
@@ -295,6 +316,14 @@
                 <label>📸 Scan Location QR (or manual):</label>
                 <div class="flex-buttons" style="gap: 8px; margin-bottom: 8px;">
                     <input type="text" id="locInput" placeholder="Location code / QR scan..." style="flex: 1; min-width: 150px;">
+
+            <div style="margin: 8px 0;">
+              <label>Or choose a preset location:</label>
+              <select id="locSelect" onchange="onSelectLocation()" disabled>
+                <option value="">Select location...</option>
+              </select>
+            </div>
+
                     <button onclick="scanLocation()" id="btnScanLoc" disabled>📷 Scan</button>
                 </div>
                 <div class="row flex-buttons">
@@ -304,6 +333,23 @@
             </div>
 
             <div id="locGrid" style="display: grid; gap: 8px;"></div>
+
+        <div id="damageSection" class="damage-section">
+          <h3>⚠️ Damage Breakdown (Counted: <span id="countedQtyDisplay">0</span>)</h3>
+          <div class="damage-inputs">
+            <label>Good / Saleable:</label>
+            <input type="number" id="qtyGood" value="0" min="0" onchange="validateDamage()" disabled>
+            <label>Damaged (Unbox & Sell):</label>
+            <input type="number" id="qtyDamagedUnbox" value="0" min="0" onchange="validateDamage()" disabled>
+            <label>Damaged (Dispose - Leaking):</label>
+            <input type="number" id="qtyDamagedDispose" value="0" min="0" onchange="validateDamage()" disabled>
+          </div>
+          <div class="damage-total">
+            Total: <span id="damageTotal">0</span>
+            <span id="damageStatus">✓</span>
+          </div>
+        </div>
+
 
             <div class="row row-2" style="margin-top: 16px; background: var(--panel); padding: 12px; border-radius: 6px;">
                 <div>
@@ -720,7 +766,7 @@
         }
 
         function generateUpc() {
-            const generated = Math.floor(Math.random() * 9000000000000).toString().padStart(12, '0');
+            const generated = Math.floor(Math.random() * 9.0e+12).toString().padStart(12, '0');
             document.getElementById('upcInput').value = generated;
             showStatus(`Generated UPC: ${generated}`, 'ok');
         }
@@ -899,9 +945,9 @@
         function loadExpectedInventory() {
             showStatus('🔄 Loading expected inventory...', 'info');
             const demoInventory = {
-                '123456789012': { brand: 'Nike', gender: 'MENS', coo: 'VIETNAM', description: 'Air Max 90', expectedQty: 24 },
-                '234567890123': { brand: 'Adidas', gender: 'LADIES', coo: 'CHINA', description: 'Ultraboost 22', expectedQty: 12 },
-                '345678901234': { brand: 'Puma', gender: 'UNISEX', coo: 'VIETNAM', description: 'RS-X3', expectedQty: 36 }
+                '1.23456789012e+11': { brand: 'Nike', gender: 'MENS', coo: 'VIETNAM', description: 'Air Max 90', expectedQty: 24 },
+                '2.34567890123e+11': { brand: 'Adidas', gender: 'LADIES', coo: 'CHINA', description: 'Ultraboost 22', expectedQty: 12 },
+                '3.45678901234e+11': { brand: 'Puma', gender: 'UNISEX', coo: 'VIETNAM', description: 'RS-X3', expectedQty: 36 }
             };
             
             state.expectedInv = demoInventory;
@@ -1349,6 +1395,58 @@
 
         window.addEventListener('DOMContentLoaded', init);
         window.addEventListener('beforeunload', saveState);
-    </script>
+    
+// ==== v3 Additions: Locations, Damage, Progress ====
+const __LOC_LIST = [
+  'A-01-01-01','A-01-01-02','A-01-02-01','A-01-02-02','A-01-03-01','A-01-03-02',
+  'A-01-04-01','A-01-04-02','A-01-05-01','A-01-05-02','A-FLOOR',
+  'B-01-01-01','B-01-01-02','B-01-02-01','B-01-02-02','B-01-03-01','B-01-03-02',
+  'B-01-04-01','B-01-04-02','B-01-05-01','B-01-05-02','B-01-06-01','B-01-06-02','B-FLOOR',
+  'C-01-01-01','C-01-01-02','C-01-02-01','C-01-02-02','C-01-03-01','C-01-03-02','C-01-04-01',
+  'C-01-04-02','C-01-05-01','C-01-05-02','C-01-06-01','C-01-06-02','C-01-07-01','C-01-07-02',
+  'C-01-08-01','C-01-08-02','C-FLOOR',
+  'D-01-01-01','D-01-01-02','D-01-02-01','D-01-02-02','D-01-03-01','D-01-03-02','D-01-04-01',
+  'D-01-04-02','D-FLOOR','E-01-01-01','E-01-01-02','E-01-01-03','E-01-01-04','E-01-02-01',
+  'E-01-02-02','E-FLOOR','F-01-01-01','F-01-01-02','F-FLOOR'
+];
+function populateLocationDropdown(){ try{ const s = document.getElementById('locSelect'); if(!s) return; s.innerHTML = '<option value="">Select location...</option>'; __LOC_LIST.forEach(l=>{ const o=document.createElement('option'); o.value=l; o.textContent=l; s.appendChild(o); }); }catch(e){} }
+function onSelectLocation(){ try{ const s=document.getElementById('locSelect'); const i=document.getElementById('locInput'); if(s&&i&&s.value) i.value=s.value; }catch(e){} }
+
+function validateDamage(){ const counted=parseInt((document.getElementById('subtotalPcs')?.textContent||'0'),10); const g=parseInt((document.getElementById('qtyGood')?.value||'0'),10)||0; const u=parseInt((document.getElementById('qtyDamagedUnbox')?.value||'0'),10)||0; const d=parseInt((document.getElementById('qtyDamagedDispose')?.value||'0'),10)||0; const t=g+u+d; const tot=document.getElementById('damageTotal'); const st=document.getElementById('damageStatus'); if(tot) tot.textContent=String(t); if(st){ if(t===counted){ st.textContent='✓'; st.style.color='#22c55e'; } else { st.textContent='❌ Need '+counted; st.style.color='#ef4444'; } } }
+function showDamageIfNeeded(){ const exp=parseInt((document.getElementById('expectedQty')?.value||'0'),10); const cnt=parseInt((document.getElementById('subtotalPcs')?.textContent||'0'),10); const sec=document.getElementById('damageSection'); if(!sec) return; if(exp>0 && cnt!==exp){ sec.style.display='block'; ['qtyGood','qtyDamagedUnbox','qtyDamagedDispose'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=false; }); const g=document.getElementById('qtyGood'); if(g) g.value=String(cnt); const cd=document.getElementById('countedQtyDisplay'); if(cd) cd.textContent=String(cnt); const tot=document.getElementById('damageTotal'); if(tot) tot.textContent=String(cnt); const st=document.getElementById('damageStatus'); if(st){ st.textContent='✓'; st.style.color='#22c55e'; } } else { sec.style.display='none'; } }
+
+function updateProgress(){ const e=document.getElementById('itemsEntered'); const t=document.getElementById('totalItems'); const p=document.getElementById('percentComplete'); const f=document.getElementById('progressFill'); const entered=parseInt((e?.textContent||'0'),10); const total=parseInt((t?.textContent||'200'),10); const pct=Math.max(0,Math.min(100,Math.round((entered/Math.max(1,total))*100))); if(p) p.textContent=pct+'%'; if(f) f.style.width=pct+'%'; }
+function incrementProgress(){ const e=document.getElementById('itemsEntered'); if(e){ e.textContent=String(parseInt((e.textContent||'0'),10)+1); } updateProgress(); }
+
+// Hook into existing functions if present
+(function(){
+  // init hook
+  try {
+    const __init = window.init;
+    window.init = function(){ if(typeof __init==='function') __init(); populateLocationDropdown(); updateProgress(); };
+  } catch(e){}
+  // updateUiLock hook
+  try {
+    const __lock = window.updateUiLock;
+    window.updateUiLock = function(){ if(typeof __lock==='function') __lock(); ['locSelect','qtyGood','qtyDamagedUnbox','qtyDamagedDispose'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled = !((window.state&&state.isLoggedIn) || false); }); };
+  } catch(e){}
+  // nextPage hook
+  try {
+    const __next = window.nextPage || window.goPage2 || window.toPage2;
+    if(__next){
+      const wrapped = function(){ const r = __next.apply(this, arguments); try{ showDamageIfNeeded(); }catch(e){} return r; };
+      if(window.nextPage) window.nextPage = wrapped; else if(window.goPage2) window.goPage2 = wrapped; else window.toPage2 = wrapped;
+    }
+  } catch(e){}
+  // submitToSheet hook
+  try {
+    const __submit = window.submitToSheet;
+    if(typeof __submit==='function'){
+      window.submitToSheet = async function(){ incrementProgress(); try{ const g=parseInt((document.getElementById('qtyGood')?.value||'0'),10)||0; const u=parseInt((document.getElementById('qtyDamagedUnbox')?.value||'0'),10)||0; const d=parseInt((document.getElementById('qtyDamagedDispose')?.value||'0'),10)||0; window.__damageCache={good:g,unbox:u,dispose:d,total:g+u+d}; }catch(e){} return await __submit.apply(this, arguments); };
+    }
+  } catch(e){}
+})();
+// ==== end v3 additions ====
+</script>
 </body>
 </html>
