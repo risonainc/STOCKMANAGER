@@ -824,12 +824,6 @@
         }
 
         function submitToSheet() {
-  // v3 damage capture
-  const dmgGood   = parseInt((document.getElementById('qtyGood')?.value||'0'),10)||0;
-  const dmgUnbox  = parseInt((document.getElementById('qtyDamagedUnbox')?.value||'0'),10)||0;
-  const dmgDispose= parseInt((document.getElementById('qtyDamagedDispose')?.value||'0'),10)||0;
-  const dmgTotal  = dmgGood + dmgUnbox + dmgDispose;
-
             const url = document.getElementById('appsScriptUrl').value.trim();
             if (!url) {
                 showStatus('❌ Apps Script URL not set', 'error');
@@ -861,10 +855,6 @@
             const payload = {
                 action: 'addInventory',
                 data: {
-                    damageGood: dmgGood,
-                    damageUnbox: dmgUnbox,
-                    damageDispose: dmgDispose,
-                    damageTotal: dmgTotal,
                     timestamp: new Date().toISOString(),
                     user: state.user,
                     upc: document.getElementById('upcInput').value,
@@ -1251,14 +1241,9 @@
                 try {
                     const qrElement = document.getElementById('qrcode');
                     if (qrElement) qrElement.innerHTML = '';
-                    const qrContainer = document.querySelector('.label-qr');
-if (qrContainer) {
-  qrContainer.innerHTML = '';
-  const canvas = document.createElement('canvas');
-  canvas.width = 70; canvas.height = 70;
-  qrContainer.appendChild(canvas);
-  QRCode.toCanvas(canvas, `UPC:${upc}|LOC:${location}`, { width: 70 }, (error) => { if (error) console.log('QR skipped'); });
-}
+                    QRCode.toCanvas(document.getElementById('qrcode'), `UPC:${upc}|LOC:${location}`, { width: 70 }, (error) => {
+                        if (error) console.log('QR skipped');
+                    });
                 } catch (e) {
                     console.log('QR generation skipped');
                 }
@@ -1462,6 +1447,489 @@ function incrementProgress(){ const e=document.getElementById('itemsEntered'); i
   } catch(e){}
 })();
 // ==== end v3 additions ====
+</script>
+
+<!-- LABEL PRINT MODAL -->
+<div class="modal" id="labelModal">
+    <div class="modal-content" style="max-width: 95vw; max-height: 95vh;">
+        <span class="modal-close" onclick="closeLabelModal()">✕</span>
+        <h2>🏷️ Select Labels to Print</h2>
+
+        <div style="background: var(--panel); padding: 16px; border-radius: 6px; margin-bottom: 16px;">
+            <strong>Item:</strong> <span id="labelItemDesc">—</span><br>
+            <strong>UPC:</strong> <span id="labelUpc">—</span> | 
+            <strong>Qty:</strong> <span id="labelQty">—</span> pcs | 
+            <strong>Cartons:</strong> <span id="labelCartons">—</span>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <input type="checkbox" id="printItemMaster" checked>
+                <strong>Item Master Label</strong> (1 label - 4×6 Portrait)
+            </label>
+
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <input type="checkbox" id="printCartons" checked>
+                <strong>Carton Labels</strong> (<span id="cartonCount">0</span> labels - 6×4 Landscape)
+            </label>
+
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <input type="checkbox" id="printPallets">
+                <strong>Pallet Labels</strong> (6×4 Landscape)
+            </label>
+
+            <div id="palletOptions" style="margin-left: 32px; display: none;">
+                <label>Number of pallets: <input type="number" id="palletCount" value="1" min="1" style="width: 60px;"></label>
+            </div>
+        </div>
+
+        <div class="flex-buttons">
+            <button onclick="closeLabelModal()" class="danger">Cancel</button>
+            <button onclick="generateAndPrintLabels()" class="success">🖨️ Generate & Print</button>
+        </div>
+    </div>
+</div>
+
+<!-- LABEL PREVIEW MODAL -->
+<div class="modal" id="labelPreviewModal">
+    <div class="modal-content" style="max-width: 95vw; max-height: 95vh; overflow-y: auto;">
+        <span class="modal-close" onclick="closeLabelPreview()">✕</span>
+        <h2>Label Preview</h2>
+        <div id="labelPreviewContainer" style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        </div>
+        <div class="flex-buttons" style="margin-top: 20px;">
+            <button onclick="closeLabelPreview()" class="danger">Close</button>
+            <button onclick="window.print()" class="success">🖨️ Print All</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Label Styles - Item Master (4×6 Portrait) */
+.label-item-master {
+    width: 4in;
+    height: 6in;
+    background: white;
+    color: black;
+    border: 2px solid black;
+    padding: 0;
+    margin: 10px;
+    font-family: Arial, sans-serif;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+}
+
+.label-item-master .label-header {
+    background: black;
+    color: white;
+    padding: 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: 3px solid black;
+}
+
+.label-item-master .label-description {
+    padding: 12px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    line-height: 1.2;
+    border-bottom: 2px solid black;
+}
+
+.label-item-master .label-brand {
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    border-bottom: 1px solid #ccc;
+}
+
+.label-item-master .label-qr-section {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    border-bottom: 1px solid #ccc;
+}
+
+.label-item-master .label-details {
+    padding: 12px;
+    font-size: 15px;
+    line-height: 1.8;
+    flex: 1;
+}
+
+.label-item-master .label-details .upc-large {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.label-item-master .label-timestamp {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-top: 1px solid #ccc;
+    text-align: center;
+    background: #f5f5f5;
+}
+
+.label-item-master .label-barcode {
+    padding: 8px;
+    text-align: center;
+    border-top: 2px solid black;
+}
+
+/* Carton/Pallet Labels (6×4 Landscape) */
+.label-carton, .label-pallet {
+    width: 6in;
+    height: 4in;
+    background: white;
+    color: black;
+    border: 3px solid black;
+    padding: 0;
+    margin: 10px;
+    font-family: Arial, sans-serif;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+}
+
+.label-carton .label-header, .label-pallet .label-header {
+    background: black;
+    color: white;
+    padding: 12px;
+    font-weight: bold;
+    font-size: 24px;
+    line-height: 1.3;
+    border: 4px solid black;
+}
+
+.label-carton .label-body, .label-pallet .label-body {
+    display: flex;
+    flex: 1;
+    padding: 12px;
+}
+
+.label-carton .label-qr-container, .label-pallet .label-qr-container {
+    width: 25%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 2px solid #ccc;
+}
+
+.label-carton .label-info, .label-pallet .label-info {
+    width: 75%;
+    padding: 0 12px;
+    font-size: 16px;
+    line-height: 2.0;
+}
+
+.label-carton .label-info .upc-large, .label-pallet .label-info .upc-large {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.label-carton .label-barcode, .label-pallet .label-barcode {
+    padding: 8px;
+    text-align: center;
+    border-top: 3px solid black;
+}
+
+/* ===== THERMAL PRINTER OPTIMIZATION ===== */
+@media print {
+    /* Set exact page sizes */
+    @page {
+        size: 4in 6in portrait;
+        margin: 0;
+    }
+
+    @page landscape {
+        size: 6in 4in landscape;
+        margin: 0;
+    }
+
+    /* Force color printing (for black headers) */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    /* Remove all page margins and backgrounds */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Hide everything except labels */
+    body * { 
+        visibility: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Show only labels */
+    .label-item-master, .label-carton, .label-pallet,
+    .label-item-master *, .label-carton *, .label-pallet * {
+        visibility: visible !important;
+    }
+
+    /* Position labels */
+    .label-item-master, .label-carton, .label-pallet {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0 !important;
+        padding: 0;
+        background: white;
+        page-break-after: always;
+        page-break-inside: avoid;
+    }
+
+    /* Landscape labels use landscape page */
+    .label-carton, .label-pallet {
+        page: landscape;
+    }
+
+    /* Thermal fallback: if black backgrounds don't print, borders show */
+    .label-item-master .label-header,
+    .label-carton .label-header,
+    .label-pallet .label-header {
+        background: black !important;
+        color: white !important;
+        border: 4px solid black !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    /* Remove screen-only styles */
+    .label-item-master .label-timestamp {
+        background: white !important;
+        border: 2px solid #666 !important;
+    }
+
+    /* Ensure QR codes and barcodes print */
+    canvas, svg {
+        max-width: 100%;
+        height: auto;
+    }
+}
+</style>
+
+<script>
+let labelData = {};
+
+function showLabelModal() {
+    const modal = document.getElementById('labelModal');
+
+    labelData = {
+        upc: document.getElementById('upcInput').value || '000000000000',
+        brand: document.getElementById('brand').value || 'N/A',
+        description: document.getElementById('itemDesc').value || 'Item Description',
+        location: state.locations[0] || 'TBD',
+        qty: parseInt(document.getElementById('subtotalPcs').textContent || 0),
+        user: state.user,
+        timestamp: new Date()
+    };
+
+    let totalCartons = 0;
+    for (let i = 1; i <= 4; i++) {
+        totalCartons += parseInt(document.getElementById(`box${i}Qty`).value || 0);
+    }
+    labelData.totalCartons = totalCartons;
+
+    document.getElementById('labelItemDesc').textContent = labelData.description;
+    document.getElementById('labelUpc').textContent = labelData.upc;
+    document.getElementById('labelQty').textContent = labelData.qty;
+    document.getElementById('labelCartons').textContent = totalCartons;
+    document.getElementById('cartonCount').textContent = totalCartons;
+
+    modal.classList.add('active');
+}
+
+function closeLabelModal() {
+    document.getElementById('labelModal').classList.remove('active');
+}
+
+document.addEventListener('change', (e) => {
+    if (e.target.id === 'printPallets') {
+        document.getElementById('palletOptions').style.display = e.target.checked ? 'block' : 'none';
+    }
+});
+
+function generateCartonId(index) {
+    const ts = labelData.timestamp;
+    const dateStr = ts.getFullYear().toString().slice(2) + 
+                    String(ts.getMonth() + 1).padStart(2, '0') + 
+                    String(ts.getDate()).padStart(2, '0') +
+                    String(ts.getHours()).padStart(2, '0') +
+                    String(ts.getMinutes()).padStart(2, '0') +
+                    String(ts.getSeconds()).padStart(2, '0');
+    return `C-${dateStr}-${String(index).padStart(3, '0')}`;
+}
+
+function generatePalletId(index) {
+    const ts = labelData.timestamp;
+    const dateStr = ts.getFullYear().toString().slice(2) + 
+                    String(ts.getMonth() + 1).padStart(2, '0') + 
+                    String(ts.getDate()).padStart(2, '0');
+    return `P-${dateStr}-${String(index).padStart(3, '0')}`;
+}
+
+function generateAndPrintLabels() {
+    const container = document.getElementById('labelPreviewContainer');
+    container.innerHTML = '';
+
+    const printItemMaster = document.getElementById('printItemMaster').checked;
+    const printCartons = document.getElementById('printCartons').checked;
+    const printPallets = document.getElementById('printPallets').checked;
+
+    if (printItemMaster) {
+        container.appendChild(createItemMasterLabel());
+    }
+
+    if (printCartons && labelData.totalCartons > 0) {
+        for (let i = 1; i <= labelData.totalCartons; i++) {
+            container.appendChild(createCartonLabel(i));
+        }
+    }
+
+    if (printPallets) {
+        const palletCount = parseInt(document.getElementById('palletCount').value || 1);
+        const cartonsPerPallet = Math.ceil(labelData.totalCartons / palletCount);
+        for (let i = 1; i <= palletCount; i++) {
+            container.appendChild(createPalletLabel(i, palletCount, cartonsPerPallet));
+        }
+    }
+
+    closeLabelModal();
+    document.getElementById('labelPreviewModal').classList.add('active');
+}
+
+function closeLabelPreview() {
+    document.getElementById('labelPreviewModal').classList.remove('active');
+}
+
+function createItemMasterLabel() {
+    const div = document.createElement('div');
+    div.className = 'label-item-master';
+    div.innerHTML = `
+        <div class="label-header">INVENTORIED NOV.2025<br>✓ VERIFIED</div>
+        <div class="label-description">${labelData.description}</div>
+        <div class="label-brand">${labelData.brand}</div>
+        <div class="label-qr-section">
+            <canvas id="qr-item" width="120" height="120"></canvas>
+        </div>
+        <div class="label-details">
+            <div class="upc-large">UPC: ${labelData.upc}</div>
+            <strong>Location:</strong> ${labelData.location}<br>
+            <strong>Total:</strong> ${labelData.qty} pcs (${labelData.totalCartons} cartons)
+        </div>
+        <div class="label-timestamp">
+            ${labelData.timestamp.toLocaleDateString()} ${labelData.timestamp.toLocaleTimeString()}
+        </div>
+        <div class="label-barcode">
+            <svg id="barcode-item"></svg>
+            <div style="font-size: 18px; font-weight: bold; margin-top: 4px;">${labelData.upc}</div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        QRCode.toCanvas(div.querySelector('#qr-item'), 
+            JSON.stringify({type:'ITEM', upc:labelData.upc, loc:labelData.location}),
+            {width:120});
+        JsBarcode(div.querySelector('#barcode-item'), labelData.upc, 
+            {format:'code128', width:2, height:50, displayValue:false});
+    }, 100);
+
+    return div;
+}
+
+function createCartonLabel(boxNum) {
+    const cartonId = generateCartonId(boxNum);
+    const pcsPerCarton = Math.floor(labelData.qty / labelData.totalCartons);
+
+    const div = document.createElement('div');
+    div.className = 'label-carton';
+    div.innerHTML = `
+        <div class="label-header">${labelData.brand} - ${labelData.description}</div>
+        <div class="label-body">
+            <div class="label-qr-container">
+                <canvas id="qr-carton-${boxNum}" width="110" height="110"></canvas>
+            </div>
+            <div class="label-info">
+                <strong>CARTON:</strong> ${cartonId}<br>
+                <strong>BOX ${boxNum} of ${labelData.totalCartons}</strong> | ${pcsPerCarton} pcs<br>
+                <div class="upc-large">UPC: ${labelData.upc}</div>
+                <strong>Location:</strong> ${labelData.location}<br>
+                <strong>Time:</strong> ${labelData.timestamp.toLocaleDateString()} ${labelData.timestamp.toLocaleTimeString()}<br>
+                <strong>User:</strong> ${labelData.user}
+            </div>
+        </div>
+        <div class="label-barcode">
+            <svg id="barcode-carton-${boxNum}"></svg>
+            <div style="font-size: 18px; font-weight: bold; margin-top: 4px;">${labelData.upc}</div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        QRCode.toCanvas(div.querySelector(`#qr-carton-${boxNum}`), 
+            JSON.stringify({type:'CARTON', id:cartonId, upc:labelData.upc, box:boxNum, pcs:pcsPerCarton}),
+            {width:110});
+        JsBarcode(div.querySelector(`#barcode-carton-${boxNum}`), labelData.upc, 
+            {format:'code128', width:2, height:50, displayValue:false});
+    }, 100);
+
+    return div;
+}
+
+function createPalletLabel(palletNum, totalPallets, cartonsPerPallet) {
+    const palletId = generatePalletId(palletNum);
+    const pcsPerPallet = Math.floor(labelData.qty / totalPallets);
+
+    const div = document.createElement('div');
+    div.className = 'label-pallet';
+    div.innerHTML = `
+        <div class="label-header">🔷 PALLET ${palletNum} of ${totalPallets}<br>${labelData.brand} - ${labelData.description}</div>
+        <div class="label-body">
+            <div class="label-qr-container">
+                <canvas id="qr-pallet-${palletNum}" width="110" height="110"></canvas>
+            </div>
+            <div class="label-info">
+                <strong>PALLET:</strong> ${palletId}<br>
+                <strong>├─</strong> ${cartonsPerPallet} cartons<br>
+                <strong>├─</strong> ${pcsPerPallet} pcs total<br>
+                <strong>└─</strong> ${Math.floor(pcsPerPallet/cartonsPerPallet)} pcs/carton<br>
+                <div class="upc-large">UPC: ${labelData.upc}</div>
+                <strong>Location:</strong> ${labelData.location}<br>
+                <strong>Time:</strong> ${labelData.timestamp.toLocaleDateString()} ${labelData.timestamp.toLocaleTimeString()}<br>
+                <strong>User:</strong> ${labelData.user}
+            </div>
+        </div>
+        <div class="label-barcode">
+            <svg id="barcode-pallet-${palletNum}"></svg>
+            <div style="font-size: 18px; font-weight: bold; margin-top: 4px;">${labelData.upc}</div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        QRCode.toCanvas(div.querySelector(`#qr-pallet-${palletNum}`), 
+            JSON.stringify({type:'PALLET', id:palletId, upc:labelData.upc, cartons:cartonsPerPallet, pcs:pcsPerPallet}),
+            {width:110});
+        JsBarcode(div.querySelector(`#barcode-pallet-${palletNum}`), labelData.upc, 
+            {format:'code128', width:2, height:50, displayValue:false});
+    }, 100);
+
+    return div;
+}
+
+function printLabel() {
+    showLabelModal();
+}
 </script>
 </body>
 </html>
