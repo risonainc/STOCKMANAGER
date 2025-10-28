@@ -824,6 +824,7 @@
         }
 
         function submitToSheet() {
+  // v3 damage capture
   const dmgGood   = parseInt((document.getElementById('qtyGood')?.value||'0'),10)||0;
   const dmgUnbox  = parseInt((document.getElementById('qtyDamagedUnbox')?.value||'0'),10)||0;
   const dmgDispose= parseInt((document.getElementById('qtyDamagedDispose')?.value||'0'),10)||0;
@@ -864,7 +865,6 @@
                     damageUnbox: dmgUnbox,
                     damageDispose: dmgDispose,
                     damageTotal: dmgTotal,
-
                     timestamp: new Date().toISOString(),
                     user: state.user,
                     upc: document.getElementById('upcInput').value,
@@ -1140,20 +1140,17 @@
         }
 
         function addLocation() {
-  const locInput = document.getElementById('locInput');
-  let loc = (locInput?.value || '').trim();
-  if (!loc) {
-    const sel = document.getElementById('locSelect');
-    if (sel && sel.value) loc = sel.value;
-  }
-  if (!loc) { showStatus('❌ Enter or select a location first', 'error'); return; }
-  if (!state.locations.includes(loc)) state.locations.push(loc);
-  if (locInput) locInput.value = '';
-  const sel = document.getElementById('locSelect');
-  if (sel) sel.value = '';
-  renderLocationGrid();
-  saveState();
-}
+            const locInput = document.getElementById('locInput');
+            const loc = locInput.value.trim();
+            if (!loc) {
+                showStatus('❌ Enter location first', 'error');
+                return;
+            }
+            state.locations.push(loc);
+            locInput.value = '';
+            renderLocationGrid();
+            saveState();
+        }
 
         function removeLocation(idx) {
             state.locations.splice(idx, 1);
@@ -1262,7 +1259,6 @@ if (qrContainer) {
   qrContainer.appendChild(canvas);
   QRCode.toCanvas(canvas, `UPC:${upc}|LOC:${location}`, { width: 70 }, (error) => { if (error) console.log('QR skipped'); });
 }
-                    });
                 } catch (e) {
                     console.log('QR generation skipped');
                 }
