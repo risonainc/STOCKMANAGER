@@ -429,7 +429,6 @@
             <small id="scanHint" style="display: block; margin-top: 12px; color: var(--ok); text-align: center; font-weight: 600;">Point camera at barcode. Hold steady...</small>
         </div>
     </div>
-
     <!-- SUBMISSION CONFIRMATION MODAL -->
     <div class="modal" id="confirmationModal">
         <div class="modal-content" style="max-width: 500px;">
@@ -824,6 +823,12 @@
         }
 
         function submitToSheet() {
+  // v3 damage capture
+  const dmgGood   = parseInt((document.getElementById('qtyGood')?.value||'0'),10)||0;
+  const dmgUnbox  = parseInt((document.getElementById('qtyDamagedUnbox')?.value||'0'),10)||0;
+  const dmgDispose= parseInt((document.getElementById('qtyDamagedDispose')?.value||'0'),10)||0;
+  const dmgTotal  = dmgGood + dmgUnbox + dmgDispose;
+
             const url = document.getElementById('appsScriptUrl').value.trim();
             if (!url) {
                 showStatus('❌ Apps Script URL not set', 'error');
@@ -855,6 +860,11 @@
             const payload = {
                 action: 'addInventory',
                 data: {
+                    damageGood: dmgGood,
+                    damageUnbox: dmgUnbox,
+                    damageDispose: dmgDispose,
+                    damageTotal: dmgTotal,
+
                     timestamp: new Date().toISOString(),
                     user: state.user,
                     upc: document.getElementById('upcInput').value,
@@ -1129,6 +1139,438 @@
             updatePutawayStatus();
         }
 
+        
+function addLocation() {
+  const locInput = document.getElementById('locInput');
+  let loc = (locInput?.value || '').trim();
+  if (!loc) {
+    const sel = document.getElementById('locSelect');
+    if (sel && sel.value) loc = sel.value;
+  }
+  if (!loc) { showStatus('❌ Enter or select a location first', 'error'); return; }
+  if (!state.locations.includes(loc)) state.locations.push(loc);
+  if (locInput) locInput.value = '';
+  const sel = document.getElementById('locSelect');
+  if (sel) sel.value = '';
+  renderLocationGrid();
+  saveState();
+}
+        function removeLocation(idx) {
+            state.locations.splice(idx, 1);
+            renderLocationGrid();
+            saveState();
+        }
+
+        function moveAllLoc() {
+            if (state.locations.length === 0) {
+                showStatus('❌ Add at least one location first', 'error');
+                return;
+            }
+            const totalQty = getSubtotalPcs();
+            const inputs = document.querySelectorAll('.locQty');
+            if (inputs.length > 0) {
+                inputs[0].value = totalQty;
+                for (let i = 1; i < inputs.length; i++) {
+                    inputs[i].value = 0;
+                }
+            }
+            updatePutawayStatus();
+        }
+
+        function updatePutawayStatus() {
+            const inputs = document.querySelectorAll('.locQty');
+            let totalLoc = 0;
+            inputs.forEach(inp => {
+                totalLoc += parseInt(inp.value || 0);
+            });
+            const totalExp = getSubtotalPcs();
+            document.getElementById('putawayTotal').textContent = totalLoc;
+            document.getElementById('okToSubmit').textContent = totalLoc === totalExp ? '✅ Yes' : '❌ No';
+            document.getElementById('btnSubmit').disabled = !state.isLoggedIn || totalLoc !== totalExp;
+        }
+
+        function generateLabel() {
+            const expected = parseInt(document.getElementById('expectedQty').value || 0);
+            const entered = getSubtotalPcs();
+            const isAccurate = entered === expected && expected > 0;
+            
+            const upc = document.getElementById('upcInput').value || '000000000000';
+            const brand = document.getElementById('brand').value || 'N/A';
+            const gender = document.getElementById('gender').value || '—';
+            const coo = document.getElementById('coo').value || '—';
+            const desc = document.getElementById('itemDesc').value || 'Item Description';
+            const location = state.locations[0] || 'TBD';
+            
+            const borderClass = isAccurate ? 'label-border-accurate' : 'label-border-recheck';
+            const headerClass = isAccurate ? '' : 'label-header-recheck';
+            const statusText = isAccurate ? '✓ VERIFIED' : '⚠️ RECHECK';
+            const statusClass = isAccurate ? 'label-status-accurate' : 'label-status-recheck';
+            
+            const label = `
+                <div class="label-container ${borderClass}">
+                    <div class="label-header ${headerClass}">
+                        <div>📦 INVENTORIED NOV.2025</div>
+                        <div class="label-status ${statusClass}">${statusText}</div>
+                    </div>
+                    
+                    <div class="label-body">
+                        <div class="label-description">${desc}</div>
+                        
+                        <div class="label-info">
+                            <div class="label-info-row"><span class="label-info-label">Brand:</span> <span class="label-info-value">${brand}</span></div>
+                            <div class="label-info-row"><span class="label-info-label">Gender:</span> <span class="label-info-value">${gender}</span></div>
+                            <div class="label-info-row"><span class="label-info-label">COO:</span> <span class="label-info-value">${coo}</span></div>
+                            <div class="label-info-row"><span class="label-info-label">Location:</span> <span class="label-info-value"><strong>${location}</strong></span></div>
+                            <div class="label-info-row"><span class="label-info-label">Qty:</span> <span class="label-info-value"><strong>${entered} pcs</strong></span></div>
+                        </div>
+                        
+                        <div class="label-codes">
+                            <div class="label-qr"></div>
+                            <div class="label-barcode-section">
+                                <div class="label-barcode-image"><svg id="barcode"></svg></div>
+                                <div class="label-barcode-text">${upc}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('labelPreview').innerHTML = label;
+            
+            setTimeout(() => {
+                try {
+                    JsBarcode("#barcode", upc, {
+                        format: "code128",
+                        width: 2,
+                        height: 50,
+                        margin: 0
+                    });
+                } catch (e) {
+                    console.log('Barcode generation skipped');
+                }
+            }, 100);
+            
+            setTimeout(() => {
+                try {
+                    const qrElement = document.getElementById('qrcode');
+                    if (qrElement) qrElement.innerHTML = '';
+                    
+const qrContainer = document.querySelector('.label-qr');
+if (qrContainer) {
+  qrContainer.innerHTML = '';
+  const canvas = document.createElement('canvas');
+  canvas.width = 70; canvas.height = 70;
+  qrContainer.appendChild(canvas);
+  QRCode.toCanvas(canvas, `UPC:${upc}|LOC:${location}`, { width: 70 }, (error) => { if (error) console.log('QR skipped'); });
+}
+
+                    });
+                } catch (e) {
+                    console.log('QR generation skipped');
+                }
+            }, 150);
+            
+            document.getElementById('labelSection').classList.remove('hidden');
+            document.getElementById('btnSaveLabel').disabled = false;
+        }
+
+        function saveLabelToSheet() {
+            const url = document.getElementById('appsScriptUrl').value.trim();
+            if (!url) {
+                showStatus('❌ Apps Script URL not set', 'error');
+                return;
+            }
+            
+            const payload = {
+                action: 'addLabel',
+                data: {
+                    timestamp: new Date().toISOString(),
+                    location: state.locations[0] || 'N/A',
+                    upc: document.getElementById('upcInput').value,
+                    qty: getSubtotalPcs(),
+                    breakdown: getBreakdownSummary()
+                }
+            };
+            
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                showStatus(`✓ Label logged to sheet`, 'ok');
+            })
+            .catch(e => {
+                showStatus(`⚠️ Data sent: ${e.message}`, 'warn');
+            });
+        }
+
+        function downloadJSON() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                user: state.user,
+                item: {
+                    upc: document.getElementById('upcInput').value,
+                    brand: document.getElementById('brand').value,
+                    gender: document.getElementById('gender').value,
+                    coo: document.getElementById('coo').value,
+                    description: document.getElementById('itemDesc').value,
+                    edgeNo: document.getElementById('edgeNo').value,
+                    isClean: document.getElementById('isClean').value
+                },
+                dimensions: {
+                    weight: document.getElementById('itemWeight').value,
+                    length: document.getElementById('itemLength').value,
+                    width: document.getElementById('itemWidth').value,
+                    height: document.getElementById('itemHeight').value
+                },
+                boxes: getBoxData(),
+                totals: {
+                    pieces: getSubtotalPcs(),
+                    cubicFeet: document.getElementById('totalCuFt').textContent
+                },
+                locations: state.locations,
+                notes: document.getElementById('putawayNotes').value
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `stock-${data.item.upc}-${new Date().getTime()}.json`;
+            a.click();
+            showStatus('✓ Downloaded JSON', 'ok');
+        }
+
+        function getBoxData() {
+            const boxes = [];
+            for (let i = 1; i <= 4; i++) {
+                const qty = parseInt(document.getElementById(`box${i}Qty`).value || 0);
+                if (qty > 0) {
+                    boxes.push({
+                        style: i,
+                        quantity: qty,
+                        pcsPerBox: document.getElementById(`box${i}Pcs`).value,
+                        weight: document.getElementById(`box${i}Weight`).value,
+                        length: document.getElementById(`box${i}Length`).value,
+                        width: document.getElementById(`box${i}Width`).value,
+                        height: document.getElementById(`box${i}Height`).value
+                    });
+                }
+            }
+            return boxes;
+        }
+
+        function resetForm() {
+            document.getElementById('upcInput').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('gender').value = '— Select —';
+            document.getElementById('coo').value = '— Select —';
+            document.getElementById('itemDesc').value = '';
+            document.getElementById('edgeNo').value = '';
+            document.getElementById('isClean').value = '— Select —';
+            document.getElementById('expectedQty').value = '0';
+            document.getElementById('itemWeight').value = '0';
+            document.getElementById('itemLength').value = '0';
+            document.getElementById('itemWidth').value = '0';
+            document.getElementById('itemHeight').value = '0';
+            
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`box${i}Qty`).value = '0';
+                document.getElementById(`box${i}Pcs`).value = '0';
+                document.getElementById(`box${i}Weight`).value = '0';
+                document.getElementById(`box${i}Length`).value = '0';
+                document.getElementById(`box${i}Width`).value = '0';
+                document.getElementById(`box${i}Height`).value = '0';
+            }
+            
+            state.locations = [];
+            document.getElementById('locInput').value = '';
+            document.getElementById('putawayNotes').value = '';
+            document.getElementById('discrepancyReason').value = '';
+            
+            document.getElementById('labelSection').classList.add('hidden');
+            document.getElementById('page2').classList.add('hidden');
+            document.getElementById('page1').classList.remove('hidden');
+            
+            calcTotals();
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('stockTakerState', JSON.stringify(state));
+        }
+
+        function showStatus(msg, type = 'info') {
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.textContent = msg;
+            statusMsg.style.color = type === 'ok' ? 'var(--ok)' : type === 'error' ? 'var(--bad)' : type === 'warn' ? 'var(--warn)' : 'var(--link)';
+            if (type === 'ok' || type === 'error') {
+                setTimeout(() => {
+                    statusMsg.textContent = 'Ready for next operation...';
+                    statusMsg.style.color = 'var(--muted)';
+                }, 3000);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('beforeunload', saveState);
+    
+// ==== v3 Additions: Locations, Damage, Progress ====
+const __LOC_LIST =
+              <label>Wt/Box (lb):</label>
+                            <input type="number" id="box${i}Weight" value="0" step="0.1" onchange="calcTotals()" disabled>
+                        </div>
+                    </div>
+                    <div class="row row-3">
+                        <div>
+                            <label>L (in):</label>
+                            <input type="number" id="box${i}Length" value="0" step="0.1" onchange="calcTotals()" disabled>
+                        </div>
+                        <div>
+                            <label>W (in):</label>
+                            <input type="number" id="box${i}Width" value="0" step="0.1" onchange="calcTotals()" disabled>
+                        </div>
+                        <div>
+                            <label>H (in):</label>
+                            <input type="number" id="box${i}Height" value="0" step="0.1" onchange="calcTotals()" disabled>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(boxDiv);
+            }
+        }
+
+        function calcTotals() {
+            let totalPcs = 0;
+            let totalCuFt = 0;
+            
+            for (let i = 1; i <= 4; i++) {
+                const qty = parseInt(document.getElementById(`box${i}Qty`).value || 0);
+                const pcs = parseInt(document.getElementById(`box${i}Pcs`).value || 0);
+                const length = parseFloat(document.getElementById(`box${i}Length`).value || 0);
+                const width = parseFloat(document.getElementById(`box${i}Width`).value || 0);
+                const height = parseFloat(document.getElementById(`box${i}Height`).value || 0);
+                
+                totalPcs += qty * pcs;
+                
+                let cuFtPerBox = 0;
+                if (length > 0 && width > 0 && height > 0) {
+                    cuFtPerBox = (length * width * height) / 1728;
+                    totalCuFt += qty * cuFtPerBox;
+                }
+                
+                const cuFtDisplay = document.getElementById(`box${i}CuFt`);
+                if (cuFtDisplay) {
+                    cuFtDisplay.textContent = `${cuFtPerBox.toFixed(3)} cu ft`;
+                    cuFtDisplay.style.opacity = cuFtPerBox > 0 ? '1' : '0.5';
+                }
+            }
+            
+            document.getElementById('subtotalPcs').textContent = totalPcs;
+            document.getElementById('totalCuFt').textContent = totalCuFt.toFixed(3);
+            
+            document.getElementById('btnNextPage').disabled = !state.isLoggedIn || totalPcs === 0;
+        }
+
+        function getSubtotalPcs() {
+            return parseInt(document.getElementById('subtotalPcs').textContent);
+        }
+
+        function getBreakdownSummary() {
+            const boxes = [];
+            for (let i = 1; i <= 4; i++) {
+                const qty = parseInt(document.getElementById(`box${i}Qty`).value || 0);
+                const pcs = parseInt(document.getElementById(`box${i}Pcs`).value || 0);
+                if (qty > 0) {
+                    boxes.push(`S${i}:${qty}×${pcs}`);
+                }
+            }
+            return boxes.join('|') || 'N/A';
+        }
+
+        function checkDiscrepancy() {
+            const expected = parseInt(document.getElementById('expectedQty').value || 0);
+            const entered = getSubtotalPcs();
+            let msg = `Expected: ${expected} | Entered: ${entered} | `;
+            
+            if (entered === expected && expected > 0) {
+                msg += '✓ MATCH!';
+                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-ok">${msg}</span>`;
+            } else if (entered > expected && expected > 0) {
+                msg += `⚠️ OVER by ${entered - expected}`;
+                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-ok">${msg}</span>`;
+            } else if (entered < expected && expected > 0) {
+                msg += `❌ SHORT by ${expected - entered}`;
+                document.getElementById('discrepancyMsg').innerHTML = `<span class="status-ok">${msg}</span>`;
+            } else {
+                msg += 'ℹ️ No expected data';
+                document.getElementById('discrepancyMsg').innerHTML = `<span style="color: var(--muted);">${msg}</span>`;
+            }
+        }
+
+        function nextPage() {
+            if (getSubtotalPcs() === 0) {
+                showStatus('❌ At least one box required', 'error');
+                return;
+            }
+            
+            document.getElementById('page1').classList.add('hidden');
+            document.getElementById('page2').classList.remove('hidden');
+            
+            document.getElementById('p2Upc').textContent = document.getElementById('upcInput').value || '—';
+            document.getElementById('p2Qty').textContent = getSubtotalPcs();
+            document.getElementById('p2Breakdown').textContent = getBreakdownSummary();
+            
+            renderLocationGrid();
+            updateDiscrepancyDisplay();
+        }
+
+        function updateDiscrepancyDisplay() {
+            const expected = parseInt(document.getElementById('expectedQty').value || 0);
+            const entered = getSubtotalPcs();
+            const hasDiscrepancy = entered !== expected && expected > 0;
+            
+            const section = document.getElementById('discrepancyReasonSection');
+            const reasonSelect = document.getElementById('discrepancyReason');
+            
+            if (hasDiscrepancy) {
+                section.classList.remove('hidden');
+                reasonSelect.disabled = false;
+            } else {
+                section.classList.add('hidden');
+                reasonSelect.disabled = true;
+                reasonSelect.value = '';
+            }
+        }
+
+        function backToPage1() {
+            document.getElementById('page2').classList.add('hidden');
+            document.getElementById('labelSection').classList.add('hidden');
+            document.getElementById('page1').classList.remove('hidden');
+        }
+
+        function renderLocationGrid() {
+            const grid = document.getElementById('locGrid');
+            grid.innerHTML = state.locations.length ? '' : '<small style="color: var(--muted);">No locations added yet</small>';
+            
+            state.locations.forEach((loc, idx) => {
+                const locDiv = document.createElement('div');
+                locDiv.style.display = 'flex';
+                locDiv.style.gap = '8px';
+                locDiv.style.alignItems = 'center';
+                locDiv.innerHTML = `
+                    <input type="text" value="${loc}" readonly style="flex: 1;">
+                    <input type="number" value="0" min="0" placeholder="Qty" class="locQty" style="width: 80px;" onchange="updatePutawayStatus()">
+                    <button onclick="removeLocation(${idx})" class="danger" style="padding: 8px;">✕</button>
+                `;
+                grid.appendChild(locDiv);
+            });
+            
+            updatePutawayStatus();
+        }
+
         function addLocation() {
             const locInput = document.getElementById('locInput');
             const loc = locInput.value.trim();
@@ -1212,7 +1654,7 @@
                         </div>
                         
                         <div class="label-codes">
-                            <div class="label-qr"><svg id="qrcode" width="70" height="70"></svg></div>
+                            <div class="label-qr"></div>
                             <div class="label-barcode-section">
                                 <div class="label-barcode-image"><svg id="barcode"></svg></div>
                                 <div class="label-barcode-text">${upc}</div>
@@ -1241,8 +1683,7 @@
                 try {
                     const qrElement = document.getElementById('qrcode');
                     if (qrElement) qrElement.innerHTML = '';
-                    QRCode.toCanvas(document.getElementById('qrcode'), `UPC:${upc}|LOC:${location}`, { width: 70 }, (error) => {
-                        if (error) console.log('QR skipped');
+                    
                     });
                 } catch (e) {
                     console.log('QR generation skipped');
@@ -1409,7 +1850,7 @@ const __LOC_LIST = [
   'D-01-04-02','D-FLOOR','E-01-01-01','E-01-01-02','E-01-01-03','E-01-01-04','E-01-02-01',
   'E-01-02-02','E-FLOOR','F-01-01-01','F-01-01-02','F-FLOOR'
 ];
-function populateLocationDropdown(){ try{ const s = document.getElementById('locSelect'); if(!s) return; s.innerHTML = '<option value="">Select location...</option>'; __LOC_LIST.forEach(l=>{ const o=document.createElement('option'); o.value=l; o.textContent=l; s.appendChild(o); }); }catch(e){} }
+function populateLocationDropdown(){ try{ const s = document.getElementById('locSelect'); if(!s) return; s.innerHTML = '<option value=\"\">Select location...</option>'; __LOC_LIST.forEach(l=>{ const o=document.createElement('option'); o.value=l; o.textContent=l; s.appendChild(o); }); }catch(e){} }
 function onSelectLocation(){ try{ const s=document.getElementById('locSelect'); const i=document.getElementById('locInput'); if(s&&i&&s.value) i.value=s.value; }catch(e){} }
 
 function validateDamage(){ const counted=parseInt((document.getElementById('subtotalPcs')?.textContent||'0'),10); const g=parseInt((document.getElementById('qtyGood')?.value||'0'),10)||0; const u=parseInt((document.getElementById('qtyDamagedUnbox')?.value||'0'),10)||0; const d=parseInt((document.getElementById('qtyDamagedDispose')?.value||'0'),10)||0; const t=g+u+d; const tot=document.getElementById('damageTotal'); const st=document.getElementById('damageStatus'); if(tot) tot.textContent=String(t); if(st){ if(t===counted){ st.textContent='✓'; st.style.color='#22c55e'; } else { st.textContent='❌ Need '+counted; st.style.color='#ef4444'; } } }
