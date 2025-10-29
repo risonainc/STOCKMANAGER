@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>STOCK TAKER APP - PRODUCTION v3-COUNTERS-FINAL</title>
+    <title>STOCK TAKER APP - PRODUCTION v3-COUNTERS</title>
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -118,7 +118,7 @@
 </head>
 <body>
     <header>
-        <h1>📦 STOCK TAKER - PRODUCTION v3-COUNTERS-FINAL</h1>
+        <h1>📦 STOCK TAKER - PRODUCTION v3-COUNTERS</h1>
         <small>Inventory Count & Putaway Workflow</small>
     </header>
     <main>
@@ -129,7 +129,19 @@
             <div class="row row-2">
                 <div>
                     <label>👤 Logged in as:</label>
-                    <select id="userSelect" onchange="changeUser()"><option value="">— Select —</option><option value="Rikki">Rikki</option><option value="Alberto">Alberto</option><option value="Isabella">Isabella</option><option value="Kelis">Kelis</option><option value="Leydi">Leydi</option><option value="Veronica">Veronica</option><option value="Mabel">Mabel</option><option value="Jocelyn">Jocelyn</option></select>
+                    <select id="userSelect" onchange="changeUser()">
+                        <option value="">— Select User —</option>
+                        <option value="Rikki">Rikki</option>
+                        <option value="Alberto">Alberto</option>
+                        <option value="Isabella">Isabella</option>
+                        <option value="Kelis">Kelis</option>
+                        <option value="Leydi">Leydi</option>
+                        <option value="Veronica">Veronica</option>
+                        <option value="Mabel">Mabel</option>
+                        <option value="Jocelyn">Jocelyn</option>
+                        <option value="WarehouseUser1">WarehouseUser1</option>
+                        <option value="WarehouseUser2">WarehouseUser2</option>
+                    </select>
                 </div>
                 <div>
                     <label>🔐 Password (username backwards):</label>
@@ -186,7 +198,6 @@
             <div class="row row-3">
                 <div>
                     
-                <!-- Counted By Field -->
                 <div style="margin: 16px 0; padding: 12px; background: rgba(59,130,246,0.1); border: 2px solid #3b82f6; border-radius: 8px;">
                     <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #3b82f6;">👤 Counted By:</label>
                     <select id="countedBy" required style="width: 100%; padding: 12px; font-size: 16px; border: 2px solid #3b82f6; border-radius: 6px; background: #1e293b; color: white;">
@@ -198,8 +209,7 @@
                         <option>Mabel</option>
                     </select>
                 </div>
-
-                <label>Brand:</label>
+<label>Brand:</label>
                     <input type="text" id="brand" placeholder="e.g., Nike" disabled>
                 </div>
                 <div>
