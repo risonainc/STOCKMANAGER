@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>STOCK TAKER APP - PRODUCTION v3-FINAL</title>
+    <title>STOCK TAKER APP - PRODUCTION v3-COUNTERS-FINAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -98,28 +98,7 @@
             .flex-buttons button { width: 100%; min-width: unset; }
         }
         @media print {
-    @page {
-        size: 4in 6in;
-        margin: 0.15in;
-    }
-
-    body * { visibility: hidden; }
-    #printArea, #printArea * { visibility: visible; }
-    #printArea { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
-        width: 100%;
-    }
-
-    /* One label per page */
-    .label-page {
-        page-break-after: always;
-        page-break-inside: avoid;
-        width: 100%;
-        min-height: 5.7in;
-    }
-}
+            body { background: white; color: black; }
             button, .no-print, header { display: none; }
             section { page-break-inside: avoid; }
             .label-container { page-break-inside: avoid; width: 6in; height: 4in; }
@@ -139,7 +118,7 @@
 </head>
 <body>
     <header>
-        <h1>📦 STOCK TAKER - PRODUCTION v3-FINAL</h1>
+        <h1>📦 STOCK TAKER - PRODUCTION v3-COUNTERS-FINAL</h1>
         <small>Inventory Count & Putaway Workflow</small>
     </header>
     <main>
@@ -150,19 +129,7 @@
             <div class="row row-2">
                 <div>
                     <label>👤 Logged in as:</label>
-                    <select id="userSelect" onchange="changeUser()">
-                        <option value="">— Select User —</option>
-                        <option value="Rikki">Rikki</option>
-                        <option value="Alberto">Alberto</option>
-                        <option value="Isabella">Isabella</option>
-                        <option value="Kelis">Kelis</option>
-                        <option value="Leydi">Leydi</option>
-                        <option value="Veronica">Veronica</option>
-                        <option value="Mabel">Mabel</option>
-                        <option value="Jocelyn">Jocelyn</option>
-                        <option value="WarehouseUser1">WarehouseUser1</option>
-                        <option value="WarehouseUser2">WarehouseUser2</option>
-                    </select>
+                    <select id="userSelect" onchange="changeUser()"><option value="">— Select —</option><option value="Rikki">Rikki</option><option value="Alberto">Alberto</option><option value="Isabella">Isabella</option><option value="Kelis">Kelis</option><option value="Leydi">Leydi</option><option value="Veronica">Veronica</option><option value="Mabel">Mabel</option><option value="Jocelyn">Jocelyn</option></select>
                 </div>
                 <div>
                     <label>🔐 Password (username backwards):</label>
@@ -219,6 +186,7 @@
             <div class="row row-3">
                 <div>
                     
+                <!-- Counted By Field -->
                 <div style="margin: 16px 0; padding: 12px; background: rgba(59,130,246,0.1); border: 2px solid #3b82f6; border-radius: 8px;">
                     <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #3b82f6;">👤 Counted By:</label>
                     <select id="countedBy" required style="width: 100%; padding: 12px; font-size: 16px; border: 2px solid #3b82f6; border-radius: 6px; background: #1e293b; color: white;">
@@ -891,7 +859,7 @@
                 data: {
                     timestamp: new Date().toISOString(),
                     user: state.user,
-                countedBy: document.getElementById("countedBy")?.value || state.user,
+                    countedBy: document.getElementById("countedBy")?.value || state.user,
                     upc: document.getElementById('upcInput').value,
                     brand: document.getElementById('brand').value,
                     gender: document.getElementById('gender').value,
@@ -1625,28 +1593,7 @@ function incrementProgress(){ const e=document.getElementById('itemsEntered'); i
 }
 
 @media print {
-    @page {
-        size: 4in 6in;
-        margin: 0.15in;
-    }
-
-    body * { visibility: hidden; }
-    #printArea, #printArea * { visibility: visible; }
-    #printArea { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
-        width: 100%;
-    }
-
-    /* One label per page */
-    .label-page {
-        page-break-after: always;
-        page-break-inside: avoid;
-        width: 100%;
-        min-height: 5.7in;
-    }
-}
+    @page { size: 4in 6in portrait; margin: 0; }
     @page landscape { size: 6in 4in landscape; margin: 0; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
