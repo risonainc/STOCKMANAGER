@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>STOCK TAKER APP - PRODUCTION v3-COUNTERS</title>
+    <title>STOCK TAKER APP - PRODUCTION v3-FINAL-FIXED</title>
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -114,11 +114,51 @@
     .progress-bar { background: #374151; height: 6px; border-radius: 3px; overflow: hidden; width: 100%; margin-top: 8px; }
     .progress-fill { background: #22c55e; height: 100%; width: 0%; transition: width 0.3s; }
 
-    </style>
+    
+/* FORCE ONE LABEL PER PAGE */
+@media print {
+    @page {
+        size: 4in 6in !important;
+        margin: 0 !important;
+    }
+
+    html, body {
+        width: 4in;
+        height: 6in;
+        margin: 0;
+        padding: 0;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #printArea, #printArea * {
+        visibility: visible !important;
+    }
+
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4in;
+        height: 6in;
+    }
+
+    #printArea > div {
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        width: 3.8in;
+        height: 5.8in;
+        margin: 0.1in;
+    }
+}
+
+</style>
 </head>
 <body>
     <header>
-        <h1>📦 STOCK TAKER - PRODUCTION v3-COUNTERS</h1>
+        <h1>📦 STOCK TAKER - PRODUCTION v3-FINAL-FIXED</h1>
         <small>Inventory Count & Putaway Workflow</small>
     </header>
     <main>
@@ -151,7 +191,8 @@
             <div class="row row-2">
                 <div>
                     <label>📋 Google Apps Script Endpoint:</label>
-                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbxJuC_WI3Uy6J9DEW5W7qji8h9_GhdhSgI5x-JyfmNcxrdHhkND5JTMY7HTe323ro6KMg/exec">
+                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbzxuGUyLWRvDKdXZWYriPkLj-VRpBtAkx0y4CnLIlTe1yHM5L3UybIlTAT4AkrNtAV1zQ/exec"
+
                 </div>
                 <div>
                     <label>📊 Expected Inventory Sheet ID:</label>
@@ -1620,6 +1661,46 @@ function incrementProgress(){ const e=document.getElementById('itemsEntered'); i
     }
     .label-item-master .label-timestamp { background: white !important; border: 2px solid #666 !important; }
 }
+
+/* FORCE ONE LABEL PER PAGE */
+@media print {
+    @page {
+        size: 4in 6in !important;
+        margin: 0 !important;
+    }
+
+    html, body {
+        width: 4in;
+        height: 6in;
+        margin: 0;
+        padding: 0;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #printArea, #printArea * {
+        visibility: visible !important;
+    }
+
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4in;
+        height: 6in;
+    }
+
+    #printArea > div {
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        width: 3.8in;
+        height: 5.8in;
+        margin: 0.1in;
+    }
+}
+
 </style>
 
 <script>
