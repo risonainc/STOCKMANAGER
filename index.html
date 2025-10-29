@@ -857,6 +857,7 @@
                 data: {
                     timestamp: new Date().toISOString(),
                     user: state.user,
+                countedBy: document.getElementById('countedBy')?.value || state.user,
                     upc: document.getElementById('upcInput').value,
                     brand: document.getElementById('brand').value,
                     gender: document.getElementById('gender').value,
@@ -1289,6 +1290,7 @@
             const data = {
                 timestamp: new Date().toISOString(),
                 user: state.user,
+                countedBy: document.getElementById('countedBy')?.value || state.user,
                 item: {
                     upc: document.getElementById('upcInput').value,
                     brand: document.getElementById('brand').value,
@@ -1601,6 +1603,8 @@ function showLabelModal() {
         location: state.locations[0] || 'TBD',
         qty: parseInt(document.getElementById('subtotalPcs').textContent || 0),
         user: state.user,
+        countedBy: document.getElementById("countedBy")?.value || state.user,
+                countedBy: document.getElementById('countedBy')?.value || state.user,
         timestamp: new Date()
     };
 
@@ -1707,7 +1711,7 @@ function createCartonLabel(boxNum) {
                 <div class="upc-large">UPC: ${labelData.upc}</div>
                 <strong>Location:</strong> ${labelData.location}<br>
                 <strong>Time:</strong> ${labelData.timestamp.toLocaleDateString()} ${labelData.timestamp.toLocaleTimeString()}<br>
-                <strong>User:</strong> ${labelData.user}
+                <strong>User:</strong> ${labelData.user}<br><strong>Counted:</strong> ${labelData.countedBy}
             </div>
         </div>
         <div class="label-barcode">
@@ -1739,7 +1743,7 @@ function createPalletLabel(palletNum, totalPallets, cartonsPerPallet) {
                 <div class="upc-large">UPC: ${labelData.upc}</div>
                 <strong>Location:</strong> ${labelData.location}<br>
                 <strong>Time:</strong> ${labelData.timestamp.toLocaleDateString()} ${labelData.timestamp.toLocaleTimeString()}<br>
-                <strong>User:</strong> ${labelData.user}
+                <strong>User:</strong> ${labelData.user}<br><strong>Counted:</strong> ${labelData.countedBy}
             </div>
         </div>
         <div class="label-barcode">
