@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>STOCK TAKER APP - PRODUCTION v2</title>
+    <title>STOCK TAKER APP - PRODUCTION v3-FINAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -98,7 +98,28 @@
             .flex-buttons button { width: 100%; min-width: unset; }
         }
         @media print {
-            body { background: white; color: black; }
+    @page {
+        size: 4in 6in;
+        margin: 0.15in;
+    }
+
+    body * { visibility: hidden; }
+    #printArea, #printArea * { visibility: visible; }
+    #printArea { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%;
+    }
+
+    /* One label per page */
+    .label-page {
+        page-break-after: always;
+        page-break-inside: avoid;
+        width: 100%;
+        min-height: 5.7in;
+    }
+}
             button, .no-print, header { display: none; }
             section { page-break-inside: avoid; }
             .label-container { page-break-inside: avoid; width: 6in; height: 4in; }
@@ -118,7 +139,7 @@
 </head>
 <body>
     <header>
-        <h1>📦 STOCK TAKER - PRODUCTION v2</h1>
+        <h1>📦 STOCK TAKER - PRODUCTION v3-FINAL</h1>
         <small>Inventory Count & Putaway Workflow</small>
     </header>
     <main>
@@ -197,7 +218,20 @@
 
             <div class="row row-3">
                 <div>
-                    <label>Brand:</label>
+                    
+                <div style="margin: 16px 0; padding: 12px; background: rgba(59,130,246,0.1); border: 2px solid #3b82f6; border-radius: 8px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #3b82f6;">👤 Counted By:</label>
+                    <select id="countedBy" required style="width: 100%; padding: 12px; font-size: 16px; border: 2px solid #3b82f6; border-radius: 6px; background: #1e293b; color: white;">
+                        <option value="">— Select Counter —</option>
+                        <option>Leydi</option>
+                        <option>Karina</option>
+                        <option>Jocelyn</option>
+                        <option>Kelis</option>
+                        <option>Mabel</option>
+                    </select>
+                </div>
+
+                <label>Brand:</label>
                     <input type="text" id="brand" placeholder="e.g., Nike" disabled>
                 </div>
                 <div>
@@ -857,6 +891,7 @@
                 data: {
                     timestamp: new Date().toISOString(),
                     user: state.user,
+                countedBy: document.getElementById("countedBy")?.value || state.user,
                     upc: document.getElementById('upcInput').value,
                     brand: document.getElementById('brand').value,
                     gender: document.getElementById('gender').value,
@@ -1590,7 +1625,28 @@ function incrementProgress(){ const e=document.getElementById('itemsEntered'); i
 }
 
 @media print {
-    @page { size: 4in 6in portrait; margin: 0; }
+    @page {
+        size: 4in 6in;
+        margin: 0.15in;
+    }
+
+    body * { visibility: hidden; }
+    #printArea, #printArea * { visibility: visible; }
+    #printArea { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%;
+    }
+
+    /* One label per page */
+    .label-page {
+        page-break-after: always;
+        page-break-inside: avoid;
+        width: 100%;
+        min-height: 5.7in;
+    }
+}
     @page landscape { size: 6in 4in landscape; margin: 0; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
