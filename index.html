@@ -139,7 +139,7 @@
             <div class="row row-2">
                 <div>
                     <label>📋 Google Apps Script Endpoint:</label>
-                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbzFUL8Es8OrjUpvL5tKwIXWFikCGtQ1OFccgm2HHIMZXYSXJ8xNVL3uwcz-nQx4twrnOA/exec">
+                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbwn7xtE4hrf5FV4dlwzHKSj5xmy3HgCm1x41oYDbdjZwbsH33QsOKF5WxE0wLlAsafzYA/exec">
                 </div>
                 <div>
                     <label>📊 Expected Inventory Sheet ID:</label>
@@ -1824,7 +1824,6 @@ async function loadExpectedInventory() {
 
         const response = await fetch(scriptUrl, {
             method: 'POST',
-            mode: 'cors',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 action: 'getExpectedInventory',
