@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>STOCK TAKER APP - PRODUCTION v3-FINAL-FIXED</title>
+    <title>STOCK TAKER APP - PRODUCTION v3-COUNTERS-FINAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -114,51 +114,11 @@
     .progress-bar { background: #374151; height: 6px; border-radius: 3px; overflow: hidden; width: 100%; margin-top: 8px; }
     .progress-fill { background: #22c55e; height: 100%; width: 0%; transition: width 0.3s; }
 
-    
-/* FORCE ONE LABEL PER PAGE */
-@media print {
-    @page {
-        size: 4in 6in !important;
-        margin: 0 !important;
-    }
-
-    html, body {
-        width: 4in;
-        height: 6in;
-        margin: 0;
-        padding: 0;
-    }
-
-    body * {
-        visibility: hidden;
-    }
-
-    #printArea, #printArea * {
-        visibility: visible !important;
-    }
-
-    #printArea {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 4in;
-        height: 6in;
-    }
-
-    #printArea > div {
-        page-break-after: always !important;
-        page-break-inside: avoid !important;
-        width: 3.8in;
-        height: 5.8in;
-        margin: 0.1in;
-    }
-}
-
-</style>
+    </style>
 </head>
 <body>
     <header>
-        <h1>📦 STOCK TAKER - PRODUCTION v3-FINAL-FIXED</h1>
+        <h1>📦 STOCK TAKER - PRODUCTION v3-COUNTERS-FINAL</h1>
         <small>Inventory Count & Putaway Workflow</small>
     </header>
     <main>
@@ -169,19 +129,7 @@
             <div class="row row-2">
                 <div>
                     <label>👤 Logged in as:</label>
-                    <select id="userSelect" onchange="changeUser()">
-                        <option value="">— Select User —</option>
-                        <option value="Rikki">Rikki</option>
-                        <option value="Alberto">Alberto</option>
-                        <option value="Isabella">Isabella</option>
-                        <option value="Kelis">Kelis</option>
-                        <option value="Leydi">Leydi</option>
-                        <option value="Veronica">Veronica</option>
-                        <option value="Mabel">Mabel</option>
-                        <option value="Jocelyn">Jocelyn</option>
-                        <option value="WarehouseUser1">WarehouseUser1</option>
-                        <option value="WarehouseUser2">WarehouseUser2</option>
-                    </select>
+                    <select id="userSelect" onchange="changeUser()"><option value="">— Select —</option><option value="Rikki">Rikki</option><option value="Alberto">Alberto</option><option value="Isabella">Isabella</option><option value="Kelis">Kelis</option><option value="Leydi">Leydi</option><option value="Veronica">Veronica</option><option value="Mabel">Mabel</option><option value="Jocelyn">Jocelyn</option></select>
                 </div>
                 <div>
                     <label>🔐 Password (username backwards):</label>
@@ -191,8 +139,7 @@
             <div class="row row-2">
                 <div>
                     <label>📋 Google Apps Script Endpoint:</label>
-                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbwn7xtE4hrf5FV4dlwzHKSj5xmy3HgCm1x41oYDbdjZwbsH33QsOKF5WxE0wLlAsafzYA/exec"
-
+                    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbwn7xtE4hrf5FV4dlwzHKSj5xmy3HgCm1x41oYDbdjZwbsH33QsOKF5WxE0wLlAsafzYA/exec">
                 </div>
                 <div>
                     <label>📊 Expected Inventory Sheet ID:</label>
@@ -239,6 +186,7 @@
             <div class="row row-3">
                 <div>
                     
+                <!-- Counted By Field -->
                 <div style="margin: 16px 0; padding: 12px; background: rgba(59,130,246,0.1); border: 2px solid #3b82f6; border-radius: 8px;">
                     <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #3b82f6;">👤 Counted By:</label>
                     <select id="countedBy" required style="width: 100%; padding: 12px; font-size: 16px; border: 2px solid #3b82f6; border-radius: 6px; background: #1e293b; color: white;">
@@ -250,7 +198,8 @@
                         <option>Mabel</option>
                     </select>
                 </div>
-<label>Brand:</label>
+
+                <label>Brand:</label>
                     <input type="text" id="brand" placeholder="e.g., Nike" disabled>
                 </div>
                 <div>
@@ -1015,117 +964,7 @@ function printLabel() {
             showStatus('✓ Ready for next item!', 'ok');
         }
 
-        async function loadExpectedInventory() {
-    try {
-        const scriptUrl = document.getElementById('appsScriptUrl').value;
-        if (!scriptUrl) {
-            showNotification('⚠️ Please configure Script URL first', 'warn');
-            return;
-        }
-
-        showNotification('📊 Loading inventory from Google Sheet...', 'info');
-        console.log('=== LOADING EXPECTED INVENTORY ===');
-        console.log('Script URL:', scriptUrl);
-        console.log('Sending action: getExpectedInventory');
-
-        const response = await fetch(scriptUrl, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                action: 'getExpectedInventory',
-                data: {}
-            })
-        });
-
-        console.log('Response received, status:', response.status);
-        const result = await response.json();
-        console.log('Result status:', result.status);
-        console.log('Result count:', result.count);
-
-        if (result.status === 'success' && result.items) {
-            state.expectedInventory = {};
-
-            result.items.forEach((item, index) => {
-                state.expectedInventory[item.upc] = item;
-                if (index < 3) {
-                    console.log('Sample item ' + (index + 1) + ':', item);
-                }
-            });
-
-            const count = result.items.length;
-            console.log('✅ SUCCESS: Loaded', count, 'items into state.expectedInventory');
-            console.log('Total UPCs in state:', Object.keys(state.expectedInventory).length);
-
-            showNotification('✅ Loaded ' + count + ' items from expected inventory', 'success');
-            saveState();
-        } else {
-            console.error('❌ Bad response:', result);
-            throw new Error(result.message || 'Invalid response from server');
-        }
-
-    } catch (error) {
-        console.error('❌ LOAD ERROR:', error);
-        console.error('Error message:', error.message);
-        showNotification('❌ Failed to load: ' + error.message, 'error');
-    }
-}
-
-        showNotification('📊 Loading inventory from Google Sheet...', 'info');
-        console.log('=== LOADING EXPECTED INVENTORY ===');
-        console.log('Script URL:', scriptUrl);
-        console.log('Sending action: getExpectedInventory');
-
-        const response = await fetch(scriptUrl, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                action: 'getExpectedInventory',
-                data: {}
-            })
-        });
-
-        console.log('Response received, status:', response.status);
-        const result = await response.json();
-        console.log('Result status:', result.status);
-        console.log('Result count:', result.count);
-
-        if (result.status === 'success' && result.items) {
-            state.expectedInventory = {};
-
-            result.items.forEach((item, index) => {
-                state.expectedInventory[item.upc] = item;
-                if (index < 3) {
-                    console.log('Sample item ' + (index + 1) + ':', item);
-                }
-            });
-
-            const count = result.items.length;
-            console.log('✅ SUCCESS: Loaded', count, 'items into state.expectedInventory');
-            console.log('Total UPCs in state:', Object.keys(state.expectedInventory).length);
-
-            showNotification('✅ Loaded ' + count + ' items from expected inventory', 'success');
-            saveState();
-        } else {
-            console.error('❌ Bad response:', result);
-            throw new Error(result.message || 'Invalid response from server');
-        }
-
-    } catch (error) {
-        console.error('❌ LOAD ERROR:', error);
-        console.error('Error message:', error.message);
-        showNotification('❌ Failed to load: ' + error.message, 'error');
-    }
-},
-                '2.34567890123e+11': { brand: 'Adidas', gender: 'LADIES', coo: 'CHINA', description: 'Ultraboost 22', expectedQty: 12 },
-                '3.45678901234e+11': { brand: 'Puma', gender: 'UNISEX', coo: 'VIETNAM', description: 'RS-X3', expectedQty: 36 }
-            };
-            
-            state.expectedInv = demoInventory;
-            showStatus(`✓ Loaded ${Object.keys(state.expectedInv).length} items from expected inventory`, 'ok');
-            saveState();
-        }
+        
 
         function renderBoxGrid() {
             const grid = document.getElementById('boxGrid');
@@ -1760,46 +1599,6 @@ function incrementProgress(){ const e=document.getElementById('itemsEntered'); i
     }
     .label-item-master .label-timestamp { background: white !important; border: 2px solid #666 !important; }
 }
-
-/* FORCE ONE LABEL PER PAGE */
-@media print {
-    @page {
-        size: 4in 6in !important;
-        margin: 0 !important;
-    }
-
-    html, body {
-        width: 4in;
-        height: 6in;
-        margin: 0;
-        padding: 0;
-    }
-
-    body * {
-        visibility: hidden;
-    }
-
-    #printArea, #printArea * {
-        visibility: visible !important;
-    }
-
-    #printArea {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 4in;
-        height: 6in;
-    }
-
-    #printArea > div {
-        page-break-after: always !important;
-        page-break-inside: avoid !important;
-        width: 3.8in;
-        height: 5.8in;
-        margin: 0.1in;
-    }
-}
-
 </style>
 
 <script>
@@ -2010,6 +1809,55 @@ async function registerCartons(cartonData) {
 }
 
 function printLabel() { showLabelModal(); }
+
+async function loadExpectedInventory() {
+    try {
+        const scriptUrl = document.getElementById('appsScriptUrl').value;
+        if (!scriptUrl) {
+            showStatus('⚠️ Configure Script URL first', 'warn');
+            return;
+        }
+
+        showStatus('📊 Loading inventory from Google Sheet...', 'info');
+        console.log('=== LOADING EXPECTED INVENTORY ===');
+        console.log('Script URL:', scriptUrl);
+
+        const response = await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                action: 'getExpectedInventory',
+                data: {}
+            })
+        });
+
+        console.log('Response status:', response.status);
+        const result = await response.json();
+        console.log('Result:', result);
+
+        if (result.status === 'success' && result.items) {
+            state.expectedInv = {};
+
+            result.items.forEach((item, idx) => {
+                state.expectedInv[item.upc] = item;
+                if (idx < 3) console.log('Item', idx+1, ':', item);
+            });
+
+            const count = result.items.length;
+            console.log('✅ Successfully loaded', count, 'items');
+            showStatus('✅ Loaded ' + count + ' items from expected inventory', 'ok');
+            saveState();
+        } else {
+            throw new Error(result.message || 'Unknown error');
+        }
+
+    } catch (error) {
+        console.error('❌ Load error:', error);
+        showStatus('❌ Failed: ' + error.message, 'error');
+    }
+}
+
 </script>
 </body>
 </html>
