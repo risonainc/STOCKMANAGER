@@ -1015,10 +1015,109 @@ function printLabel() {
             showStatus('✓ Ready for next item!', 'ok');
         }
 
-        function loadExpectedInventory() {
-            showStatus('🔄 Loading expected inventory...', 'info');
-            const demoInventory = {
-                '1.23456789012e+11': { brand: 'Nike', gender: 'MENS', coo: 'VIETNAM', description: 'Air Max 90', expectedQty: 24 },
+        async function loadExpectedInventory() {
+    try {
+        const scriptUrl = document.getElementById('appsScriptUrl').value;
+        if (!scriptUrl) {
+            showNotification('⚠️ Please configure Script URL first', 'warn');
+            return;
+        }
+
+        showNotification('📊 Loading inventory from Google Sheet...', 'info');
+        console.log('=== LOADING EXPECTED INVENTORY ===');
+        console.log('Script URL:', scriptUrl);
+        console.log('Sending action: getExpectedInventory');
+
+        const response = await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                action: 'getExpectedInventory',
+                data: {}
+            })
+        });
+
+        console.log('Response received, status:', response.status);
+        const result = await response.json();
+        console.log('Result status:', result.status);
+        console.log('Result count:', result.count);
+
+        if (result.status === 'success' && result.items) {
+            state.expectedInventory = {};
+
+            result.items.forEach((item, index) => {
+                state.expectedInventory[item.upc] = item;
+                if (index < 3) {
+                    console.log('Sample item ' + (index + 1) + ':', item);
+                }
+            });
+
+            const count = result.items.length;
+            console.log('✅ SUCCESS: Loaded', count, 'items into state.expectedInventory');
+            console.log('Total UPCs in state:', Object.keys(state.expectedInventory).length);
+
+            showNotification('✅ Loaded ' + count + ' items from expected inventory', 'success');
+            saveState();
+        } else {
+            console.error('❌ Bad response:', result);
+            throw new Error(result.message || 'Invalid response from server');
+        }
+
+    } catch (error) {
+        console.error('❌ LOAD ERROR:', error);
+        console.error('Error message:', error.message);
+        showNotification('❌ Failed to load: ' + error.message, 'error');
+    }
+}
+
+        showNotification('📊 Loading inventory from Google Sheet...', 'info');
+        console.log('=== LOADING EXPECTED INVENTORY ===');
+        console.log('Script URL:', scriptUrl);
+        console.log('Sending action: getExpectedInventory');
+
+        const response = await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                action: 'getExpectedInventory',
+                data: {}
+            })
+        });
+
+        console.log('Response received, status:', response.status);
+        const result = await response.json();
+        console.log('Result status:', result.status);
+        console.log('Result count:', result.count);
+
+        if (result.status === 'success' && result.items) {
+            state.expectedInventory = {};
+
+            result.items.forEach((item, index) => {
+                state.expectedInventory[item.upc] = item;
+                if (index < 3) {
+                    console.log('Sample item ' + (index + 1) + ':', item);
+                }
+            });
+
+            const count = result.items.length;
+            console.log('✅ SUCCESS: Loaded', count, 'items into state.expectedInventory');
+            console.log('Total UPCs in state:', Object.keys(state.expectedInventory).length);
+
+            showNotification('✅ Loaded ' + count + ' items from expected inventory', 'success');
+            saveState();
+        } else {
+            console.error('❌ Bad response:', result);
+            throw new Error(result.message || 'Invalid response from server');
+        }
+
+    } catch (error) {
+        console.error('❌ LOAD ERROR:', error);
+        console.error('Error message:', error.message);
+        showNotification('❌ Failed to load: ' + error.message, 'error');
+    }
+},
                 '2.34567890123e+11': { brand: 'Adidas', gender: 'LADIES', coo: 'CHINA', description: 'Ultraboost 22', expectedQty: 12 },
                 '3.45678901234e+11': { brand: 'Puma', gender: 'UNISEX', coo: 'VIETNAM', description: 'RS-X3', expectedQty: 36 }
             };
