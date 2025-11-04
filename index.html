@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <title>StockTaker v7.0.2 — SIMPLE (Sheets‑Wired + Scanner + History)</title>
+  <title>StockTaker v7.0.2 — SIMPLE (Black) — v7.0.3 R1</title>
   <style>
-  /* ====== SIMPLE (index17-style) theme baked in ====== */
+  /* ===== SIMPLE (black) theme ===== */
   :root{
     --bg:#0b0c10; --card:#12141a; --stroke:#1f2430; --text:#e9eef6; --muted:#9aa6b2;
     --accent:#4f9cff; --accent-2:#00c27a; --warn:#f7b500; --danger:#ff5c7a;
     --radius:14px; --shadow:0 6px 20px rgba(0,0,0,.28); --gap:14px; --gap-lg:22px; --gap-xl:28px;
     --fs-1: clamp(18px, 3.8vw, 22px); --fs-2: clamp(20px, 4.5vw, 26px); --fs-3: clamp(24px, 5.2vw, 32px); --fs-4: clamp(28px, 6.5vw, 40px);
   }
-  html,body{height:100%}
+  html,body{height:100%; overscroll-behavior-y: none; overscroll-behavior: none;}
   body{margin:0; font:500 var(--fs-1)/1.35 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; color:var(--text);
-       background:linear-gradient(180deg,#0d1117 0%,#090b10 100%); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
+       background:linear-gradient(180deg,#0d1117 0%,#090b10 100%); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; touch-action: manipulation}
   .shell{ max-width: 980px; margin: 24px auto 80px; padding: 0 var(--gap); }
   h1,h2,h3,h4{margin:0 0 var(--gap); font-weight:700; letter-spacing:.2px}
   h1{font-size:var(--fs-4)} h2{font-size:var(--fs-3)} h3{font-size:var(--fs-2)}
@@ -40,10 +40,10 @@
   @media (max-width: 720px){ .grid.two, .grid.three{ grid-template-columns: 1fr } }
   .page{ display:none } .page.active{ display:block }
   #pageIndicator{ font-weight:800; color:var(--muted) }
-  .progress{ background:#0c0f14; border:1px solid var(--stroke); border-radius:999px; height:12px; overflow:hidden }
+  .progress{ background:#0c0f14; border:1px solid var(--stroke); border-radius:999px; height:12px; overflow:hidden; flex:1 1 180px; min-width:180px }
   #progressBar{ height:100%; width:0%; background:linear-gradient(90deg, var(--accent), #58e7c8) }
   #boxStyles .card{ background:#0b0e13; border:1px dashed #263044; border-radius:12px; padding:12px; margin:8px 0 }
-  #boxStyles .row{ display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr; gap:8px }
+  #boxStyles .row{ display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:8px }
   #boxStyles .row input{ text-align:center }
   #boxStyles .title{ font-weight:800; margin-bottom:8px; color:#c9d6e8 }
   .totals{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-top: 8px }
@@ -51,32 +51,43 @@
   #locations .row{ display:grid; grid-template-columns: 3fr 1fr; gap:8px; margin-bottom:8px }
   #discBanner{ padding:10px 12px; border:1px solid #423100; background:#211a00; color:#ffd16b; border-radius:10px; font-weight:700 }
   .hidden{ display:none !important }
+  .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:#0c0f14; border:1px solid var(--stroke); color:#c0cad6; font-weight:700 }
+  .small{ font-size:.92em; color:#9fb1c5 }
+
   .modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:20px; z-index:9999 }
   .modal .sheet{ width:min(100%, 980px); background:var(--card); border:1px solid var(--stroke); border-radius:16px; box-shadow:var(--shadow); padding:16px }
   #labelsContainer{ display:grid; gap:10px }
-  .label-preview{ background:white; color:#111; padding:10px; border-radius:8px }
+  .label-preview{ background:white; color:#111; padding:10px; border-radius:8px; }
   #upc{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-weight:800; font-size: clamp(20px, 6.5vw, 30px); letter-spacing:.6px }
-  .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:#0c0f14; border:1px solid var(--stroke); color:var(--muted); font-weight:700 }
-  .small{ font-size:.92em; color:var(--muted) }
-  .center{ text-align:center } .right{ text-align:right }
-  @media print{ body{ background:white } .modal{ position:static; background:transparent } .shell,.section,.page{ box-shadow:none; border:none } }
+
+  /* ===== PRINT: 4in x 6in labels only ===== */
+  @media print{
+    @page { size: 4in 6in; margin: 0; }
+    body{ background:white; }
+    .shell, #scannerModal1D, #scannerModalQR{ display:none !important; }
+    .modal{ position:static; background:transparent; padding:0; }
+    #labelsModal{ display:block !important; }
+    #labelsModal .sheet{ border:none; box-shadow:none; width:100%; padding:0; }
+    #labelsContainer{ display:block; }
+    .label-preview{ width:4in; height:6in; margin:0; padding:14px; page-break-after: always; }
+  }
   </style>
 </head>
 <body>
   <div class="shell">
     <div class="section" id="header">
       <header>
-        <h1>StockTaker v7.0.2 — SIMPLE</h1>
+        <h1>StockTaker v7.0.2 — SIMPLE (Black) <span class="small">v7.0.3 R1</span></h1>
         <div class="meta"><span id="pageIndicator">Page 1 of 2</span></div>
       </header>
       <div class="grid two">
         <div>
           <label>Apps Script Endpoint</label>
-          <input id="endpoint" type="text" placeholder="https://script.google.com/.../exec">
+          <input id="endpoint" type="text" placeholder="https://script.google.com/.../exec" required>
         </div>
         <div>
           <label>Expected Sheet ID</label>
-          <input id="sheetId" type="text" placeholder="Google Sheet ID">
+          <input id="sheetId" type="text" placeholder="Google Sheet ID" required>
         </div>
       </div>
       <div class="btn-row" style="margin-top:10px">
@@ -85,7 +96,7 @@
         <button id="btnTest" class="btn ghost">Test Connection</button>
         <button id="btnLoadExpected" class="btn ghost">Load Expected</button>
         <span class="badge">Progress: <span id="progressText">0 of 0</span></span>
-        <div class="progress" style="flex:1 1 180px; min-width:180px"><div id="progressBar"></div></div>
+        <div class="progress"><div id="progressBar"></div></div>
       </div>
     </div>
 
@@ -280,6 +291,13 @@
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
   <script>
+  // ===== Query params → preload endpoint/sheet =====
+  (function(){
+    const params=new URLSearchParams(location.search);
+    if(params.has('endpoint')) localStorage.setItem('endpoint', JSON.stringify(params.get('endpoint')));
+    if(params.has('sheetId')) localStorage.setItem('sheetId', JSON.stringify(params.get('sheetId')));
+  })();
+
   // ===== Local storage helpers =====
   const S = (k,v)=>localStorage.setItem(k, JSON.stringify(v));
   const G = (k)=>{ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } };
@@ -402,7 +420,7 @@
   async function callEndpoint(action,payload){
     const url=(G('endpoint')||document.getElementById('endpoint').value||'').trim(); if(!url) throw new Error('Endpoint missing');
     const body={ action, sheetId:(G('sheetId')||document.getElementById('sheetId').value||''), payload };
-    const r=await fetch(url,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    const r=await fetch(url,{ method:'POST', mode:'cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
     if(!r.ok) throw new Error('HTTP '+r.status); return await r.json();
   }
   document.getElementById('btnTest').addEventListener('click', async()=>{ try{ const j=await callEndpoint('ping',{}); alert('Ping OK: '+JSON.stringify(j)); }catch(e){ alert('Ping failed: '+e.message); } });
@@ -440,19 +458,20 @@
   document.getElementById('btnCloseScanQR').addEventListener('click', closeScanQR);
   document.getElementById('cameraFacingQR').addEventListener('change', ()=>{ closeScanQR(); openScanQR(); });
 
-  // ===== Labels rendering =====
+  // ===== Labels rendering (4x6) =====
   function nowISO(){ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds()); }
-  function uuidv4(){ return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r=Math.random()*16|0, v=c==='x'?r:(r&0x3|0x8); return v.toString(16); }); }
-  function buildCartonId(ts, idx){ try{ const d=new Date(); const base=ts; return 'C-' + base + '-' + String(idx).padStart(3,'0'); }catch(e){ return 'C-'+ts+'-'+String(idx).padStart(3,'0'); } }
+  function nowPretty(){ return new Date().toLocaleString(); }
+  function buildCartonId(ts, idx){ return 'C-' + ts + '-' + String(idx).padStart(3,'0'); }
 
   function getCartonsAuto(parentTs){
     const upc=document.getElementById('upc').value.trim();
     const brand=document.getElementById('brand').value; const description=document.getElementById('desc').value;
-    const countedBy=document.getElementById('countedBy').value; const primaryLoc=(document.querySelectorAll('.locName')[0]?.value)||'';
+    const countedBy=document.getElementById('countedBy').value; const gender=document.getElementById('gender').value;
+    const primaryLoc=(document.querySelectorAll('.locName')[0]?.value)||'';
     let idx=0; const arr=[];
     $$('#boxStyles .card').forEach(card=>{
       const boxes=+card.querySelector('.boxes').value||0; const qty=+card.querySelector('.qty').value||0;
-      for(let i=0;i<boxes;i++){ idx++; arr.push({ carton_id: buildCartonId(parentTs, idx), upc, brand, description, pieces_per_carton: qty, box_number: idx, location: primaryLoc, counted_by: countedBy }); }
+      for(let i=0;i<boxes;i++){ idx++; arr.push({ carton_id: buildCartonId(parentTs, idx), upc, brand, description, gender, pieces_per_carton: qty, box_number: idx, location: primaryLoc, counted_by: countedBy, ts: nowPretty() }); }
     });
     return arr;
   }
@@ -460,20 +479,25 @@
   function renderInventoried(container){
     const lp=document.createElement('div'); lp.className='label-preview';
     const upc=document.getElementById('upc').value.trim(); const qty=document.getElementById('subtotal').textContent;
+    const brand=document.getElementById('brand').value||'—';
+    const desc=document.getElementById('desc').value||'—';
+    const gender=document.getElementById('gender').value||'—';
+    const countedBy=document.getElementById('countedBy').value||'—';
+    const ts=nowPretty();
     lp.innerHTML = `
       <div style="font-weight:800; font-size:18px; text-align:center">INVENTORIED LABEL</div>
-      <div class="center" style="font-weight:800; font-size:16px; margin:6px 0">${document.getElementById('desc').value||'—'}</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px">
+      <div class="center" style="font-weight:800; font-size:16px; margin:4px 0">${desc}</div>
+      <div style="font-size:12px; margin-bottom:6px">Brand: <b>${brand}</b> &middot; Gender: <b>${gender}</b></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px; margin-bottom:6px">
         <div>Item No: <span class="i1">${document.getElementById('edgeno').value||'—'}</span></div>
-        <div>Brand: <span class="i2">${document.getElementById('brand').value||'—'}</span></div>
-        <div>Gender: <span class="i3">${document.getElementById('gender').value||'—'}</span></div>
         <div>COO: <span class="i4">${document.getElementById('coo').value||'—'}</span></div>
         <div style="grid-column:1/-1">Location: <span class="i5">${(document.querySelectorAll('.locName')[0]?.value)||'—'}</span></div>
         <div style="grid-column:1/-1">Total Qty: <b>${qty}</b></div>
+        <div style="grid-column:1/-1">Inventoried By: <b>${countedBy}</b> &nbsp;|&nbsp; <span>${ts}</span></div>
       </div>
       <svg id="barcodeInv"></svg>
-      <div id="qrinv"></div>
-      <div class="center" style="font-weight:800; letter-spacing:.4px; margin-top:4px">${upc}</div>`;
+      <div class="center" style="font-weight:800; letter-spacing:.4px; margin:4px 0 8px">${upc}</div>
+      <div id="qrinv" class="center"></div>`;
     container.appendChild(lp);
     try{ JsBarcode(lp.querySelector('#barcodeInv'), upc, {format:'CODE128', displayValue:false, height:40, margin:0}); }catch(e){}
     try{ new QRCode(lp.querySelector('#qrinv'), { text: upc, width:120, height:120 }); }catch(e){}
@@ -482,20 +506,19 @@
   function renderCartonLabels(container){
     const cartons=getCartonsAuto(nowISO()); const total=cartons.length; 
     cartons.forEach(c=>{ const lp=document.createElement('div'); lp.className='label-preview'; lp.innerHTML=
-      `<div style="font-weight:800">CARTON LABEL</div>
-       <div>${(c.brand||'—')} — ${(c.description||'—')}</div>
-       <div>Qty: <b>${c.pieces_per_carton}</b> pcs</div>
-       <div>Carton: ${c.box_number} of ${total}</div>
-       <div>Location: ${c.location||'—'}</div>
-       <div>Counted By: ${c.counted_by||'—'}</div>
-       <div>Carton ID: ${c.carton_id}</div>
+      `<div style="font-weight:800; text-align:center">CARTON LABEL</div>
+       <div style="font-size:13px; margin:4px 0"><b>${(c.brand||'—')}</b> — ${(c.description||'—')} &middot; <b>${c.gender||'—'}</b></div>
+       <div style="font-size:12px; margin-bottom:6px">Qty/Carton: <b>${c.pieces_per_carton}</b> pcs &nbsp;|&nbsp; Carton: ${c.box_number} of ${total}</div>
+       <div style="font-size:12px;">Location: ${c.location||'—'} &nbsp;|&nbsp; Counted By: ${c.counted_by||'—'} &nbsp;|&nbsp; ${c.ts||''}</div>
        <svg class="barcode"></svg>
-       <div class="qr"></div>
-       <div class="center" style="font-weight:800; letter-spacing:.4px; margin-top:4px">${c.upc}</div>`; container.appendChild(lp);
+       <div class="center" style="font-weight:800; letter-spacing:.4px; margin:4px 0 8px">${c.upc}</div>
+       <div class="qr" style="margin:auto; width:120px; height:120px"></div>
+       <div class="center small" style="margin-top:6px">Carton ID: ${c.carton_id}</div>`; 
+      container.appendChild(lp);
       try{ JsBarcode(lp.querySelector('.barcode'), c.upc, {format:'CODE128', displayValue:false, height:40, margin:0}); }catch(e){}
       try{ new QRCode(lp.querySelector('.qr'), { text: c.upc, width:120, height:120 }); }catch(e){}
     });
-    if(document.getElementById('includeSummary').checked){ const totalPieces=cartons.reduce((s,c)=>s+c.pieces_per_carton,0); const sum=document.createElement('div'); sum.className='label-preview'; sum.innerHTML=`<div style="font-weight:800">CARTON SUMMARY</div><div>${document.getElementById('brand').value||'—'} — ${document.getElementById('desc').value||'—'}</div><div>Total Boxes: ${total} | Total Pieces: ${totalPieces}</div>`; container.appendChild(sum); }
+    if(document.getElementById('includeSummary').checked){ const totalPieces=cartons.reduce((s,c)=>s+c.pieces_per_carton,0); const sum=document.createElement('div'); sum.className='label-preview'; sum.innerHTML=`<div style=\"font-weight:800\">CARTON SUMMARY</div><div>${document.getElementById('brand').value||'—'} — ${document.getElementById('desc').value||'—'}</div><div>Total Boxes: ${total} | Total Pieces: ${totalPieces}</div>`; container.appendChild(sum); }
   }
 
   function renderPalletLabel(container){
@@ -533,7 +556,7 @@
   // ===== Presets quick-fill to first location =====
   document.getElementById('presetLoc').addEventListener('change', (e)=>{ if(!e.target.value) return; const n=document.querySelectorAll('.locName')[0]; if(n) n.value=e.target.value; });
 
-  // ===== Submit (skeleton) =====
+  // ===== Submit (as-is wiring) =====
   document.getElementById('btnSubmitNext').addEventListener('click', async()=>{
     const payload={
       upc: document.getElementById('upc').value.trim(),
@@ -548,12 +571,8 @@
       edgeno: document.getElementById('edgeno').value,
       ts: new Date().toISOString()
     };
-    try{ const j=await callEndpoint('submit', payload); alert('Submitted: '+(j && j.ok ? 'OK' : JSON.stringify(j))); progress++; updateProgress(); /* auto-next cycle */ showPage(1); /* clear as needed */ }catch(e){ alert('Submit failed: '+e.message); }
+    try{ const j=await callEndpoint('submit', payload); alert('Submitted: '+(j && j.ok ? 'OK' : JSON.stringify(j))); progress++; updateProgress(); showPage(1); }catch(e){ alert('Submit failed: '+e.message); }
   });
-
-  // ===== Open QR from button =====
-  // (already wired above)
-
   </script>
 </body>
 </html>
