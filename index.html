@@ -1,578 +1,1219 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <title>StockTaker v7.0.2 — SIMPLE (Black) — v7.0.3 R1</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StockTaker App</title>
   <style>
-  /* ===== SIMPLE (black) theme ===== */
-  :root{
-    --bg:#0b0c10; --card:#12141a; --stroke:#1f2430; --text:#e9eef6; --muted:#9aa6b2;
-    --accent:#4f9cff; --accent-2:#00c27a; --warn:#f7b500; --danger:#ff5c7a;
-    --radius:14px; --shadow:0 6px 20px rgba(0,0,0,.28); --gap:14px; --gap-lg:22px; --gap-xl:28px;
-    --fs-1: clamp(18px, 3.8vw, 22px); --fs-2: clamp(20px, 4.5vw, 26px); --fs-3: clamp(24px, 5.2vw, 32px); --fs-4: clamp(28px, 6.5vw, 40px);
-  }
-  html,body{height:100%; overscroll-behavior-y: none; overscroll-behavior: none;}
-  body{margin:0; font:500 var(--fs-1)/1.35 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; color:var(--text);
-       background:linear-gradient(180deg,#0d1117 0%,#090b10 100%); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; touch-action: manipulation}
-  .shell{ max-width: 980px; margin: 24px auto 80px; padding: 0 var(--gap); }
-  h1,h2,h3,h4{margin:0 0 var(--gap); font-weight:700; letter-spacing:.2px}
-  h1{font-size:var(--fs-4)} h2{font-size:var(--fs-3)} h3{font-size:var(--fs-2)}
-  .section{ background:var(--card); border:1px solid var(--stroke); border-radius: var(--radius); padding: var(--gap-lg); box-shadow: var(--shadow); margin-bottom: var(--gap-xl); }
-  .section>header{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom: var(--gap-lg);}
-  .section>header .meta{color:var(--muted); font-weight:600}
-  label{display:block; font-weight:700; margin: 10px 0 6px; color:var(--muted)}
-  input[type=text],input[type=number],select,textarea{ width:100%; background:#0c0f14; color:var(--text); border:1px solid var(--stroke); border-radius:12px; padding:12px 14px; outline:none; transition:.2s border-color }
-  input:focus,select:focus,textarea:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,156,255,.15) }
-  textarea{ min-height: 90px; resize: vertical }
-  .btn{ appearance:none; border:none; border-radius:12px; padding:12px 16px; font-weight:800; letter-spacing:.3px; color:#0b0c10; background:#d0d7e3; cursor:pointer; transition:.2s transform, .2s box-shadow, .2s background; box-shadow:0 4px 14px rgba(0,0,0,.18) }
-  .btn:hover{ transform: translateY(-1px) }
-  .btn:active{ transform: translateY(0) scale(.98) }
-  .btn.primary{ background: var(--accent); color: #020409 }
-  .btn.success{ background: var(--accent-2); color: #031210 }
-  .btn.ghost{ background: transparent; color: var(--text); border:1px solid var(--stroke) }
-  .btn.warn{ background: var(--warn) }
-  .btn.danger{ background: var(--danger) }
-  .btn-row{ display:flex; flex-wrap:wrap; gap:10px }
-  .grid{ display:grid; gap: var(--gap); }
-  .grid.two{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .grid.three{ grid-template-columns: repeat(3, minmax(0,1fr)); }
-  @media (max-width: 720px){ .grid.two, .grid.three{ grid-template-columns: 1fr } }
-  .page{ display:none } .page.active{ display:block }
-  #pageIndicator{ font-weight:800; color:var(--muted) }
-  .progress{ background:#0c0f14; border:1px solid var(--stroke); border-radius:999px; height:12px; overflow:hidden; flex:1 1 180px; min-width:180px }
-  #progressBar{ height:100%; width:0%; background:linear-gradient(90deg, var(--accent), #58e7c8) }
-  #boxStyles .card{ background:#0b0e13; border:1px dashed #263044; border-radius:12px; padding:12px; margin:8px 0 }
-  #boxStyles .row{ display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:8px }
-  #boxStyles .row input{ text-align:center }
-  #boxStyles .title{ font-weight:800; margin-bottom:8px; color:#c9d6e8 }
-  .totals{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-top: 8px }
-  .totals .pill{ background:#0b0e13; border:1px solid var(--stroke); border-radius:999px; padding:10px 12px; text-align:center; font-weight:800 }
-  #locations .row{ display:grid; grid-template-columns: 3fr 1fr; gap:8px; margin-bottom:8px }
-  #discBanner{ padding:10px 12px; border:1px solid #423100; background:#211a00; color:#ffd16b; border-radius:10px; font-weight:700 }
-  .hidden{ display:none !important }
-  .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:#0c0f14; border:1px solid var(--stroke); color:#c0cad6; font-weight:700 }
-  .small{ font-size:.92em; color:#9fb1c5 }
+    :root {
+      --color-primary: #1FB8CD;
+      --color-success: #10b981;
+      --color-danger: #ef4444;
+      --color-warning: #f59e0b;
+      --color-bg: #f8f9fa;
+      --color-surface: #ffffff;
+      --color-text: #1f2937;
+      --color-text-secondary: #6b7280;
+      --color-border: #e5e7eb;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --radius: 8px;
+    }
 
-  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:20px; z-index:9999 }
-  .modal .sheet{ width:min(100%, 980px); background:var(--card); border:1px solid var(--stroke); border-radius:16px; box-shadow:var(--shadow); padding:16px }
-  #labelsContainer{ display:grid; gap:10px }
-  .label-preview{ background:white; color:#111; padding:10px; border-radius:8px; }
-  #upc{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-weight:800; font-size: clamp(20px, 6.5vw, 30px); letter-spacing:.6px }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* ===== PRINT: 4in x 6in labels only ===== */
-  @media print{
-    @page { size: 4in 6in; margin: 0; }
-    body{ background:white; }
-    .shell, #scannerModal1D, #scannerModalQR{ display:none !important; }
-    .modal{ position:static; background:transparent; padding:0; }
-    #labelsModal{ display:block !important; }
-    #labelsModal .sheet{ border:none; box-shadow:none; width:100%; padding:0; }
-    #labelsContainer{ display:block; }
-    .label-preview{ width:4in; height:6in; margin:0; padding:14px; page-break-after: always; }
-  }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      height: 100%;
+      overflow-x: hidden;
+      /* CRITICAL: Disable pull-to-refresh */
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    body {
+      padding: var(--space-md);
+      padding-bottom: 80px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: var(--space-lg);
+      color: var(--color-primary);
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: var(--space-lg) 0 var(--space-md);
+      color: var(--color-text);
+    }
+
+    h3 {
+      font-size: 16px;
+      margin: var(--space-md) 0 var(--space-sm);
+      color: var(--color-text);
+    }
+
+    .card {
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      padding: var(--space-md);
+      margin-bottom: var(--space-md);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+      margin-bottom: var(--space-md);
+    }
+
+    label {
+      display: block;
+      margin-bottom: var(--space-xs);
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--color-text);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: var(--space-sm);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(31, 184, 205, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      margin-right: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1a9fb0;
+    }
+
+    .btn-success {
+      background: var(--color-success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-warning {
+      background: var(--color-warning);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn-icon {
+      padding: 8px;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-group {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .input-group input {
+      flex: 1;
+    }
+
+    .grid {
+      display: grid;
+      gap: var(--space-md);
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .style-row {
+      background: #f9fafb;
+      padding: var(--space-sm);
+      border-radius: var(--radius);
+      margin-bottom: var(--space-sm);
+      border: 1px solid var(--color-border);
+    }
+
+    .style-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-sm);
+    }
+
+    .location-item {
+      background: #f9fafb;
+      padding: var(--space-sm);
+      border-radius: var(--radius);
+      margin-bottom: var(--space-sm);
+      border: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .nav-buttons {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--color-surface);
+      padding: var(--space-md);
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      gap: var(--space-sm);
+      justify-content: center;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      overflow: auto;
+    }
+
+    .modal.active {
+      display: block;
+    }
+
+    .modal-content {
+      background: var(--color-surface);
+      margin: 20px auto;
+      padding: var(--space-lg);
+      max-width: 90%;
+      border-radius: var(--radius);
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-md);
+    }
+
+    .close {
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      line-height: 1;
+    }
+
+    .close:hover {
+      color: var(--color-text);
+    }
+
+    #scanner-container, #qr-scanner-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    video {
+      width: 100%;
+      border-radius: var(--radius);
+    }
+
+    canvas {
+      display: none;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: var(--space-md);
+      gap: var(--space-sm);
+    }
+
+    .tab {
+      padding: var(--space-sm) var(--space-md);
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .label-preview {
+      border: 2px solid var(--color-border);
+      padding: var(--space-md);
+      margin-bottom: var(--space-md);
+      background: white;
+      text-align: center;
+    }
+
+    .label-preview h3 {
+      margin-top: 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .progress {
+      background: #e5e7eb;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: var(--space-md) 0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--color-primary);
+      transition: width 0.3s;
+    }
+
+    /* Print styles for 4x6 labels */
+    @media print {
+      @page {
+        size: 4in 6in;
+        margin: 0;
+      }
+
+      html, body {
+        height: auto;
+        overflow: visible;
+      }
+
+      body {
+        padding: 0;
+        background: white;
+      }
+
+      /* Hide everything except labels */
+      body > *:not(#labelsContainer) {
+        display: none !important;
+      }
+
+      .modal {
+        display: none !important;
+      }
+
+      .modal-content {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        max-width: 100%;
+      }
+
+      .tabs, .modal-header, .btn {
+        display: none !important;
+      }
+
+      #labelsContainer {
+        display: block !important;
+        position: static !important;
+      }
+
+      .tab-content {
+        display: block !important;
+      }
+
+      .label-preview {
+        width: 4in;
+        height: 6in;
+        border: none;
+        padding: 0.25in;
+        margin: 0;
+        page-break-after: always;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        box-sizing: border-box;
+      }
+
+      .label-preview:last-child {
+        page-break-after: auto;
+      }
+
+      .label-preview svg {
+        max-width: 3.5in;
+        margin: 0.1in auto;
+      }
+
+      .label-preview h3 {
+        font-size: 16pt;
+        margin: 0.1in 0;
+      }
+
+      .label-preview p {
+        font-size: 10pt;
+        margin: 0.05in 0;
+      }
+
+      .label-preview strong {
+        font-size: 12pt;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="section" id="header">
-      <header>
-        <h1>StockTaker v7.0.2 — SIMPLE (Black) <span class="small">v7.0.3 R1</span></h1>
-        <div class="meta"><span id="pageIndicator">Page 1 of 2</span></div>
-      </header>
-      <div class="grid two">
-        <div>
-          <label>Apps Script Endpoint</label>
-          <input id="endpoint" type="text" placeholder="https://script.google.com/.../exec" required>
-        </div>
-        <div>
-          <label>Expected Sheet ID</label>
-          <input id="sheetId" type="text" placeholder="Google Sheet ID" required>
-        </div>
+  <div class="container">
+    <h1>📦 StockTaker App</h1>
+
+    <!-- Configuration Section -->
+    <div class="card">
+      <h2>⚙️ Configuration</h2>
+      <div class="form-group">
+        <label for="endpoint">API Endpoint:</label>
+        <input type="text" id="endpoint" placeholder="https://api.example.com/stocktaker">
       </div>
-      <div class="btn-row" style="margin-top:10px">
-        <button id="btnSaveCfg" class="btn">Save</button>
-        <span id="saveState" class="badge">Not saved</span>
-        <button id="btnTest" class="btn ghost">Test Connection</button>
-        <button id="btnLoadExpected" class="btn ghost">Load Expected</button>
-        <span class="badge">Progress: <span id="progressText">0 of 0</span></span>
-        <div class="progress"><div id="progressBar"></div></div>
+      <div class="form-group">
+        <label for="sheetId">Sheet ID:</label>
+        <input type="text" id="sheetId" placeholder="Your Sheet ID">
       </div>
+      <button class="btn btn-secondary btn-small" onclick="saveConfig()">Save Config</button>
     </div>
 
-    <!-- PAGE 1 -->
-    <div class="section page active" id="page1">
-      <header><h2>Item Details</h2><div class="meta">Validation & Packing</div></header>
-
-      <div class="grid two">
-        <div>
-          <label>UPC</label>
-          <div class="btn-row">
-            <input id="upc" type="text" inputmode="numeric" placeholder="Scan or enter UPC">
-            <button id="btnScanUPC" class="btn primary">📷 Scan</button>
-            <button id="btnGenUPC" class="btn ghost">Gen</button>
+    <!-- Page 1: Item Details -->
+    <div id="page1" class="page active">
+      <div class="card">
+        <h2>📋 Item Details (Page 1/2)</h2>
+        
+        <div class="form-group">
+          <label for="upc">UPC:</label>
+          <div class="input-group">
+            <input type="text" id="upc" placeholder="Scan or enter UPC">
+            <button class="btn btn-primary btn-icon" onclick="openScanner()">📷</button>
           </div>
         </div>
-        <div>
-          <label>Brand</label>
-          <input id="brand" type="text" placeholder="Brand"/>
-        </div>
-        <div>
-          <label>Description</label>
-          <input id="desc" type="text" placeholder="Item Description"/>
-        </div>
-        <div class="grid two">
-          <div>
-            <label>COO</label>
-            <select id="coo">
-              <option value="">—</option>
-              <option>USA</option><option>FRANCE</option><option>ITALY</option><option>UAE</option><option>SPAIN</option><option>UK</option>
+
+        <div class="grid">
+          <div class="form-group">
+            <label for="brand">Brand:</label>
+            <input type="text" id="brand" placeholder="Brand name">
+          </div>
+          <div class="form-group">
+            <label for="gender">Gender:</label>
+            <select id="gender">
+              <option value="">Select...</option>
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Unisex">Unisex</option>
+              <option value="Kids">Kids</option>
             </select>
           </div>
-          <div>
-            <label>Gender</label>
-            <select id="gender"><option value="">—</option><option>MENS</option><option>LADIES</option><option>UNISEX</option></select>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Item Description:</label>
+          <input type="text" id="description" placeholder="Item description">
+        </div>
+
+        <div class="grid">
+          <div class="form-group">
+            <label for="coo">COO (Country of Origin):</label>
+            <input type="text" id="coo" placeholder="e.g., China">
+          </div>
+          <div class="form-group">
+            <label for="cd">C/D:</label>
+            <input type="text" id="cd" placeholder="C/D value">
           </div>
         </div>
-        <div class="grid two">
-          <div>
-            <label>C/D</label>
-            <select id="cd"><option value="">—</option><option>CLEAN</option><option>DECODED</option></select>
+
+        <div class="grid">
+          <div class="form-group">
+            <label for="expectedQty">Expected Qty:</label>
+            <input type="number" id="expectedQty" placeholder="0">
           </div>
-          <div>
-            <label>Expected Qty</label>
-            <input id="expectedQty" type="number" min="0" placeholder="0"/>
-          </div>
-        </div>
-        <div class="grid two">
-          <div>
-            <label>Counted By</label>
-            <select id="countedBy"><option>—</option><option>Leydi</option><option>Karina</option><option>Jocelyn</option><option>Kelis</option><option>Mabel</option></select>
-          </div>
-          <div>
-            <label>EdgeNo (old system)</label>
-            <input id="edgeno" type="text" placeholder="Optional"/>
+          <div class="form-group">
+            <label for="countedBy">Counted By:</label>
+            <input type="text" id="countedBy" placeholder="Your name">
           </div>
         </div>
-      </div>
 
-      <h3 style="margin-top:18px">Item Dimensions</h3>
-      <div class="grid three">
-        <div><label>L (in)</label><input id="len" type="number" min="0" step="0.01"></div>
-        <div><label>W (in)</label><input id="wid" type="number" min="0" step="0.01"></div>
-        <div><label>H (in)</label><input id="hei" type="number" min="0" step="0.01"></div>
-      </div>
-      <div class="grid two">
-        <div><label>Weight (lb)</label><input id="wt" type="number" min="0" step="0.01"></div>
-      </div>
+        <div class="form-group">
+          <label for="edgeNo">Edge No (Item No):</label>
+          <input type="text" id="edgeNo" placeholder="Edge number">
+        </div>
 
-      <h3 style="margin-top:18px">Box Breakdown (Styles 1–4) — with Box Dimensions & Gross Weight</h3>
-      <div id="boxStyles"></div>
+        <h3>📐 Item Dimensions</h3>
+        <div class="grid">
+          <div class="form-group">
+            <label for="dimLength">Length:</label>
+            <input type="number" id="dimLength" placeholder="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="dimWidth">Width:</label>
+            <input type="number" id="dimWidth" placeholder="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="dimHeight">Height:</label>
+            <input type="number" id="dimHeight" placeholder="0" step="0.01">
+          </div>
+        </div>
 
-      <div class="totals">
-        <div class="pill">Subtotal Pieces: <span id="subtotal">0</span></div>
-        <div class="pill">Total Cartons: <span id="totalCartons">0</span></div>
-        <div class="pill">Total Cubic Feet: <span id="totalCft">0.00</span></div>
-        <div class="pill">Total Gross Weight (lb): <span id="totalGwt">0.00</span></div>
-      </div>
-
-      <div class="btn-row" style="margin-top:14px">
-        <button id="btnCheck" class="btn warn">Check Discrepancy</button>
-        <button id="btnNext" class="btn primary" style="margin-left:auto">Next → Page 2</button>
+        <h3>👕 Style Breakdown</h3>
+        <div id="styleRows"></div>
+        <button class="btn btn-secondary btn-small" onclick="addStyleRow()">+ Add Style</button>
       </div>
     </div>
 
-    <!-- PAGE 2 -->
-    <div class="section page" id="page2">
-      <header><h2>Putaway & Damage</h2><div class="meta">Locations & Submit</div></header>
-
-      <div id="discBanner" class="hidden">⚠ Subtotal differs from Expected. Please provide a reason below.</div>
-
-      <label>Locations</label>
-      <div class="btn-row">
-        <button id="btnAddLoc" class="btn">+ Add</button>
-        <select id="presetLoc">
-          <option value="">Select preset...</option>
-          <option>INBOUND - SOLD</option>
-          <option>PUT AWAY</option>
-          <option>INCOMING</option>
-        </select>
-        <button id="btnScanLoc" class="btn ghost">📷 Scan Location</button>
-        <button id="btnMoveAll" class="btn ghost">Move All to Loc 1</button>
-      </div>
-      <div id="locations"></div>
-
-      <div class="grid three">
-        <div><label>Good</label><input id="goodQty" class="qty-good" type="number" min="0" value="0"></div>
-        <div><label>Damage – Sell</label><input id="damSell" class="qty-dsell" type="number" min="0" value="0"></div>
-        <div><label>Damage – Dispose</label><input id="damDisp" class="qty-ddisp" type="number" min="0" value="0"></div>
-      </div>
-
-      <div class="pill" style="margin-top:10px; display:inline-block">Total to Putaway: <span id="putawayTotal">0</span></div>
-
-      <div class="grid two" style="margin-top:12px">
-        <div>
-          <label>Discrepancy Reason (if any)</label>
-          <select id="discReason">
-            <option value="">—</option>
-            <option>Pending Recount</option>
-            <option>Friend/Family Purchase</option>
-            <option>Damaged Goods</option>
-            <option>Long Time Discrepancy</option>
-            <option>Investigate</option>
-            <option>Other</option>
-          </select>
+    <!-- Page 2: Locations -->
+    <div id="page2" class="page">
+      <div class="card">
+        <h2>📍 Locations (Page 2/2)</h2>
+        
+        <div class="form-group">
+          <label>Location Presets:</label>
+          <div>
+            <button class="btn btn-secondary btn-small" onclick="addLocation('A1')">A1</button>
+            <button class="btn btn-secondary btn-small" onclick="addLocation('A2')">A2</button>
+            <button class="btn btn-secondary btn-small" onclick="addLocation('B1')">B1</button>
+            <button class="btn btn-secondary btn-small" onclick="addLocation('B2')">B2</button>
+            <button class="btn btn-secondary btn-small" onclick="promptAddLocation()">Custom</button>
+          </div>
         </div>
-        <div>
-          <label>Notes</label>
-          <textarea id="notes"></textarea>
-        </div>
-      </div>
 
-      <div class="btn-row" style="margin-top:14px">
-        <button id="btnBack" class="btn ghost">← Back</button>
-        <button id="btnLabels" class="btn">Generate Labels</button>
-        <button id="btnSubmitNext" class="btn success" style="margin-left:auto">Submit & Next →</button>
+        <div id="locationsContainer"></div>
+
+        <h3>📊 Summary</h3>
+        <div class="card">
+          <p><strong>Total Counted:</strong> <span id="totalCounted">0</span></p>
+          <p><strong>Expected:</strong> <span id="expectedDisplay">0</span></p>
+          <p><strong>Discrepancy:</strong> <span id="discrepancyDisplay">0</span></p>
+          <div class="progress">
+            <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="discrepancyReason">Discrepancy Reason (if any):</label>
+          <textarea id="discrepancyReason" placeholder="Explain any discrepancies..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes:</label>
+          <textarea id="notes" placeholder="Additional notes..."></textarea>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Scanner Modal (1D) -->
-  <div class="modal" id="scannerModal1D">
-    <div class="sheet">
-      <div class="btn-row" style="justify-content:space-between">
-        <div class="badge">Camera Scanner</div>
-        <select id="cameraFacing1D"><option value="environment">Back Camera</option><option value="user">Front Camera</option></select>
-        <button id="btnCloseScan1D" class="btn ghost">✕ Close</button>
+  <!-- Navigation Buttons -->
+  <div class="nav-buttons">
+    <button id="btnBack" class="btn btn-secondary" onclick="goToPage(1)" style="display:none">← Back</button>
+    <button id="btnNext" class="btn btn-primary" onclick="goToPage(2)">Next →</button>
+    <button id="btnGenerateLabels" class="btn btn-warning" onclick="generateLabels()" style="display:none">🏷️ Generate Labels</button>
+    <button id="btnSubmitNext" class="btn btn-success" onclick="submitAndNext()" style="display:none">✓ Submit &amp; Next</button>
+  </div>
+
+  <!-- Barcode Scanner Modal -->
+  <div id="scannerModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📷 Scan Barcode</h2>
+        <span class="close" onclick="closeScanner()">&times;</span>
       </div>
-      <div id="scanner1D" style="height:320px; background:#0c0f14; border:1px dashed #263044; border-radius:12px; margin-top:10px"></div>
-      <div class="small center" style="margin-top:8px">Point camera at barcode. Hold steady…</div>
+      <div id="scanner-container"></div>
+      <button class="btn btn-secondary" onclick="closeScanner()" style="margin-top: 16px;">Cancel</button>
     </div>
   </div>
 
-  <!-- Scanner Modal (QR for locations) -->
-  <div class="modal" id="scannerModalQR">
-    <div class="sheet">
-      <div class="btn-row" style="justify-content:space-between">
-        <div class="badge">QR Scanner</div>
-        <select id="cameraFacingQR"><option value="environment">Back Camera</option><option value="user">Front Camera</option></select>
-        <button id="btnCloseScanQR" class="btn ghost">✕ Close</button>
+  <!-- QR Scanner Modal -->
+  <div id="qrScannerModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📷 Scan QR Code</h2>
+        <span class="close" onclick="closeQRScanner()">&times;</span>
       </div>
-      <video id="qrVideo" playsinline style="width:100%; max-height:360px; background:#000; border-radius:12px"></video>
-      <canvas id="qrCanvas" style="display:none"></canvas>
-      <div class="small center" style="margin-top:8px">Aim at location QR (e.g., “A 01 01 01”).</div>
+      <div id="qr-scanner-container">
+        <video id="qr-video" width="100%"></video>
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <button class="btn btn-secondary" onclick="closeQRScanner()" style="margin-top: 16px;">Cancel</button>
     </div>
   </div>
 
   <!-- Labels Modal -->
-  <div class="modal" id="labelsModal">
-    <div class="sheet">
-      <div class="btn-row" style="justify-content:space-between; align-items:center">
-        <div class="badge">Labels & Export</div>
-        <div class="btn-row">
-          <select id="labelType"><option value="inventoried">INVENTORIED</option><option value="cartons">CARTON</option><option value="pallet">PALLET</option></select>
-          <label class="badge"><input id="includeSummary" type="checkbox" checked style="margin-right:8px">Summary</label>
-          <label class="badge"><input id="showBoxXofY" type="checkbox" checked style="margin-right:8px">Box X of Y</label>
-          <button id="btnPrintAll" class="btn">Print</button>
-          <button id="btnSavePDF" class="btn ghost">Save as PDF</button>
-          <button id="btnCloseLabels" class="btn ghost">✕ Close</button>
-        </div>
+  <div id="labelsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏷️ Print Labels</h2>
+        <span class="close" onclick="closeLabels()">&times;</span>
       </div>
-      <div id="labelGate" class="badge hidden" style="margin:10px 0">Bypass is ON — printing allowed even if unapproved.</div>
-      <div class="small">Carton labels to generate: <span id="cartonLabelCount">0</span></div>
-      <div id="labelsContainer"></div>
+      
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('inventoried')">INVENTORIED</button>
+        <button class="tab" onclick="switchTab('carton')">CARTON</button>
+        <button class="tab" onclick="switchTab('summary')">SUMMARY</button>
+      </div>
+
+      <div id="labelsContainer">
+        <div id="tab-inventoried" class="tab-content active"></div>
+        <div id="tab-carton" class="tab-content"></div>
+        <div id="tab-summary" class="tab-content"></div>
+      </div>
+
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Print Labels</button>
+      <button class="btn btn-secondary" onclick="closeLabels()">Close</button>
     </div>
   </div>
 
-  <!-- External libraries from CDN (client-side) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1/dist/quagga.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1/dist/jsQR.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
 
   <script>
-  // ===== Query params → preload endpoint/sheet =====
-  (function(){
-    const params=new URLSearchParams(location.search);
-    if(params.has('endpoint')) localStorage.setItem('endpoint', JSON.stringify(params.get('endpoint')));
-    if(params.has('sheetId')) localStorage.setItem('sheetId', JSON.stringify(params.get('sheetId')));
-  })();
+    // State management (using JavaScript variables - no localStorage)
+    let currentPage = 1;
+    let styleRowCount = 0;
+    let locations = [];
+    let qrScannerStream = null;
+    let qrScannerInterval = null;
+    let configEndpoint = '';
+    let configSheetId = '';
 
-  // ===== Local storage helpers =====
-  const S = (k,v)=>localStorage.setItem(k, JSON.stringify(v));
-  const G = (k)=>{ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } };
-  const $ = (sel)=>document.querySelector(sel);
-  const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
+    // Load configuration from memory
+    function loadConfig() {
+      if (configEndpoint) document.getElementById('endpoint').value = configEndpoint;
+      if (configSheetId) document.getElementById('sheetId').value = configSheetId;
+    }
 
-  // ===== Save/Load config =====
-  const cfgKeys = ['endpoint','sheetId','toggleBypass','toggleEmailDisc'];
-  function loadCfg(){
-    cfgKeys.forEach(k=>{ const v=G(k); if(v!==null){ const el=document.getElementById(k); if(el){ if(el.type==='checkbox') el.checked=!!v; else el.value=v; } }});
-    document.getElementById('saveState').textContent='Saved locally';
-  }
-  function saveCfg(){
-    cfgKeys.forEach(k=>{ const el=document.getElementById(k); if(el) S(k, el.type==='checkbox' ? el.checked : el.value); });
-    document.getElementById('saveState').textContent='Saved locally';
-  }
-  document.getElementById('btnSaveCfg').addEventListener('click', saveCfg);
-  loadCfg();
+    // Save configuration to memory
+    function saveConfig() {
+      configEndpoint = document.getElementById('endpoint').value;
+      configSheetId = document.getElementById('sheetId').value;
+      alert('Configuration saved!');
+    }
 
-  // ===== Page navigation =====
-  function showPage(n){
-    document.getElementById('page1').classList.toggle('active', n===1);
-    document.getElementById('page2').classList.toggle('active', n===2);
-    document.getElementById('pageIndicator').textContent = 'Page ' + n + ' of 2';
-  }
-  document.getElementById('btnNext').addEventListener('click', ()=> showPage(2));
-  document.getElementById('btnBack').addEventListener('click', ()=> showPage(1));
+    // Initialize app
+    function init() {
+      loadConfig();
+      addStyleRow(); // Add initial style row
+      updateSummary();
+    }
 
-  // ===== Build Box Styles UI (1..4) =====
-  const boxStyles = document.getElementById('boxStyles');
-  function styleRow(i){
-    const d = document.createElement('div');
-    d.className = 'card';
-    d.innerHTML = `
-      <div class="title">Style ${i}: Boxes × Qty/Box</div>
-      <div class="row">
-        <input class="boxes" type="number" min="0" placeholder="Boxes">
-        <input class="qty"   type="number" min="0" placeholder="Qty/Box">
-        <input class="bl"    type="number" min="0" step="0.01" placeholder="L (in)">
-        <input class="bw"    type="number" min="0" step="0.01" placeholder="W (in)">
-        <input class="bh"    type="number" min="0" step="0.01" placeholder="H (in)">
-        <input class="bwt"   type="number" min="0" step="0.01" placeholder="Box Wt (lb)">
-      </div>`;
-    return d;
-  }
-  for(let i=1;i<=4;i++) boxStyles.appendChild(styleRow(i));
+    // Page navigation
+    function goToPage(page) {
+      currentPage = page;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page' + page).classList.add('active');
 
-  function updateTotals(){
-    let subtotal=0, cartons=0, cft=0, gwt=0;
-    $$('#boxStyles .card').forEach(c=>{
-      const b = +c.querySelector('.boxes').value || 0;
-      const q = +c.querySelector('.qty').value   || 0;
-      const bl= +c.querySelector('.bl').value    || 0;
-      const bw= +c.querySelector('.bw').value    || 0;
-      const bh= +c.querySelector('.bh').value    || 0;
-      const bwt=+c.querySelector('.bwt').value   || 0;
-      subtotal += b*q; cartons += b; cft += (b*(bl*bw*bh))/1728; gwt += b*bwt;
-    });
-    document.getElementById('subtotal').textContent = String(subtotal);
-    document.getElementById('totalCartons').textContent = String(cartons);
-    document.getElementById('totalCft').textContent = cft.toFixed(2);
-    document.getElementById('totalGwt').textContent = gwt.toFixed(2);
-    updatePutawayTotal();
-  }
-  boxStyles.addEventListener('input', updateTotals);
+      // Update navigation buttons
+      if (page === 1) {
+        document.getElementById('btnBack').style.display = 'none';
+        document.getElementById('btnNext').style.display = 'inline-block';
+        document.getElementById('btnGenerateLabels').style.display = 'none';
+        document.getElementById('btnSubmitNext').style.display = 'none';
+      } else if (page === 2) {
+        document.getElementById('btnBack').style.display = 'inline-block';
+        document.getElementById('btnNext').style.display = 'none';
+        document.getElementById('btnGenerateLabels').style.display = 'inline-block';
+        document.getElementById('btnSubmitNext').style.display = 'inline-block';
+      }
+    }
 
-  // ===== Locations =====
-  const locations = document.getElementById('locations');
-  function locRow(){
-    const w = document.createElement('div');
-    w.className='row';
-    w.innerHTML = `<input class="locName" type="text" placeholder="A 01 01 01"><input class="locQty" type="number" min="0" value="0">`;
-    return w;
-  }
-  function ensureLoc(){ if(!document.querySelector('.locName')) locations.appendChild(locRow()); }
-  ensureLoc();
-  document.getElementById('btnAddLoc').addEventListener('click', ()=> locations.appendChild(locRow()));
-  document.getElementById('btnMoveAll').addEventListener('click', ()=>{
-    const total = +(document.getElementById('subtotal').textContent)||0;
-    const first = document.querySelector('.locQty');
-    if(first) first.value = total;
-    $$('.locQty').slice(1).forEach(el=> el.value=0);
-    updatePutawayTotal();
-  });
-  locations.addEventListener('input', updatePutawayTotal);
+    // Style rows management
+    function addStyleRow() {
+      styleRowCount++;
+      const container = document.getElementById('styleRows');
+      const row = document.createElement('div');
+      row.className = 'style-row';
+      row.id = 'styleRow' + styleRowCount;
+      row.innerHTML = `
+        <div class="style-row-header">
+          <strong>Style ${styleRowCount}</strong>
+          <button class="btn btn-secondary btn-small" onclick="removeStyleRow(${styleRowCount})">✕</button>
+        </div>
+        <div class="grid">
+          <div class="form-group">
+            <label>Size:</label>
+            <input type="text" id="size${styleRowCount}" placeholder="e.g., M, L, XL">
+          </div>
+          <div class="form-group">
+            <label>Color:</label>
+            <input type="text" id="color${styleRowCount}" placeholder="Color">
+          </div>
+          <div class="form-group">
+            <label>Total Boxes:</label>
+            <input type="number" id="totalBoxes${styleRowCount}" placeholder="0" onchange="generateCartonsForStyle(${styleRowCount})">
+          </div>
+          <div class="form-group">
+            <label>Pcs/Box:</label>
+            <input type="number" id="pcsPerBox${styleRowCount}" placeholder="0">
+          </div>
+        </div>
+      `;
+      container.appendChild(row);
+    }
 
-  function updatePutawayTotal(){
-    const locSum = $$('.locQty').reduce((s,el)=> s + (+el.value||0), 0);
-    document.getElementById('putawayTotal').textContent = String(locSum);
-    const expected = +document.getElementById('expectedQty').value || 0;
-    const sub = +document.getElementById('subtotal').textContent || 0;
-    const mismatch = (expected>0 && sub !== expected);
-    document.getElementById('discBanner').classList.toggle('hidden', !mismatch);
-  }
+    function removeStyleRow(id) {
+      const row = document.getElementById('styleRow' + id);
+      if (row) row.remove();
+    }
 
-  document.getElementById('btnCheck').addEventListener('click', ()=>{
-    const exp = +document.getElementById('expectedQty').value || 0;
-    const sub = +document.getElementById('subtotal').textContent || 0;
-    if(exp===0){ alert('Expected Qty is 0 or missing.'); return; }
-    if(sub===exp) alert('✔ Subtotal matches Expected Qty.');
-    else alert(`⚠ Subtotal (${sub}) differs from Expected (${exp}). Provide a reason on Page 2.`);
-  });
+    function generateCartonsForStyle(styleId) {
+      const totalBoxes = parseInt(document.getElementById('totalBoxes' + styleId).value) || 0;
+      console.log(`Style ${styleId}: ${totalBoxes} boxes`);
+    }
 
-  // ===== Utilities =====
-  function beep(){
-    const c=new (window.AudioContext||window.webkitAudioContext)();
-    const o=c.createOscillator(); const g=c.createGain(); o.connect(g); g.connect(c.destination);
-    o.type='sine'; o.frequency.value=880; g.gain.value=.05; o.start(); setTimeout(()=>{o.stop(); c.close();},150);
-  }
-  function makeUPC(){ let s=''; for(let i=0;i<11;i++) s+=Math.floor(Math.random()*10); const d=[...s].map(Number);
-    const so=d.filter((_,i)=>i%2===0).reduce((a,b)=>a+b,0); const se=d.filter((_,i)=>i%2===1).reduce((a,b)=>a+b,0);
-    const cd=(10-((so*3+se)%10))%10; return s+cd; }
-  document.getElementById('btnGenUPC').addEventListener('click', ()=>{ document.getElementById('upc').value=makeUPC(); beep(); });
-  document.getElementById('upc').addEventListener('blur', ()=>{ const v=document.getElementById('upc').value.trim(); if(v && !/^\d+$/.test(v)){ alert('UPC must be numeric only.'); document.getElementById('upc').focus(); }});
+    // Locations management
+    function addLocation(locationName) {
+      if (!locationName) return;
+      
+      const exists = locations.find(loc => loc.name === locationName);
+      if (exists) {
+        alert('Location already exists!');
+        return;
+      }
 
-  // ===== Endpoint wiring =====
-  let expectedList=[], progress=0;
-  function updateProgress(){ const total=expectedList.length||0; document.getElementById('progressText').textContent=`${progress} of ${total}`; document.getElementById('progressBar').style.width=(total?Math.floor(progress/total*100):0)+'%'; }
-  updateProgress();
-  async function callEndpoint(action,payload){
-    const url=(G('endpoint')||document.getElementById('endpoint').value||'').trim(); if(!url) throw new Error('Endpoint missing');
-    const body={ action, sheetId:(G('sheetId')||document.getElementById('sheetId').value||''), payload };
-    const r=await fetch(url,{ method:'POST', mode:'cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
-    if(!r.ok) throw new Error('HTTP '+r.status); return await r.json();
-  }
-  document.getElementById('btnTest').addEventListener('click', async()=>{ try{ const j=await callEndpoint('ping',{}); alert('Ping OK: '+JSON.stringify(j)); }catch(e){ alert('Ping failed: '+e.message); } });
-  document.getElementById('btnLoadExpected').addEventListener('click', async()=>{ try{ const j=await callEndpoint('getExpectedInventory',{}); expectedList=j.items||[]; progress=0; updateProgress(); alert('Loaded '+expectedList.length+' expected items.'); }catch(e){ alert('Load failed: '+e.message); } });
+      locations.push({
+        name: locationName,
+        qty: 0
+      });
+      renderLocations();
+      updateSummary();
+    }
 
-  // ===== Quagga (1D UPC scan) =====
-  let quaggaStarted=false;
-  function startQuagga(){
-    const facing=document.getElementById('cameraFacing1D').value||'environment';
-    Quagga.init({ inputStream:{ type:'LiveStream', target:document.getElementById('scanner1D'), constraints:{ facingMode:facing } }, decoder:{ readers:['code_128_reader','ean_reader','ean_8_reader','upc_reader','upc_e_reader'] } }, (err)=>{
-      if(err){ alert('Camera init failed: '+err); return; }
-      Quagga.start(); quaggaStarted=true; Quagga.offDetected(); Quagga.onDetected(res=>{ const code=res&&res.codeResult&&res.codeResult.code; if(!code) return; beep(); document.getElementById('upc').value=code; closeScan1D(); });
-    });
-  }
-  function openScan1D(){ document.getElementById('scannerModal1D').style.display='flex'; startQuagga(); }
-  function closeScan1D(){ try{ if(quaggaStarted){ Quagga.stop(); quaggaStarted=false; } }catch(e){} document.getElementById('scannerModal1D').style.display='none'; }
-  document.getElementById('btnScanUPC').addEventListener('click', openScan1D);
-  document.getElementById('btnCloseScan1D').addEventListener('click', closeScan1D);
-  document.getElementById('cameraFacing1D').addEventListener('change', ()=>{ try{ if(quaggaStarted){ Quagga.stop(); quaggaStarted=false; } }catch(e){} startQuagga(); });
+    function promptAddLocation() {
+      const name = prompt('Enter location name:');
+      if (name) addLocation(name);
+    }
 
-  // ===== jsQR (location scan) =====
-  let qrStream=null, qrTimer=null;
-  async function startQR(){
-    const facing=document.getElementById('cameraFacingQR').value||'environment';
-    try{
-      qrStream=await navigator.mediaDevices.getUserMedia({ video:{ facingMode:facing } });
-      document.getElementById('qrVideo').srcObject=qrStream; await document.getElementById('qrVideo').play();
-      const canvas=document.getElementById('qrCanvas'); const ctx=canvas.getContext('2d');
-      qrTimer=setInterval(()=>{ const v=document.getElementById('qrVideo'); if(v.readyState!==v.HAVE_ENOUGH_DATA) return; canvas.width=v.videoWidth; canvas.height=v.videoHeight; ctx.drawImage(v,0,0,canvas.width,canvas.height); const img=ctx.getImageData(0,0,canvas.width,canvas.height); const qr=jsQR(img.data,img.width,img.height); if(qr&&qr.data){ const text=qr.data.trim(); beep(); const n=document.querySelector('.locName'); if(n) n.value=text; closeScanQR(); } }, 200);
-    }catch(e){ alert('QR camera error: '+e.message); }
-  }
-  function openScanQR(){ document.getElementById('scannerModalQR').style.display='flex'; startQR(); }
-  function closeScanQR(){ try{ if(qrTimer) clearInterval(qrTimer); qrTimer=null; }catch(e){} try{ if(qrStream){ qrStream.getTracks().forEach(t=>t.stop()); qrStream=null; } }catch(e){} document.getElementById('scannerModalQR').style.display='none'; }
-  document.getElementById('btnScanLoc').addEventListener('click', openScanQR);
-  document.getElementById('btnCloseScanQR').addEventListener('click', closeScanQR);
-  document.getElementById('cameraFacingQR').addEventListener('change', ()=>{ closeScanQR(); openScanQR(); });
+    function updateLocationQty(locationName, qty) {
+      const loc = locations.find(l => l.name === locationName);
+      if (loc) {
+        loc.qty = parseInt(qty) || 0;
+        updateSummary();
+      }
+    }
 
-  // ===== Labels rendering (4x6) =====
-  function nowISO(){ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds()); }
-  function nowPretty(){ return new Date().toLocaleString(); }
-  function buildCartonId(ts, idx){ return 'C-' + ts + '-' + String(idx).padStart(3,'0'); }
+    function removeLocation(locationName) {
+      locations = locations.filter(l => l.name !== locationName);
+      renderLocations();
+      updateSummary();
+    }
 
-  function getCartonsAuto(parentTs){
-    const upc=document.getElementById('upc').value.trim();
-    const brand=document.getElementById('brand').value; const description=document.getElementById('desc').value;
-    const countedBy=document.getElementById('countedBy').value; const gender=document.getElementById('gender').value;
-    const primaryLoc=(document.querySelectorAll('.locName')[0]?.value)||'';
-    let idx=0; const arr=[];
-    $$('#boxStyles .card').forEach(card=>{
-      const boxes=+card.querySelector('.boxes').value||0; const qty=+card.querySelector('.qty').value||0;
-      for(let i=0;i<boxes;i++){ idx++; arr.push({ carton_id: buildCartonId(parentTs, idx), upc, brand, description, gender, pieces_per_carton: qty, box_number: idx, location: primaryLoc, counted_by: countedBy, ts: nowPretty() }); }
-    });
-    return arr;
-  }
+    function renderLocations() {
+      const container = document.getElementById('locationsContainer');
+      container.innerHTML = '';
+      
+      locations.forEach(loc => {
+        const div = document.createElement('div');
+        div.className = 'location-item';
+        div.innerHTML = `
+          <div style="flex: 1;">
+            <strong>${loc.name}</strong>
+            <input type="number" value="${loc.qty}" onchange="updateLocationQty('${loc.name}', this.value)" 
+              style="width: 100px; margin-left: 8px;" placeholder="Qty">
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="removeLocation('${loc.name}')">✕</button>
+        `;
+        container.appendChild(div);
+      });
+    }
 
-  function renderInventoried(container){
-    const lp=document.createElement('div'); lp.className='label-preview';
-    const upc=document.getElementById('upc').value.trim(); const qty=document.getElementById('subtotal').textContent;
-    const brand=document.getElementById('brand').value||'—';
-    const desc=document.getElementById('desc').value||'—';
-    const gender=document.getElementById('gender').value||'—';
-    const countedBy=document.getElementById('countedBy').value||'—';
-    const ts=nowPretty();
-    lp.innerHTML = `
-      <div style="font-weight:800; font-size:18px; text-align:center">INVENTORIED LABEL</div>
-      <div class="center" style="font-weight:800; font-size:16px; margin:4px 0">${desc}</div>
-      <div style="font-size:12px; margin-bottom:6px">Brand: <b>${brand}</b> &middot; Gender: <b>${gender}</b></div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px; margin-bottom:6px">
-        <div>Item No: <span class="i1">${document.getElementById('edgeno').value||'—'}</span></div>
-        <div>COO: <span class="i4">${document.getElementById('coo').value||'—'}</span></div>
-        <div style="grid-column:1/-1">Location: <span class="i5">${(document.querySelectorAll('.locName')[0]?.value)||'—'}</span></div>
-        <div style="grid-column:1/-1">Total Qty: <b>${qty}</b></div>
-        <div style="grid-column:1/-1">Inventoried By: <b>${countedBy}</b> &nbsp;|&nbsp; <span>${ts}</span></div>
-      </div>
-      <svg id="barcodeInv"></svg>
-      <div class="center" style="font-weight:800; letter-spacing:.4px; margin:4px 0 8px">${upc}</div>
-      <div id="qrinv" class="center"></div>`;
-    container.appendChild(lp);
-    try{ JsBarcode(lp.querySelector('#barcodeInv'), upc, {format:'CODE128', displayValue:false, height:40, margin:0}); }catch(e){}
-    try{ new QRCode(lp.querySelector('#qrinv'), { text: upc, width:120, height:120 }); }catch(e){}
-  }
+    // Summary calculation
+    function updateSummary() {
+      const expected = parseInt(document.getElementById('expectedQty').value) || 0;
+      const totalCounted = locations.reduce((sum, loc) => sum + loc.qty, 0);
+      const discrepancy = totalCounted - expected;
+      const progress = expected > 0 ? (totalCounted / expected) * 100 : 0;
 
-  function renderCartonLabels(container){
-    const cartons=getCartonsAuto(nowISO()); const total=cartons.length; 
-    cartons.forEach(c=>{ const lp=document.createElement('div'); lp.className='label-preview'; lp.innerHTML=
-      `<div style="font-weight:800; text-align:center">CARTON LABEL</div>
-       <div style="font-size:13px; margin:4px 0"><b>${(c.brand||'—')}</b> — ${(c.description||'—')} &middot; <b>${c.gender||'—'}</b></div>
-       <div style="font-size:12px; margin-bottom:6px">Qty/Carton: <b>${c.pieces_per_carton}</b> pcs &nbsp;|&nbsp; Carton: ${c.box_number} of ${total}</div>
-       <div style="font-size:12px;">Location: ${c.location||'—'} &nbsp;|&nbsp; Counted By: ${c.counted_by||'—'} &nbsp;|&nbsp; ${c.ts||''}</div>
-       <svg class="barcode"></svg>
-       <div class="center" style="font-weight:800; letter-spacing:.4px; margin:4px 0 8px">${c.upc}</div>
-       <div class="qr" style="margin:auto; width:120px; height:120px"></div>
-       <div class="center small" style="margin-top:6px">Carton ID: ${c.carton_id}</div>`; 
-      container.appendChild(lp);
-      try{ JsBarcode(lp.querySelector('.barcode'), c.upc, {format:'CODE128', displayValue:false, height:40, margin:0}); }catch(e){}
-      try{ new QRCode(lp.querySelector('.qr'), { text: c.upc, width:120, height:120 }); }catch(e){}
-    });
-    if(document.getElementById('includeSummary').checked){ const totalPieces=cartons.reduce((s,c)=>s+c.pieces_per_carton,0); const sum=document.createElement('div'); sum.className='label-preview'; sum.innerHTML=`<div style=\"font-weight:800\">CARTON SUMMARY</div><div>${document.getElementById('brand').value||'—'} — ${document.getElementById('desc').value||'—'}</div><div>Total Boxes: ${total} | Total Pieces: ${totalPieces}</div>`; container.appendChild(sum); }
-  }
+      document.getElementById('totalCounted').textContent = totalCounted;
+      document.getElementById('expectedDisplay').textContent = expected;
+      document.getElementById('discrepancyDisplay').textContent = discrepancy;
+      document.getElementById('progressBar').style.width = Math.min(progress, 100) + '%';
+    }
 
-  function renderPalletLabel(container){
-    const cartons=getCartonsAuto(nowISO()); const total=cartons.length; const totalPieces=cartons.reduce((s,c)=>s+c.pieces_per_carton,0);
-    const lp=document.createElement('div'); lp.className='label-preview'; lp.innerHTML =
-      `<div style="font-weight:800">PALLET LABEL</div>
-       <div>${document.getElementById('brand').value||'—'} — ${document.getElementById('desc').value||'—'}</div>
-       <div>Total Boxes: ${total} | Total Pieces: ${totalPieces}</div>
-       <div>Date: ${(new Date()).toLocaleDateString()} | Weight: ${document.getElementById('totalGwt').textContent} lb</div>
-       <svg id="barcodePal"></svg><div id="qrpal"></div>`;
-    container.appendChild(lp);
-    const upc=document.getElementById('upc').value.trim();
-    try{ JsBarcode(lp.querySelector('#barcodePal'), upc, {format:'CODE128', displayValue:false, height:40, margin:0}); }catch(e){}
-    try{ new QRCode(lp.querySelector('#qrpal'), { text: upc, width:120, height:120 }); }catch(e){}
-  }
+    // Barcode scanner
+    function openScanner() {
+      document.getElementById('scannerModal').classList.add('active');
+      Quagga.init({
+        inputStream: {
+          type: 'LiveStream',
+          target: document.querySelector('#scanner-container'),
+          constraints: {
+            facingMode: 'environment'
+          }
+        },
+        decoder: {
+          readers: ['ean_reader', 'code_128_reader', 'upc_reader', 'code_39_reader']
+        }
+      }, function(err) {
+        if (err) {
+          console.error(err);
+          alert('Camera access denied or not available');
+          return;
+        }
+        Quagga.start();
+      });
 
-  function renderLabels(){ const cont=document.getElementById('labelsContainer'); cont.innerHTML=''; const type=document.getElementById('labelType').value; if(type==='inventoried') renderInventoried(cont); else if(type==='cartons') renderCartonLabels(cont); else renderPalletLabel(cont); }
-  document.getElementById('labelType').addEventListener('change', renderLabels);
-  document.getElementById('includeSummary').addEventListener('change', renderLabels);
-  document.getElementById('showBoxXofY').addEventListener('change', renderLabels);
+      Quagga.onDetected(function(result) {
+        const code = result.codeResult.code;
+        document.getElementById('upc').value = code;
+        closeScanner();
+      });
+    }
 
-  // ===== Print gate + open modal =====
-  document.getElementById('btnLabels').addEventListener('click', async function(){
-    const upc=document.getElementById('upc').value.trim(); if(!/^\d+$/.test(upc)){ alert('Valid numeric UPC required for labels.'); return; }
-    let canPrint=true; try{ const cp=await callEndpoint('canprint',{upc:upc}); canPrint=!!(cp && cp.ok!==false); }catch(e){}
-    const bypass = G('toggleBypass')===true; document.getElementById('labelGate').classList.toggle('hidden', !bypass);
-    if(!canPrint && !bypass){ alert('Printing is blocked by policy. Ask supervisor to approve or enable bypass in Settings.'); return; }
-    const cartons=getCartonsAuto(nowISO()); document.getElementById('cartonLabelCount').textContent=String(cartons.length);
-    renderLabels(); document.getElementById('labelsModal').style.display='flex';
-  });
-  document.getElementById('btnCloseLabels').addEventListener('click', ()=>{ document.getElementById('labelsModal').style.display='none'; });
-  document.getElementById('btnPrintAll').addEventListener('click', ()=> window.print());
-  document.getElementById('btnSavePDF').addEventListener('click', ()=> window.print());
+    function closeScanner() {
+      Quagga.stop();
+      document.getElementById('scannerModal').classList.remove('active');
+    }
 
-  // ===== Presets quick-fill to first location =====
-  document.getElementById('presetLoc').addEventListener('change', (e)=>{ if(!e.target.value) return; const n=document.querySelectorAll('.locName')[0]; if(n) n.value=e.target.value; });
+    // QR Code scanner
+    function openQRScanner() {
+      document.getElementById('qrScannerModal').classList.add('active');
+      const video = document.getElementById('qr-video');
+      const canvas = document.getElementById('qr-canvas');
+      const context = canvas.getContext('2d');
 
-  // ===== Submit (as-is wiring) =====
-  document.getElementById('btnSubmitNext').addEventListener('click', async()=>{
-    const payload={
-      upc: document.getElementById('upc').value.trim(),
-      brand: document.getElementById('brand').value, desc: document.getElementById('desc').value,
-      coo: document.getElementById('coo').value, gender: document.getElementById('gender').value, cd: document.getElementById('cd').value,
-      expected: +document.getElementById('expectedQty').value||0,
-      subtotal: +document.getElementById('subtotal').textContent||0,
-      locations: $$('#locations .row').map(r=>({ name:r.querySelector('.locName').value, qty:+r.querySelector('.locQty').value||0 })),
-      discReason: document.getElementById('discReason').value,
-      notes: document.getElementById('notes').value,
-      countedBy: document.getElementById('countedBy').value,
-      edgeno: document.getElementById('edgeno').value,
-      ts: new Date().toISOString()
-    };
-    try{ const j=await callEndpoint('submit', payload); alert('Submitted: '+(j && j.ok ? 'OK' : JSON.stringify(j))); progress++; updateProgress(); showPage(1); }catch(e){ alert('Submit failed: '+e.message); }
-  });
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function(stream) {
+          qrScannerStream = stream;
+          video.srcObject = stream;
+          video.play();
+
+          qrScannerInterval = setInterval(function() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+              canvas.height = video.videoHeight;
+              canvas.width = video.videoWidth;
+              context.drawImage(video, 0, 0, canvas.width, canvas.height);
+              const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+              const code = jsQR(imageData.data, imageData.width, imageData.height);
+              
+              if (code) {
+                console.log('QR Code detected:', code.data);
+                alert('QR Code: ' + code.data);
+                closeQRScanner();
+              }
+            }
+          }, 300);
+        })
+        .catch(function(err) {
+          console.error(err);
+          alert('Camera access denied or not available');
+        });
+    }
+
+    function closeQRScanner() {
+      if (qrScannerInterval) {
+        clearInterval(qrScannerInterval);
+        qrScannerInterval = null;
+      }
+      if (qrScannerStream) {
+        qrScannerStream.getTracks().forEach(track => track.stop());
+        qrScannerStream = null;
+      }
+      document.getElementById('qrScannerModal').classList.remove('active');
+    }
+
+    // Label generation
+    function generateLabels() {
+      document.getElementById('labelsModal').classList.add('active');
+      
+      // Get form data
+      const formData = getFormData();
+      
+      // Render each label type
+      renderInventoriedLabel(document.getElementById('tab-inventoried'), formData);
+      renderCartonLabels(document.getElementById('tab-carton'), formData);
+      renderSummary(document.getElementById('tab-summary'), formData);
+    }
+
+    function closeLabels() {
+      document.getElementById('labelsModal').classList.remove('active');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    function getFormData() {
+      return {
+        upc: document.getElementById('upc').value,
+        brand: document.getElementById('brand').value,
+        gender: document.getElementById('gender').value,
+        description: document.getElementById('description').value,
+        coo: document.getElementById('coo').value,
+        cd: document.getElementById('cd').value,
+        expectedQty: document.getElementById('expectedQty').value,
+        countedBy: document.getElementById('countedBy').value,
+        edgeNo: document.getElementById('edgeNo').value,
+        dimLength: document.getElementById('dimLength').value,
+        dimWidth: document.getElementById('dimWidth').value,
+        dimHeight: document.getElementById('dimHeight').value,
+        discrepancyReason: document.getElementById('discrepancyReason').value,
+        notes: document.getElementById('notes').value,
+        locations: locations,
+        styles: getStylesData(),
+        timestamp: new Date().toLocaleString()
+      };
+    }
+
+    function getStylesData() {
+      const styles = [];
+      const container = document.getElementById('styleRows');
+      const rows = container.querySelectorAll('.style-row');
+      
+      rows.forEach((row, index) => {
+        const id = row.id.replace('styleRow', '');
+        const sizeEl = document.getElementById('size' + id);
+        const colorEl = document.getElementById('color' + id);
+        const totalBoxesEl = document.getElementById('totalBoxes' + id);
+        const pcsPerBoxEl = document.getElementById('pcsPerBox' + id);
+        
+        if (sizeEl && colorEl && totalBoxesEl && pcsPerBoxEl) {
+          styles.push({
+            size: sizeEl.value,
+            color: colorEl.value,
+            totalBoxes: parseInt(totalBoxesEl.value) || 0,
+            pcsPerBox: parseInt(pcsPerBoxEl.value) || 0
+          });
+        }
+      });
+      
+      return styles;
+    }
+
+    function renderInventoriedLabel(container, data) {
+      container.innerHTML = '';
+      const label = document.createElement('div');
+      label.className = 'label-preview';
+      
+      // Create a unique ID for this barcode
+      const barcodeId = 'barcode-inv-' + Date.now();
+      
+      const totalQty = locations.reduce((sum, loc) => sum + loc.qty, 0);
+      const locationsList = locations.map(l => `${l.name}: ${l.qty}`).join(', ');
+      
+      label.innerHTML = `
+        <h3>INVENTORIED LABEL</h3>
+        <p style="font-size: 18px; font-weight: bold; margin: 8px 0;">${data.description || 'N/A'}</p>
+        <p style="font-size: 14px; margin: 4px 0;">Brand: ${data.brand || 'N/A'} · Gender: ${data.gender || 'N/A'}</p>
+        <p style="font-size: 14px; margin: 4px 0;">Item No: ${data.edgeNo || 'N/A'} | COO: ${data.coo || 'N/A'}</p>
+        <p style="font-size: 14px; margin: 4px 0;">Location: ${locationsList || 'N/A'}</p>
+        <p style="font-size: 14px; margin: 4px 0;"><strong>Total Qty: ${totalQty} pcs</strong></p>
+        <p style="font-size: 12px; margin: 4px 0;">Inventoried By: ${data.countedBy || 'N/A'} | ${data.timestamp}</p>
+        <svg id="${barcodeId}" style="margin: 12px auto;"></svg>
+        <p style="font-size: 14px; font-weight: bold; margin: 4px 0;">${data.upc || 'N/A'}</p>
+      `;
+      
+      container.appendChild(label);
+      
+      // Generate barcode after DOM insertion
+      setTimeout(() => {
+        if (data.upc) {
+          try {
+            JsBarcode('#' + barcodeId, data.upc, {
+              format: 'CODE128',
+              width: 2,
+              height: 60,
+              displayValue: false
+            });
+          } catch (e) {
+            console.error('Barcode generation error:', e);
+          }
+        }
+      }, 100);
+    }
+
+    function renderCartonLabels(container, data) {
+      container.innerHTML = '';
+      
+      // Get cartons from styles
+      const cartons = getCartonsAuto(data.styles);
+      
+      cartons.forEach((carton, idx) => {
+        const label = document.createElement('div');
+        label.className = 'label-preview';
+        
+        const barcodeId = 'barcode-carton-' + idx + '-' + Date.now();
+        const qrId = 'qr-carton-' + idx + '-' + Date.now();
+        const cartonId = `CTN-${data.edgeNo || 'XXX'}-${idx + 1}`;
+        
+        label.innerHTML = `
+          <h3>CARTON LABEL</h3>
+          <p style="font-size: 16px; font-weight: bold; margin: 4px 0;">${data.brand || 'N/A'} — ${data.description || 'N/A'} · ${data.gender || 'N/A'}</p>
+          <p style="font-size: 14px; margin: 4px 0;">Qty/Carton: ${carton.qty} pcs | Carton: ${carton.cartonNum} of ${carton.totalCartons}</p>
+          <p style="font-size: 12px; margin: 4px 0;">Location: ${carton.location} | Counted By: ${data.countedBy || 'N/A'} | ${data.timestamp}</p>
+          <svg id="${barcodeId}" style="margin: 12px auto;"></svg>
+          <p style="font-size: 14px; font-weight: bold; margin: 4px 0;">${data.upc || 'N/A'}</p>
+          <div id="${qrId}" style="margin: 12px auto;"></div>
+          <p style="font-size: 12px; margin: 4px 0;">Carton ID: ${cartonId}</p>
+        `;
+        
+        container.appendChild(label);
+        
+        // Generate barcode and QR code after DOM insertion
+        setTimeout(() => {
+          if (data.upc) {
+            try {
+              JsBarcode('#' + barcodeId, data.upc, {
+                format: 'CODE128',
+                width: 2,
+                height: 60,
+                displayValue: false
+              });
+            } catch (e) {
+              console.error('Barcode generation error:', e);
+            }
+          }
+          
+          // Generate QR code
+          QRCode.toCanvas(cartonId, { width: 120, margin: 1 }, function(err, canvas) {
+            if (!err) {
+              const qrContainer = document.getElementById(qrId);
+              if (qrContainer) {
+                qrContainer.innerHTML = '';
+                qrContainer.appendChild(canvas);
+              }
+            }
+          });
+        }, 100);
+      });
+      
+      if (cartons.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding: 20px;">No cartons to display. Add style breakdown and locations.</p>';
+      }
+    }
+
+    function getCartonsAuto(styles) {
+      const cartons = [];
+      
+      styles.forEach(style => {
+        const totalBoxes = style.totalBoxes || 0;
+        const pcsPerBox = style.pcsPerBox || 0;
+        
+        for (let i = 0; i < totalBoxes; i++) {
+          // Distribute cartons across locations
+          const locIndex = i % (locations.length || 1);
+          const location = locations[locIndex]?.name || 'Unknown';
+          
+          cartons.push({
+            style: `${style.size} ${style.color}`,
+            qty: pcsPerBox,
+            cartonNum: i + 1,
+            totalCartons: totalBoxes,
+            location: location
+          });
+        }
+      });
+      
+      return cartons;
+    }
+
+    function renderSummary(container, data) {
+      const totalQty = locations.reduce((sum, loc) => sum + loc.qty, 0);
+      
+      container.innerHTML = `
+        <div style="padding: 20px; text-align: left;">
+          <h3>Inventory Summary</h3>
+          <p><strong>UPC:</strong> ${data.upc || 'N/A'}</p>
+          <p><strong>Brand:</strong> ${data.brand || 'N/A'}</p>
+          <p><strong>Description:</strong> ${data.description || 'N/A'}</p>
+          <p><strong>Gender:</strong> ${data.gender || 'N/A'}</p>
+          <p><strong>Edge No:</strong> ${data.edgeNo || 'N/A'}</p>
+          <p><strong>COO:</strong> ${data.coo || 'N/A'}</p>
+          <p><strong>Expected Qty:</strong> ${data.expectedQty || '0'}</p>
+          <p><strong>Total Counted:</strong> ${totalQty}</p>
+          <p><strong>Discrepancy:</strong> ${totalQty - (parseInt(data.expectedQty) || 0)}</p>
+          <p><strong>Counted By:</strong> ${data.countedBy || 'N/A'}</p>
+          <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+          
+          <h4 style="margin-top: 20px;">Locations:</h4>
+          ${locations.map(loc => `<p>• ${loc.name}: ${loc.qty} pcs</p>`).join('')}
+          
+          <h4 style="margin-top: 20px;">Styles:</h4>
+          ${data.styles.map(s => `<p>• ${s.size} ${s.color}: ${s.totalBoxes} boxes × ${s.pcsPerBox} pcs</p>`).join('')}
+          
+          ${data.discrepancyReason ? `<h4 style="margin-top: 20px;">Discrepancy Reason:</h4><p>${data.discrepancyReason}</p>` : ''}
+          ${data.notes ? `<h4 style="margin-top: 20px;">Notes:</h4><p>${data.notes}</p>` : ''}
+        </div>
+      `;
+    }
+
+    // Submit data to endpoint
+    async function submitAndNext() {
+      const endpoint = document.getElementById('endpoint').value;
+      if (!endpoint) {
+        alert('Please configure the API endpoint first!');
+        return;
+      }
+
+      const formData = getFormData();
+      const totalQty = locations.reduce((sum, loc) => sum + loc.qty, 0);
+      
+      const payload = {
+        ...formData,
+        totalQty: totalQty,
+        sheetId: document.getElementById('sheetId').value
+      };
+
+      try {
+        const success = await callEndpoint('submit', payload);
+        if (success) {
+          alert('Data submitted successfully!');
+          resetForm();
+          goToPage(1);
+        }
+      } catch (error) {
+        console.error('Submit error:', error);
+        alert('Error submitting data: ' + error.message);
+      }
+    }
+
+    // FIXED: Proper async function for endpoint connection
+    async function callEndpoint(action, payload) {
+      const endpoint = document.getElementById('endpoint').value;
+      
+      if (!endpoint) {
+        throw new Error('Endpoint not configured');
+      }
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: action,
+            data: payload
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Endpoint response:', result);
+        return true;
+      } catch (error) {
+        console.error('Endpoint call failed:', error);
+        throw error;
+      }
+    }
+
+    function resetForm() {
+      // Reset all form fields
+      document.getElementById('upc').value = '';
+      document.getElementById('brand').value = '';
+      document.getElementById('gender').value = '';
+      document.getElementById('description').value = '';
+      document.getElementById('coo').value = '';
+      document.getElementById('cd').value = '';
+      document.getElementById('expectedQty').value = '';
+      document.getElementById('countedBy').value = '';
+      document.getElementById('edgeNo').value = '';
+      document.getElementById('dimLength').value = '';
+      document.getElementById('dimWidth').value = '';
+      document.getElementById('dimHeight').value = '';
+      document.getElementById('discrepancyReason').value = '';
+      document.getElementById('notes').value = '';
+      
+      // Reset styles and locations
+      document.getElementById('styleRows').innerHTML = '';
+      styleRowCount = 0;
+      addStyleRow();
+      
+      locations = [];
+      renderLocations();
+      updateSummary();
+    }
+
+    // Initialize on page load
+    window.onload = init;
   </script>
 </body>
 </html>
