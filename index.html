@@ -1,303 +1,559 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>StockTaker v7.0.2 — FULL (Sheets‑Wired, Box Dims + Gross Wt + Scanner)</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>StockTaker v7.0.2 — SIMPLE (Sheets‑Wired + Scanner + History)</title>
   <style>
-    :root{ --ink:#000; --bg:#fff; --border:#000; --line:2px; --w6:6in; --h4:4in; --w4:4in; --h6:6in; }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    h1,h2,h3{margin:.5rem 0;font-weight:900;text-transform:uppercase}
-    .app{max-width:1180px;margin:0 auto;padding:20px 16px 84px}
-    header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:var(--line) solid var(--border);padding-bottom:10px;margin-bottom:18px}
-    header .meta{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
-    label{font-weight:800;display:block;margin-bottom:6px}
-    input,select,button,textarea{border:var(--line) solid var(--border);padding:10px;border-radius:6px;background:#fff;color:#000}
-    .row{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
-    .card{border:var(--line) solid var(--border);padding:16px;border-radius:10px}
-    .card h3{display:flex;justify-content:space-between;align-items:center;border-bottom:var(--line) solid var(--border);padding-bottom:8px;margin-bottom:12px}
-    .span-2{grid-column:span 2}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-12{grid-column:span 12}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .btn{font-weight:900;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
-    .btn.primary{background:#000;color:#fff}
-    .btn.print{border-style:double}
-    .screen{display:none}.screen.active{display:block}
-    .status{font-size:.9rem;font-weight:800}
-    .muted{opacity:.8}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    .pill{border:2px solid #000;border-radius:999px;padding:4px 10px;display:inline-flex;gap:8px;align-items:center}
-    #labelPreview{margin-top:18px;display:flex;gap:18px;flex-wrap:wrap}
-    .label{position:relative;background:#fff;color:#000;border:3px solid #000;border-radius:12px;padding:14px;overflow:hidden}
-    .label .hdr{font-weight:900;border-bottom:3px solid #000;padding-bottom:6px;margin-bottom:8px;text-align:center}
-    .grid{display:grid;gap:8px}
-    .barcode{display:flex;justify-content:center;align-items:center}
-    .qr{position:absolute;right:10px;top:10px}
-    .carton{width:var(--w6);height:var(--h4)}.inventoried{width:var(--w4);height:var(--h6)}.pallet{width:var(--w6);height:var(--h4)}
-    @media print{header,.noprint,.modal{display:none !important}#labelPreview{gap:0}.label{page-break-inside:avoid;margin:0;border:3px solid #000}}
-    @page{margin:.25in}
-    .progress{display:flex;gap:8px;align-items:center}
-    .bar{height:10px;background:#fff;border:2px solid #000;border-radius:8px;overflow:hidden;width:220px}
-    .bar>span{display:block;height:100%;background:#000;width:0%}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:9999}
-    .modal.active{display:flex}
-    .modal .box{background:#fff;color:#000;border:3px solid #000;border-radius:10px;padding:12px;max-width:720px;width:95%}
-    #scanner{width:100%;height:320px;background:#000}
+  /* ====== SIMPLE (index17-style) theme baked in ====== */
+  :root{
+    --bg:#0b0c10; --card:#12141a; --stroke:#1f2430; --text:#e9eef6; --muted:#9aa6b2;
+    --accent:#4f9cff; --accent-2:#00c27a; --warn:#f7b500; --danger:#ff5c7a;
+    --radius:14px; --shadow:0 6px 20px rgba(0,0,0,.28); --gap:14px; --gap-lg:22px; --gap-xl:28px;
+    --fs-1: clamp(18px, 3.8vw, 22px); --fs-2: clamp(20px, 4.5vw, 26px); --fs-3: clamp(24px, 5.2vw, 32px); --fs-4: clamp(28px, 6.5vw, 40px);
+  }
+  html,body{height:100%}
+  body{margin:0; font:500 var(--fs-1)/1.35 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; color:var(--text);
+       background:linear-gradient(180deg,#0d1117 0%,#090b10 100%); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
+  .shell{ max-width: 980px; margin: 24px auto 80px; padding: 0 var(--gap); }
+  h1,h2,h3,h4{margin:0 0 var(--gap); font-weight:700; letter-spacing:.2px}
+  h1{font-size:var(--fs-4)} h2{font-size:var(--fs-3)} h3{font-size:var(--fs-2)}
+  .section{ background:var(--card); border:1px solid var(--stroke); border-radius: var(--radius); padding: var(--gap-lg); box-shadow: var(--shadow); margin-bottom: var(--gap-xl); }
+  .section>header{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom: var(--gap-lg);}
+  .section>header .meta{color:var(--muted); font-weight:600}
+  label{display:block; font-weight:700; margin: 10px 0 6px; color:var(--muted)}
+  input[type=text],input[type=number],select,textarea{ width:100%; background:#0c0f14; color:var(--text); border:1px solid var(--stroke); border-radius:12px; padding:12px 14px; outline:none; transition:.2s border-color }
+  input:focus,select:focus,textarea:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,156,255,.15) }
+  textarea{ min-height: 90px; resize: vertical }
+  .btn{ appearance:none; border:none; border-radius:12px; padding:12px 16px; font-weight:800; letter-spacing:.3px; color:#0b0c10; background:#d0d7e3; cursor:pointer; transition:.2s transform, .2s box-shadow, .2s background; box-shadow:0 4px 14px rgba(0,0,0,.18) }
+  .btn:hover{ transform: translateY(-1px) }
+  .btn:active{ transform: translateY(0) scale(.98) }
+  .btn.primary{ background: var(--accent); color: #020409 }
+  .btn.success{ background: var(--accent-2); color: #031210 }
+  .btn.ghost{ background: transparent; color: var(--text); border:1px solid var(--stroke) }
+  .btn.warn{ background: var(--warn) }
+  .btn.danger{ background: var(--danger) }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:10px }
+  .grid{ display:grid; gap: var(--gap); }
+  .grid.two{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid.three{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+  @media (max-width: 720px){ .grid.two, .grid.three{ grid-template-columns: 1fr } }
+  .page{ display:none } .page.active{ display:block }
+  #pageIndicator{ font-weight:800; color:var(--muted) }
+  .progress{ background:#0c0f14; border:1px solid var(--stroke); border-radius:999px; height:12px; overflow:hidden }
+  #progressBar{ height:100%; width:0%; background:linear-gradient(90deg, var(--accent), #58e7c8) }
+  #boxStyles .card{ background:#0b0e13; border:1px dashed #263044; border-radius:12px; padding:12px; margin:8px 0 }
+  #boxStyles .row{ display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr; gap:8px }
+  #boxStyles .row input{ text-align:center }
+  #boxStyles .title{ font-weight:800; margin-bottom:8px; color:#c9d6e8 }
+  .totals{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-top: 8px }
+  .totals .pill{ background:#0b0e13; border:1px solid var(--stroke); border-radius:999px; padding:10px 12px; text-align:center; font-weight:800 }
+  #locations .row{ display:grid; grid-template-columns: 3fr 1fr; gap:8px; margin-bottom:8px }
+  #discBanner{ padding:10px 12px; border:1px solid #423100; background:#211a00; color:#ffd16b; border-radius:10px; font-weight:700 }
+  .hidden{ display:none !important }
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:20px; z-index:9999 }
+  .modal .sheet{ width:min(100%, 980px); background:var(--card); border:1px solid var(--stroke); border-radius:16px; box-shadow:var(--shadow); padding:16px }
+  #labelsContainer{ display:grid; gap:10px }
+  .label-preview{ background:white; color:#111; padding:10px; border-radius:8px }
+  #upc{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-weight:800; font-size: clamp(20px, 6.5vw, 30px); letter-spacing:.6px }
+  .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:#0c0f14; border:1px solid var(--stroke); color:var(--muted); font-weight:700 }
+  .small{ font-size:.92em; color:var(--muted) }
+  .center{ text-align:center } .right{ text-align:right }
+  @media print{ body{ background:white } .modal{ position:static; background:transparent } .shell,.section,.page{ box-shadow:none; border:none } }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="noprint">
-      <h1>StockTaker <span class="mono">v7.0.2</span> — FULL</h1>
-      <div class="meta">
-        <div>
-          <label>User</label>
-          <select id="user"><option></option><option>Rikki</option><option>Alberto</option><option>Isabella</option><option>Kelis</option><option>Leydi</option><option>Veronica</option><option>Mabel</option><option>Jocelyn</option></select>
-        </div>
+  <div class="shell">
+    <div class="section" id="header">
+      <header>
+        <h1>StockTaker v7.0.2 — SIMPLE</h1>
+        <div class="meta"><span id="pageIndicator">Page 1 of 2</span></div>
+      </header>
+      <div class="grid two">
         <div>
           <label>Apps Script Endpoint</label>
-          <input id="endpoint" value="https://script.google.com/macros/s/AKfycby46Td8-7ckAlM08Pw9SJ2hC9DBl42sC_47zUgSjmGQrHSgw79Tywc0ztsWayURwrl-Rw/exec"/>
+          <input id="endpoint" type="text" placeholder="https://script.google.com/.../exec">
         </div>
         <div>
           <label>Expected Sheet ID</label>
-          <input id="sheetId" value="1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA"/>
-        </div>
-        <div class="actions">
-          <button id="btnSaveCfg" class="btn">Save</button>
-          <button id="btnLoad" class="btn">Test Connection</button>
-          <button id="btnLoadExpected" class="btn">Load Expected</button>
-        </div>
-        <div class="progress">
-          <span>Progress:</span>
-          <div class="bar"><span id="pbar"></span></div>
-          <span id="ptext">0 of 0</span>
+          <input id="sheetId" type="text" placeholder="Google Sheet ID">
         </div>
       </div>
-    </header>
-
-    <section class="screen active" id="screen1">
-      <div class="row">
-        <div class="card span-6">
-          <h3><span>Item Details</span><span class="muted">Page 1 of 2</span></h3>
-          <div class="row">
-            <div class="span-12">
-              <label>UPC</label>
-              <div class="actions">
-                <input id="upc" class="mono" placeholder="Scan or enter UPC" />
-                <button id="btnScan" class="btn">📷 Scan</button>
-                <button id="btnGenUPC" class="btn">Gen</button>
-              </div>
-              <div id="lookupStatus" class="status muted" style="margin-top:6px"></div>
-            </div>
-            <div class="span-6"><label>Brand</label><input id="brand" /></div>
-            <div class="span-6"><label>Description</label><input id="desc" /></div>
-            <div class="span-4"><label>COO</label><select id="coo"><option></option><option>USA</option><option>FRANCE</option><option>ITALY</option><option>UAE</option><option>SPAIN</option><option>UK</option></select></div>
-            <div class="span-4"><label>Gender</label><select id="gender"><option></option><option>MENS</option><option>LADIES</option><option>UNISEX</option></select></div>
-            <div class="span-4"><label>C/D</label><select id="cd"><option></option><option>CLEAN</option><option>DECODED</option></select></div>
-            <div class="span-6"><label>Expected Qty</label><input id="expectedQty" type="number" min="0" value="0" /></div>
-            <div class="span-6"><label>Counted By</label><select id="counter"><option></option><option>Leydi</option><option>Karina</option><option>Jocelyn</option><option>Kelis</option><option>Mabel</option></select></div>
-            <div class="span-6"><label>EdgeNo (old system)</label><input id="edgeno" /></div>
-          </div>
-        </div>
-
-        <div class="card span-6">
-          <h3>Item Dimensions</h3>
-          <div class="row">
-            <div class="span-3"><label>L (in)</label><input id="len" type="number" step="0.01"/></div>
-            <div class="span-3"><label>W (in)</label><input id="wid" type="number" step="0.01"/></div>
-            <div class="span-3"><label>H (in)</label><input id="ht" type="number" step="0.01"/></div>
-            <div class="span-3"><label>Weight (lb)</label><input id="wt" type="number" step="0.01"/></div>
-          </div>
-        </div>
-
-        <div class="card span-12">
-          <h3>Box Breakdown (Styles 1–4) — with Box Dimensions & Gross Weight</h3>
-          <div class="row">
-            <div class="span-3">
-              <label>Style 1: Boxes × Qty/Box</label>
-              <div class="actions"><input id="b1_boxes" type="number" min="0" value="0"/><span>×</span><input id="b1_qty" type="number" min="0" value="0"/></div>
-              <label>Box Dim (L×W×H in)</label>
-              <div class="actions"><input id="b1_l" type="number" step="0.01"/><input id="b1_w" type="number" step="0.01"/><input id="b1_h" type="number" step="0.01"/></div>
-              <label>Box Weight (lb)</label><input id="b1_wt" type="number" step="0.01"/>
-            </div>
-            <div class="span-3">
-              <label>Style 2: Boxes × Qty/Box</label>
-              <div class="actions"><input id="b2_boxes" type="number" min="0" value="0"/><span>×</span><input id="b2_qty" type="number" min="0" value="0"/></div>
-              <label>Box Dim (L×W×H in)</label>
-              <div class="actions"><input id="b2_l" type="number" step="0.01"/><input id="b2_w" type="number" step="0.01"/><input id="b2_h" type="number" step="0.01"/></div>
-              <label>Box Weight (lb)</label><input id="b2_wt" type="number" step="0.01"/>
-            </div>
-            <div class="span-3">
-              <label>Style 3: Boxes × Qty/Box</label>
-              <div class="actions"><input id="b3_boxes" type="number" min="0" value="0"/><span>×</span><input id="b3_qty" type="number" min="0" value="0"/></div>
-              <label>Box Dim (L×W×H in)</label>
-              <div class="actions"><input id="b3_l" type="number" step="0.01"/><input id="b3_w" type="number" step="0.01"/><input id="b3_h" type="number" step="0.01"/></div>
-              <label>Box Weight (lb)</label><input id="b3_wt" type="number" step="0.01"/>
-            </div>
-            <div class="span-3">
-              <label>Style 4: Boxes × Qty/Box</label>
-              <div class="actions"><input id="b4_boxes" type="number" min="0" value="0"/><span>×</span><input id="b4_qty" type="number" min="0" value="0"/></div>
-              <label>Box Dim (L×W×H in)</label>
-              <div class="actions"><input id="b4_l" type="number" step="0.01"/><input id="b4_w" type="number" step="0.01"/><input id="b4_h" type="number" step="0.01"/></div>
-              <label>Box Weight (lb)</label><input id="b4_wt" type="number" step="0.01"/>
-            </div>
-          </div>
-          <div class="row">
-            <div class="span-3"><strong>Subtotal Pieces:</strong> <span id="subtotalPieces" class="big">0</span></div>
-            <div class="span-3"><strong>Total Cartons:</strong> <span id="subtotalBoxes" class="big">0</span></div>
-            <div class="span-3"><strong>Total Cubic Feet:</strong> <span id="cubicFeet" class="big">0.00</span></div>
-            <div class="span-3"><strong>Total Gross Weight (lb):</strong> <span id="grossWt" class="big">0.00</span></div>
-          </div>
-          <div class="actions" style="margin-top:10px">
-            <button id="btnCheck" class="btn">Check Discrepancy</button>
-            <button id="toScreen2" class="btn primary">Next → Page 2</button>
-          </div>
-        </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button id="btnSaveCfg" class="btn">Save</button>
+        <span id="saveState" class="badge">Not saved</span>
+        <button id="btnTest" class="btn ghost">Test Connection</button>
+        <button id="btnLoadExpected" class="btn ghost">Load Expected</button>
+        <span class="badge">Progress: <span id="progressText">0 of 0</span></span>
+        <div class="progress" style="flex:1 1 180px; min-width:180px"><div id="progressBar"></div></div>
       </div>
-    </section>
+    </div>
 
-    <section class="screen" id="screen2">
-      <div class="row">
-        <div class="card span-6">
-          <h3><span>Putaway & Damage</span><span class="muted">Page 2 of 2</span></h3>
+    <!-- PAGE 1 -->
+    <div class="section page active" id="page1">
+      <header><h2>Item Details</h2><div class="meta">Validation & Packing</div></header>
+
+      <div class="grid two">
+        <div>
+          <label>UPC</label>
+          <div class="btn-row">
+            <input id="upc" type="text" inputmode="numeric" placeholder="Scan or enter UPC">
+            <button id="btnScanUPC" class="btn primary">📷 Scan</button>
+            <button id="btnGenUPC" class="btn ghost">Gen</button>
+          </div>
+        </div>
+        <div>
+          <label>Brand</label>
+          <input id="brand" type="text" placeholder="Brand"/>
+        </div>
+        <div>
+          <label>Description</label>
+          <input id="desc" type="text" placeholder="Item Description"/>
+        </div>
+        <div class="grid two">
           <div>
-            <label>Locations</label>
-            <div class="actions" style="margin:6px 0">
-              <input id="locInput" placeholder="Scan or type location (e.g., A 01 01 01)" />
-              <button id="addLoc" class="btn">+ Add</button>
-              <select id="presetLoc"><option value="">Select preset...</option><option>INBOUND - SOLD</option><option>PUT AWAY</option><option>INCOMING</option></select>
-              <button id="moveAllLoc1" class="btn">Move All to Loc 1</button>
-            </div>
-            <div id="locations" style="margin-top:6px"></div>
+            <label>COO</label>
+            <select id="coo">
+              <option value="">—</option>
+              <option>USA</option><option>FRANCE</option><option>ITALY</option><option>UAE</option><option>SPAIN</option><option>UK</option>
+            </select>
           </div>
-          <div class="row">
-            <div class="span-4"><label>Good</label><input id="good" type="number" min="0" value="0"/></div>
-            <div class="span-4"><label>Damage – Sell</label><input id="damSell" type="number" min="0" value="0"/></div>
-            <div class="span-4"><label>Damage – Dispose</label><input id="damDisp" type="number" min="0" value="0"/></div>
+          <div>
+            <label>Gender</label>
+            <select id="gender"><option value="">—</option><option>MENS</option><option>LADIES</option><option>UNISEX</option></select>
           </div>
-          <div style="margin-top:8px"><strong>Total to Putaway:</strong> <span id="toPutaway" class="big">0</span></div>
-          <div style="margin-top:8px">
-            <label>Discrepancy Reason (if any)</label>
-            <select id="reason"><option></option><option>Pending Recount</option><option>Friend/Family Purchase</option><option>Damaged Goods</option><option>Long Time Discrepancy</option><option>Investigate</option><option>Other</option></select>
-          </div>
-          <div style="margin-top:8px"><label>Notes</label><textarea id="notes" rows="3"></textarea></div>
-          <div class="actions" style="margin-top:12px">
-            <button id="backTo1" class="btn">← Back</button>
-            <button id="submitNext" class="btn primary">Submit & Next →</button>
-          </div>
-          <div id="submitStatus" class="status" style="margin-top:8px"></div>
         </div>
-
-        <div class="card span-6">
-          <h3>Labels & Export</h3>
-          <div class="actions">
-            <button id="genLabels" class="btn">Generate Labels</button>
-            <button id="printLabels" class="btn print">Print</button>
-            <button id="savePdf" class="btn">Save as PDF</button>
+        <div class="grid two">
+          <div>
+            <label>C/D</label>
+            <select id="cd"><option value="">—</option><option>CLEAN</option><option>DECODED</option></select>
           </div>
-          <div id="labelPreview" class="noprint"></div>
-          <div id="printGuard" class="status warn" style="display:none;margin-top:8px"></div>
+          <div>
+            <label>Expected Qty</label>
+            <input id="expectedQty" type="number" min="0" placeholder="0"/>
+          </div>
+        </div>
+        <div class="grid two">
+          <div>
+            <label>Counted By</label>
+            <select id="countedBy"><option>—</option><option>Leydi</option><option>Karina</option><option>Jocelyn</option><option>Kelis</option><option>Mabel</option></select>
+          </div>
+          <div>
+            <label>EdgeNo (old system)</label>
+            <input id="edgeno" type="text" placeholder="Optional"/>
+          </div>
         </div>
       </div>
-    </section>
-  </div>
 
-  <!-- Scanner Modal -->
-  <div class="modal" id="scanModal">
-    <div class="box">
-      <div class="actions" style="justify-content:space-between;align-items:center">
-        <strong>Camera Scanner</strong>
-        <div class="actions">
-          <select id="cameraFacing"><option value="environment">Back Camera</option><option value="user">Front Camera</option></select>
-          <button id="btnCloseScan" class="btn">✕ Close</button>
+      <h3 style="margin-top:18px">Item Dimensions</h3>
+      <div class="grid three">
+        <div><label>L (in)</label><input id="len" type="number" min="0" step="0.01"></div>
+        <div><label>W (in)</label><input id="wid" type="number" min="0" step="0.01"></div>
+        <div><label>H (in)</label><input id="hei" type="number" min="0" step="0.01"></div>
+      </div>
+      <div class="grid two">
+        <div><label>Weight (lb)</label><input id="wt" type="number" min="0" step="0.01"></div>
+      </div>
+
+      <h3 style="margin-top:18px">Box Breakdown (Styles 1–4) — with Box Dimensions & Gross Weight</h3>
+      <div id="boxStyles"></div>
+
+      <div class="totals">
+        <div class="pill">Subtotal Pieces: <span id="subtotal">0</span></div>
+        <div class="pill">Total Cartons: <span id="totalCartons">0</span></div>
+        <div class="pill">Total Cubic Feet: <span id="totalCft">0.00</span></div>
+        <div class="pill">Total Gross Weight (lb): <span id="totalGwt">0.00</span></div>
+      </div>
+
+      <div class="btn-row" style="margin-top:14px">
+        <button id="btnCheck" class="btn warn">Check Discrepancy</button>
+        <button id="btnNext" class="btn primary" style="margin-left:auto">Next → Page 2</button>
+      </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="section page" id="page2">
+      <header><h2>Putaway & Damage</h2><div class="meta">Locations & Submit</div></header>
+
+      <div id="discBanner" class="hidden">⚠ Subtotal differs from Expected. Please provide a reason below.</div>
+
+      <label>Locations</label>
+      <div class="btn-row">
+        <button id="btnAddLoc" class="btn">+ Add</button>
+        <select id="presetLoc">
+          <option value="">Select preset...</option>
+          <option>INBOUND - SOLD</option>
+          <option>PUT AWAY</option>
+          <option>INCOMING</option>
+        </select>
+        <button id="btnScanLoc" class="btn ghost">📷 Scan Location</button>
+        <button id="btnMoveAll" class="btn ghost">Move All to Loc 1</button>
+      </div>
+      <div id="locations"></div>
+
+      <div class="grid three">
+        <div><label>Good</label><input id="goodQty" class="qty-good" type="number" min="0" value="0"></div>
+        <div><label>Damage – Sell</label><input id="damSell" class="qty-dsell" type="number" min="0" value="0"></div>
+        <div><label>Damage – Dispose</label><input id="damDisp" class="qty-ddisp" type="number" min="0" value="0"></div>
+      </div>
+
+      <div class="pill" style="margin-top:10px; display:inline-block">Total to Putaway: <span id="putawayTotal">0</span></div>
+
+      <div class="grid two" style="margin-top:12px">
+        <div>
+          <label>Discrepancy Reason (if any)</label>
+          <select id="discReason">
+            <option value="">—</option>
+            <option>Pending Recount</option>
+            <option>Friend/Family Purchase</option>
+            <option>Damaged Goods</option>
+            <option>Long Time Discrepancy</option>
+            <option>Investigate</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Notes</label>
+          <textarea id="notes"></textarea>
         </div>
       </div>
-      <div id="scanner"></div>
-      <div class="muted" style="margin-top:6px">Point camera at barcode. Hold steady…</div>
+
+      <div class="btn-row" style="margin-top:14px">
+        <button id="btnBack" class="btn ghost">← Back</button>
+        <button id="btnLabels" class="btn">Generate Labels</button>
+        <button id="btnSubmitNext" class="btn success" style="margin-left:auto">Submit & Next →</button>
+      </div>
     </div>
   </div>
 
-  <!-- External libs (CDN for speed; we can bundle locally next build) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Scanner Modal (1D) -->
+  <div class="modal" id="scannerModal1D">
+    <div class="sheet">
+      <div class="btn-row" style="justify-content:space-between">
+        <div class="badge">Camera Scanner</div>
+        <select id="cameraFacing1D"><option value="environment">Back Camera</option><option value="user">Front Camera</option></select>
+        <button id="btnCloseScan1D" class="btn ghost">✕ Close</button>
+      </div>
+      <div id="scanner1D" style="height:320px; background:#0c0f14; border:1px dashed #263044; border-radius:12px; margin-top:10px"></div>
+      <div class="small center" style="margin-top:8px">Point camera at barcode. Hold steady…</div>
+    </div>
+  </div>
+
+  <!-- Scanner Modal (QR for locations) -->
+  <div class="modal" id="scannerModalQR">
+    <div class="sheet">
+      <div class="btn-row" style="justify-content:space-between">
+        <div class="badge">QR Scanner</div>
+        <select id="cameraFacingQR"><option value="environment">Back Camera</option><option value="user">Front Camera</option></select>
+        <button id="btnCloseScanQR" class="btn ghost">✕ Close</button>
+      </div>
+      <video id="qrVideo" playsinline style="width:100%; max-height:360px; background:#000; border-radius:12px"></video>
+      <canvas id="qrCanvas" style="display:none"></canvas>
+      <div class="small center" style="margin-top:8px">Aim at location QR (e.g., “A 01 01 01”).</div>
+    </div>
+  </div>
+
+  <!-- Labels Modal -->
+  <div class="modal" id="labelsModal">
+    <div class="sheet">
+      <div class="btn-row" style="justify-content:space-between; align-items:center">
+        <div class="badge">Labels & Export</div>
+        <div class="btn-row">
+          <select id="labelType"><option value="inventoried">INVENTORIED</option><option value="cartons">CARTON</option><option value="pallet">PALLET</option></select>
+          <label class="badge"><input id="includeSummary" type="checkbox" checked style="margin-right:8px">Summary</label>
+          <label class="badge"><input id="showBoxXofY" type="checkbox" checked style="margin-right:8px">Box X of Y</label>
+          <button id="btnPrintAll" class="btn">Print</button>
+          <button id="btnSavePDF" class="btn ghost">Save as PDF</button>
+          <button id="btnCloseLabels" class="btn ghost">✕ Close</button>
+        </div>
+      </div>
+      <div id="labelGate" class="badge hidden" style="margin:10px 0">Bypass is ON — printing allowed even if unapproved.</div>
+      <div class="small">Carton labels to generate: <span id="cartonLabelCount">0</span></div>
+      <div id="labelsContainer"></div>
+    </div>
+  </div>
+
+  <!-- External libraries from CDN (client-side) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
   <script>
-    const $=(s,c=document)=>c.querySelector(s); const $$=(s,c=document)=>Array.from(c.querySelectorAll(s));
-    const val=id=>document.getElementById(id).value.trim(); const num=id=>Number(document.getElementById(id).value)||0;
-    const ts=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`};
-    function saveCfg(){localStorage.setItem('stock_cfg',JSON.stringify({endpoint:val('endpoint'),sheetId:val('sheetId'),user:val('user')}))}
-    function loadCfg(){try{const c=JSON.parse(localStorage.getItem('stock_cfg')||'{}'); if(c.endpoint) $('#endpoint').value=c.endpoint; if(c.sheetId) $('#sheetId').value=c.sheetId; if(c.user) $('#user').value=c.user;}catch(e){}}
+  // ===== Local storage helpers =====
+  const S = (k,v)=>localStorage.setItem(k, JSON.stringify(v));
+  const G = (k)=>{ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } };
+  const $ = (sel)=>document.querySelector(sel);
+  const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
 
-    async function callGET(action, params={}){ const u=new URL(val('endpoint')); u.searchParams.set('action', action); Object.entries(params).forEach(([k,v])=>u.searchParams.set(k, v)); const res=await fetch(u.toString(), { method:'GET' }); return res.text().then(t=>{ try{return JSON.parse(t);}catch{ return { ok:false, raw:t }; }}); }
-    async function callPOSTForm(action, fields={}){ const data=new URLSearchParams(); data.set('action', action); Object.entries(fields).forEach(([k,v])=> data.set(k, String(v))); const res=await fetch(val('endpoint'), { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:data.toString() }); return res.text().then(t=>{ try{return JSON.parse(t);}catch{ return { ok:false, raw:t }; }}); }
+  // ===== Save/Load config =====
+  const cfgKeys = ['endpoint','sheetId','toggleBypass','toggleEmailDisc'];
+  function loadCfg(){
+    cfgKeys.forEach(k=>{ const v=G(k); if(v!==null){ const el=document.getElementById(k); if(el){ if(el.type==='checkbox') el.checked=!!v; else el.value=v; } }});
+    document.getElementById('saveState').textContent='Saved locally';
+  }
+  function saveCfg(){
+    cfgKeys.forEach(k=>{ const el=document.getElementById(k); if(el) S(k, el.type==='checkbox' ? el.checked : el.value); });
+    document.getElementById('saveState').textContent='Saved locally';
+  }
+  document.getElementById('btnSaveCfg').addEventListener('click', saveCfg);
+  loadCfg();
 
-    function setProgress(done,total){ const pct=total?Math.round((done/total)*100):0; const bar=$('#pbar'); if(bar) bar.style.width=pct+'%'; const t=$('#ptext'); if(t) t.textContent=`${done} of ${total}`; }
+  // ===== Page navigation =====
+  function showPage(n){
+    document.getElementById('page1').classList.toggle('active', n===1);
+    document.getElementById('page2').classList.toggle('active', n===2);
+    document.getElementById('pageIndicator').textContent = 'Page ' + n + ' of 2';
+  }
+  document.getElementById('btnNext').addEventListener('click', ()=> showPage(2));
+  document.getElementById('btnBack').addEventListener('click', ()=> showPage(1));
 
-    function cfFromBox(i){ const l=num(`b${i}_l`), w=num(`b${i}_w`), h=num(`b${i}_h`); const boxes=num(`b${i}_boxes`), q=num(`b${i}_qty`); if(!(l&&w&&h&&boxes&&q)) return 0; return (l*w*h/1728) * (boxes*q); }
-    function gwFromBox(i){ const wt=num(`b${i}_wt`), boxes=num(`b${i}_boxes`); if(!(wt&&boxes)) return 0; return wt*boxes; }
-    function calcBreakdown(){ const styles=[1,2,3,4]; const subtotalBoxes=styles.reduce((a,i)=>a+num(`b${i}_boxes`),0); const subtotalPieces=styles.reduce((a,i)=>a+num(`b${i}_boxes`)*num(`b${i}_qty`),0); const cubicFeet = styles.reduce((a,i)=>a+cfFromBox(i),0); const grossWt = styles.reduce((a,i)=>a+gwFromBox(i),0); $('#subtotalBoxes').textContent=subtotalBoxes; $('#subtotalPieces').textContent=subtotalPieces; $('#cubicFeet').textContent=cubicFeet.toFixed(2); $('#grossWt').textContent=grossWt.toFixed(2); $('#good').value=subtotalPieces; $('#toPutaway').textContent=subtotalPieces; return {subtotalBoxes, subtotalPieces, cubicFeet:Number(cubicFeet.toFixed(2)), grossWt:Number(grossWt.toFixed(2))}; }
-    function checkDiscrepancy(){ const expected=num('expectedQty'); const {subtotalPieces}=calcBreakdown(); if(!expected){ alert('No expected qty set.'); return null;} if(subtotalPieces===expected){ alert('✓ Subtotal matches expected'); return true;} alert(`⚠️ Discrepancy: Entered ${subtotalPieces} vs Expected ${expected}`); return false; }
-    function go(id){ $$('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
-    function randomUPC(){ const base=Array.from({length:11},()=>Math.floor(Math.random()*10)).join(''); const sum=base.split('').reduce((a,d,i)=>a+(i%2?+d:+d*3),0); const check=(10-(sum%10))%10; return base+check; }
+  // ===== Build Box Styles UI (1..4) =====
+  const boxStyles = document.getElementById('boxStyles');
+  function styleRow(i){
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.innerHTML = `
+      <div class="title">Style ${i}: Boxes × Qty/Box</div>
+      <div class="row">
+        <input class="boxes" type="number" min="0" placeholder="Boxes">
+        <input class="qty"   type="number" min="0" placeholder="Qty/Box">
+        <input class="bl"    type="number" min="0" step="0.01" placeholder="L (in)">
+        <input class="bw"    type="number" min="0" step="0.01" placeholder="W (in)">
+        <input class="bh"    type="number" min="0" step="0.01" placeholder="H (in)">
+        <input class="bwt"   type="number" min="0" step="0.01" placeholder="Box Wt (lb)">
+      </div>`;
+    return d;
+  }
+  for(let i=1;i<=4;i++) boxStyles.appendChild(styleRow(i));
 
-    let expectedMap=new Map();
-    async function loadExpected(){ try{ const st=$('#lookupStatus'); st.textContent='Loading expected…'; const data=await callGET('getExpectedInventory', { sheetId: val('sheetId') }); expectedMap=new Map(); (data.items||[]).forEach(it=>{ if(it.upc) expectedMap.set(String(it.upc).replace(/\D/g,''), it); }); st.textContent=`Loaded ${expectedMap.size} expected items.`; setProgress(0, expectedMap.size||0); }catch(e){ $('#lookupStatus').textContent=`Error: ${e.message}`; } }
-    function applyExpected(upc){ const clean=String(upc||'').replace(/\D/g,''); if(!clean) return; const it=expectedMap.get(clean); const st=$('#lookupStatus'); if(it){ $('#brand').value=it.brand||''; $('#desc').value=it.desc||it.description||''; $('#gender').value=it.gender||''; $('#coo').value=it.coo||''; $('#expectedQty').value=Number(it.expectedQty||it.qty||0); st.innerHTML='<span class="ok">Matched expected</span>'; } else { st.innerHTML='<span class="warn">UPC not in expected list</span> — will log to unexpected_items'; } }
+  function updateTotals(){
+    let subtotal=0, cartons=0, cft=0, gwt=0;
+    $$('#boxStyles .card').forEach(c=>{
+      const b = +c.querySelector('.boxes').value || 0;
+      const q = +c.querySelector('.qty').value   || 0;
+      const bl= +c.querySelector('.bl').value    || 0;
+      const bw= +c.querySelector('.bw').value    || 0;
+      const bh= +c.querySelector('.bh').value    || 0;
+      const bwt=+c.querySelector('.bwt').value   || 0;
+      subtotal += b*q; cartons += b; cft += (b*(bl*bw*bh))/1728; gwt += b*bwt;
+    });
+    document.getElementById('subtotal').textContent = String(subtotal);
+    document.getElementById('totalCartons').textContent = String(cartons);
+    document.getElementById('totalCft').textContent = cft.toFixed(2);
+    document.getElementById('totalGwt').textContent = gwt.toFixed(2);
+    updatePutawayTotal();
+  }
+  boxStyles.addEventListener('input', updateTotals);
 
-    function makeQRCode(el,text,size=120){ el.innerHTML=''; new QRCode(el,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M}); }
-    function makeBarcode(el,text){ el.innerHTML=''; const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); el.appendChild(svg); JsBarcode(svg,text,{format:'CODE128',displayValue:false,lineColor:'#000',height:60,margin:0}); }
-    function labelNode(type,data){ if(type==='carton'){ const div=document.createElement('div'); div.className='label carton'; div.innerHTML=`<div class="hdr xl">CARTON LABEL</div><div class="qr" id="qr"></div><div class="grid"><div class="big">${data.brand?data.brand+' — ':''}${data.desc||'ITEM'}</div><div class="big">Qty: <strong>${data.subtotalPieces}</strong> pcs • Cartons: <strong>${data.subtotalBoxes}</strong></div><div class="muted">Counted By: <strong>${data.counter||data.user||'-'}</strong> • ${data.ts}</div></div><div class="barcode" id="bc"></div><div style="text-align:center;margin-top:4px"><span class="mono big">${data.upc}</span></div>`; makeQRCode(div.querySelector('#qr'),`CARTON:${data.upc}:${data.ts}`,120); makeBarcode(div.querySelector('#bc'),data.upc); return div; }
-      if(type==='inventoried'){ const div=document.createElement('div'); div.className='label inventoried'; const cf=(data.L&&data.W&&data.H)?((data.L*data.W*data.H)/1728).toFixed(2):'—'; div.innerHTML=`<div class="hdr xl">INVENTORIED LABEL</div><div class="grid"><div class="big">${data.brand?data.brand+' — ':''}${data.desc||'ITEM'}</div><div>Gross Weight: <strong>${data.grossWt||data.wt||'—'}</strong> lb • Cubic Feet: <strong>${cf}</strong></div><div class="muted">Counted By: <strong>${data.counter||data.user||'-'}</strong> • ${data.ts}</div></div><div class="barcode" id="bc"></div><div style="text-align:center;margin-top:4px"><span class="mono big">${data.upc}</span></div>`; makeBarcode(div.querySelector('#bc'),data.upc); return div; }
-      if(type==='pallet'){ const div=document.createElement('div'); div.className='label pallet'; div.innerHTML=`<div class="hdr xl">PALLET LABEL</div><div class="qr" id="qr"></div><div class="grid"><div class="big">${data.brand?data.brand+' — ':''}${data.desc||'ITEM'}</div><div>Total Boxes: <strong>${data.subtotalBoxes}</strong> • Total Pieces: <strong>${data.subtotalPieces}</strong></div><div>Date: <strong>${data.ts.split(' ')[0]}</strong> • Weight: <strong>${data.grossWt||data.wt||'—'} lb</strong></div></div><div class="barcode" id="bc"></div><div style="text-align:center;margin-top:4px"><span class="mono big">${data.upc}</span></div>`; makeQRCode(div.querySelector('#qr'),`PALLET:${data.upc}:${data.ts}`,120); makeBarcode(div.querySelector('#bc'),data.upc); return div; } }
-    async function saveLabelsAsPDF(){ const nodes=$$('#labelPreview .label'); if(!nodes.length){ alert('Generate labels first.'); return; } const { jsPDF } = window.jspdf; const pdf=new jsPDF({unit:'mm',format:'a4'}); let first=true; for(const node of nodes){ const canvas=await html2canvas(node,{scale:2,backgroundColor:'#ffffff'}); const img=canvas.toDataURL('image/png'); const mmW=210,mmH=297; const w=canvas.width,h=canvas.height; const imgW=Math.min(mmW-20,(mmH-20)*(w/h)); const imgH=imgW*h/w; if(!first) pdf.addPage(); first=false; pdf.addImage(img,'PNG',10,10,imgW,imgH); } pdf.save(`labels_${Date.now()}.pdf`); }
+  // ===== Locations =====
+  const locations = document.getElementById('locations');
+  function locRow(){
+    const w = document.createElement('div');
+    w.className='row';
+    w.innerHTML = `<input class="locName" type="text" placeholder="A 01 01 01"><input class="locQty" type="number" min="0" value="0">`;
+    return w;
+  }
+  function ensureLoc(){ if(!document.querySelector('.locName')) locations.appendChild(locRow()); }
+  ensureLoc();
+  document.getElementById('btnAddLoc').addEventListener('click', ()=> locations.appendChild(locRow()));
+  document.getElementById('btnMoveAll').addEventListener('click', ()=>{
+    const total = +(document.getElementById('subtotal').textContent)||0;
+    const first = document.querySelector('.locQty');
+    if(first) first.value = total;
+    $$('.locQty').slice(1).forEach(el=> el.value=0);
+    updatePutawayTotal();
+  });
+  locations.addEventListener('input', updatePutawayTotal);
 
-    function collect(){ const b=calcBreakdown(); const discrepancy=(num('expectedQty')>0)&&(b.subtotalPieces!==num('expectedQty'));
-      return { upc:val('upc')||randomUPC(), brand:val('brand'), desc:val('desc'), coo:val('coo'), gender:val('gender'), cd:val('cd'), expected:num('expectedQty'), counter:val('counter'), user:val('user'), edgeno:val('edgeno'), L:num('len'), W:num('wid'), H:num('ht'), wt:num('wt'), subtotalBoxes:b.subtotalBoxes, subtotalPieces:b.subtotalPieces, cubicFeet:b.cubicFeet, grossWt:b.grossWt, locations: $$('#locations .chip').map(c=>c.dataset.loc), good:num('good'), damSell:num('damSell'), damDisp:num('damDisp'), reason:val('reason'), notes:val('notes'), ts:ts(), discrepancy };
-    }
-    async function submitToSheets(){ const payload=collect(); const status=$('#submitStatus'); status.textContent='Submitting…'; status.className='status';
-      try{ const res=await callPOSTForm('submitInventory', { user:payload.user, device:navigator.userAgent, 'tabs[inventoryitem_master]':true, 'tabs[labels]':true, 'tabs[damage_log]':(payload.damSell>0||payload.damDisp>0), 'tabs[unexpected_items]': !expectedMap.has(String(payload.upc).replace(/\D/g,'')), 'tabs[carton_registry]':true, 'record[json]': JSON.stringify(payload) }); if(res && res.ok){ status.innerHTML=`<span class="ok">✓ Submitted</span> — Row: ${res.row||'?'} • ID: ${res.id||'-'}`; ['upc','expectedQty','b1_boxes','b1_qty','b2_boxes','b2_qty','b3_boxes','b3_qty','b4_boxes','b4_qty','good','damSell','damDisp','reason','notes'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.value=(el.type==='number')?0:''; }); calcBreakdown(); go('#screen1'); $('#upc').focus(); } else { throw new Error(res && res.error ? res.error : 'Unknown submit error'); } }catch(e){ status.innerHTML=`<span class="err">✗ Submit failed:</span> ${e.message}`; }
-    }
-    async function guardPrint(){ const data=collect(); const guard=$('#printGuard'); guard.style.display='none'; guard.textContent=''; try{ const res=await callGET('canprint',{ upc:data.upc, qty:data.subtotalPieces, discrepancy:data.discrepancy, status:data.discrepancy?'PENDING':'VERIFIED' }); if(res && res.allowed===false){ guard.style.display='block'; guard.textContent='Warning: Printing before approval. Proceeding per override.'; } }catch(e){}
-    }
+  function updatePutawayTotal(){
+    const locSum = $$('.locQty').reduce((s,el)=> s + (+el.value||0), 0);
+    document.getElementById('putawayTotal').textContent = String(locSum);
+    const expected = +document.getElementById('expectedQty').value || 0;
+    const sub = +document.getElementById('subtotal').textContent || 0;
+    const mismatch = (expected>0 && sub !== expected);
+    document.getElementById('discBanner').classList.toggle('hidden', !mismatch);
+  }
 
-    let scanning=false;
-    async function startScanner(){ if(scanning) return; scanning=true; $('#scanModal').classList.add('active'); const facing=$('#cameraFacing').value||'environment'; Quagga.init({ inputStream:{ type:'LiveStream', target:document.getElementById('scanner'), constraints:{ facingMode:facing } }, decoder:{ readers:['ean_reader','upc_reader','upc_e_reader','code_128_reader'] } }, err=>{ if(err){ alert('Camera init error: '+err); scanning=false; $('#scanModal').classList.remove('active'); return; } Quagga.start(); }); Quagga.onDetected(res=>{ const code=(res&&res.codeResult&&res.codeResult.code)||''; if(code){ try{ Quagga.stop(); }catch(e){} scanning=false; $('#scanModal').classList.remove('active'); document.getElementById('upc').value = code.replace(/\D/g,''); applyExpected(code); try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.5, ctx.currentTime+0.01); o.start(); o.stop(ctx.currentTime+0.12); }catch(e){} }
-      }); }
-    function stopScanner(){ if(scanning){ try{ Quagga.stop(); }catch(e){} scanning=false; } $('#scanModal').classList.remove('active'); }
+  document.getElementById('btnCheck').addEventListener('click', ()=>{
+    const exp = +document.getElementById('expectedQty').value || 0;
+    const sub = +document.getElementById('subtotal').textContent || 0;
+    if(exp===0){ alert('Expected Qty is 0 or missing.'); return; }
+    if(sub===exp) alert('✔ Subtotal matches Expected Qty.');
+    else alert(`⚠ Subtotal (${sub}) differs from Expected (${exp}). Provide a reason on Page 2.`);
+  });
 
-    ['b1_boxes','b1_qty','b2_boxes','b2_qty','b3_boxes','b3_qty','b4_boxes','b4_qty','len','wid','ht','b1_l','b1_w','b1_h','b1_wt','b2_l','b2_w','b2_h','b2_wt','b3_l','b3_w','b3_h','b3_wt','b4_l','b4_w','b4_h','b4_wt']
-      .forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',calcBreakdown); });
+  // ===== Utilities =====
+  function beep(){
+    const c=new (window.AudioContext||window.webkitAudioContext)();
+    const o=c.createOscillator(); const g=c.createGain(); o.connect(g); g.connect(c.destination);
+    o.type='sine'; o.frequency.value=880; g.gain.value=.05; o.start(); setTimeout(()=>{o.stop(); c.close();},150);
+  }
+  function makeUPC(){ let s=''; for(let i=0;i<11;i++) s+=Math.floor(Math.random()*10); const d=[...s].map(Number);
+    const so=d.filter((_,i)=>i%2===0).reduce((a,b)=>a+b,0); const se=d.filter((_,i)=>i%2===1).reduce((a,b)=>a+b,0);
+    const cd=(10-((so*3+se)%10))%10; return s+cd; }
+  document.getElementById('btnGenUPC').addEventListener('click', ()=>{ document.getElementById('upc').value=makeUPC(); beep(); });
+  document.getElementById('upc').addEventListener('blur', ()=>{ const v=document.getElementById('upc').value.trim(); if(v && !/^\d+$/.test(v)){ alert('UPC must be numeric only.'); document.getElementById('upc').focus(); }});
 
-    const btnCheck=document.getElementById('btnCheck'); if(btnCheck) btnCheck.onclick=checkDiscrepancy;
-    const toScreen2=document.getElementById('toScreen2'); if(toScreen2) toScreen2.onclick=()=>{ calcBreakdown(); go('#screen2'); };
-    const backTo1=document.getElementById('backTo1'); if(backTo1) backTo1.onclick=()=>go('#screen1');
+  // ===== Endpoint wiring =====
+  let expectedList=[], progress=0;
+  function updateProgress(){ const total=expectedList.length||0; document.getElementById('progressText').textContent=`${progress} of ${total}`; document.getElementById('progressBar').style.width=(total?Math.floor(progress/total*100):0)+'%'; }
+  updateProgress();
+  async function callEndpoint(action,payload){
+    const url=(G('endpoint')||document.getElementById('endpoint').value||'').trim(); if(!url) throw new Error('Endpoint missing');
+    const body={ action, sheetId:(G('sheetId')||document.getElementById('sheetId').value||''), payload };
+    const r=await fetch(url,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    if(!r.ok) throw new Error('HTTP '+r.status); return await r.json();
+  }
+  document.getElementById('btnTest').addEventListener('click', async()=>{ try{ const j=await callEndpoint('ping',{}); alert('Ping OK: '+JSON.stringify(j)); }catch(e){ alert('Ping failed: '+e.message); } });
+  document.getElementById('btnLoadExpected').addEventListener('click', async()=>{ try{ const j=await callEndpoint('getExpectedInventory',{}); expectedList=j.items||[]; progress=0; updateProgress(); alert('Loaded '+expectedList.length+' expected items.'); }catch(e){ alert('Load failed: '+e.message); } });
 
-    const btnGenUPC=document.getElementById('btnGenUPC'); if(btnGenUPC) btnGenUPC.onclick=()=>{ document.getElementById('upc').value=randomUPC(); applyExpected(val('upc')); };
-    const upcEl=document.getElementById('upc'); if(upcEl) upcEl.addEventListener('change',e=> applyExpected(e.target.value));
+  // ===== Quagga (1D UPC scan) =====
+  let quaggaStarted=false;
+  function startQuagga(){
+    const facing=document.getElementById('cameraFacing1D').value||'environment';
+    Quagga.init({ inputStream:{ type:'LiveStream', target:document.getElementById('scanner1D'), constraints:{ facingMode:facing } }, decoder:{ readers:['code_128_reader','ean_reader','ean_8_reader','upc_reader','upc_e_reader'] } }, (err)=>{
+      if(err){ alert('Camera init failed: '+err); return; }
+      Quagga.start(); quaggaStarted=true; Quagga.offDetected(); Quagga.onDetected(res=>{ const code=res&&res.codeResult&&res.codeResult.code; if(!code) return; beep(); document.getElementById('upc').value=code; closeScan1D(); });
+    });
+  }
+  function openScan1D(){ document.getElementById('scannerModal1D').style.display='flex'; startQuagga(); }
+  function closeScan1D(){ try{ if(quaggaStarted){ Quagga.stop(); quaggaStarted=false; } }catch(e){} document.getElementById('scannerModal1D').style.display='none'; }
+  document.getElementById('btnScanUPC').addEventListener('click', openScan1D);
+  document.getElementById('btnCloseScan1D').addEventListener('click', closeScan1D);
+  document.getElementById('cameraFacing1D').addEventListener('change', ()=>{ try{ if(quaggaStarted){ Quagga.stop(); quaggaStarted=false; } }catch(e){} startQuagga(); });
 
-    const addLoc=document.getElementById('addLoc'); if(addLoc) addLoc.onclick=()=>{ const t=val('locInput'); if(!t) return; addLocChip(t); document.getElementById('locInput').value=''; };
-    const moveAll=document.getElementById('moveAllLoc1'); if(moveAll) moveAll.onclick=()=>{ const good=num('good'); const chips=$$('#locations .chip'); if(chips[0]) chips[0].dataset.qty=good; };
-    const preset=document.getElementById('presetLoc'); if(preset) preset.onchange=()=>{ if(preset.value) addLocChip(preset.value); };
+  // ===== jsQR (location scan) =====
+  let qrStream=null, qrTimer=null;
+  async function startQR(){
+    const facing=document.getElementById('cameraFacingQR').value||'environment';
+    try{
+      qrStream=await navigator.mediaDevices.getUserMedia({ video:{ facingMode:facing } });
+      document.getElementById('qrVideo').srcObject=qrStream; await document.getElementById('qrVideo').play();
+      const canvas=document.getElementById('qrCanvas'); const ctx=canvas.getContext('2d');
+      qrTimer=setInterval(()=>{ const v=document.getElementById('qrVideo'); if(v.readyState!==v.HAVE_ENOUGH_DATA) return; canvas.width=v.videoWidth; canvas.height=v.videoHeight; ctx.drawImage(v,0,0,canvas.width,canvas.height); const img=ctx.getImageData(0,0,canvas.width,canvas.height); const qr=jsQR(img.data,img.width,img.height); if(qr&&qr.data){ const text=qr.data.trim(); beep(); const n=document.querySelector('.locName'); if(n) n.value=text; closeScanQR(); } }, 200);
+    }catch(e){ alert('QR camera error: '+e.message); }
+  }
+  function openScanQR(){ document.getElementById('scannerModalQR').style.display='flex'; startQR(); }
+  function closeScanQR(){ try{ if(qrTimer) clearInterval(qrTimer); qrTimer=null; }catch(e){} try{ if(qrStream){ qrStream.getTracks().forEach(t=>t.stop()); qrStream=null; } }catch(e){} document.getElementById('scannerModalQR').style.display='none'; }
+  document.getElementById('btnScanLoc').addEventListener('click', openScanQR);
+  document.getElementById('btnCloseScanQR').addEventListener('click', closeScanQR);
+  document.getElementById('cameraFacingQR').addEventListener('change', ()=>{ closeScanQR(); openScanQR(); });
 
-    function addLocChip(text){ const wrap=document.getElementById('locations'); const chip=document.createElement('span'); chip.dataset.loc=text; chip.className='pill chip'; chip.innerHTML=`${text} <button class='btn' style='padding:2px 6px'>×</button>`; chip.querySelector('button').onclick=()=>chip.remove(); wrap.appendChild(chip); }
+  // ===== Labels rendering =====
+  function nowISO(){ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds()); }
+  function uuidv4(){ return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r=Math.random()*16|0, v=c==='x'?r:(r&0x3|0x8); return v.toString(16); }); }
+  function buildCartonId(ts, idx){ try{ const d=new Date(); const base=ts; return 'C-' + base + '-' + String(idx).padStart(3,'0'); }catch(e){ return 'C-'+ts+'-'+String(idx).padStart(3,'0'); } }
 
-    const genLabels=document.getElementById('genLabels'); if(genLabels) genLabels.onclick=async()=>{ await guardPrint(); const data=collect(); const prev=document.getElementById('labelPreview'); prev.innerHTML=''; ['carton','inventoried','pallet'].forEach(t=> prev.appendChild(labelNode(t, data))); window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); };
-    const printLabels=document.getElementById('printLabels'); if(printLabels) printLabels.onclick=()=>{ if(!$('#labelPreview .label')){ alert('Generate labels first.'); return; } window.print(); };
-    const savePdf=document.getElementById('savePdf'); if(savePdf) savePdf.onclick=saveLabelsAsPDF;
+  function getCartonsAuto(parentTs){
+    const upc=document.getElementById('upc').value.trim();
+    const brand=document.getElementById('brand').value; const description=document.getElementById('desc').value;
+    const countedBy=document.getElementById('countedBy').value; const primaryLoc=(document.querySelectorAll('.locName')[0]?.value)||'';
+    let idx=0; const arr=[];
+    $$('#boxStyles .card').forEach(card=>{
+      const boxes=+card.querySelector('.boxes').value||0; const qty=+card.querySelector('.qty').value||0;
+      for(let i=0;i<boxes;i++){ idx++; arr.push({ carton_id: buildCartonId(parentTs, idx), upc, brand, description, pieces_per_carton: qty, box_number: idx, location: primaryLoc, counted_by: countedBy }); }
+    });
+    return arr;
+  }
 
-    const submitNext=document.getElementById('submitNext'); if(submitNext) submitNext.onclick=submitToSheets;
+  function renderInventoried(container){
+    const lp=document.createElement('div'); lp.className='label-preview';
+    const upc=document.getElementById('upc').value.trim(); const qty=document.getElementById('subtotal').textContent;
+    lp.innerHTML = `
+      <div style="font-weight:800; font-size:18px; text-align:center">INVENTORIED LABEL</div>
+      <div class="center" style="font-weight:800; font-size:16px; margin:6px 0">${document.getElementById('desc').value||'—'}</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px">
+        <div>Item No: <span class="i1">${document.getElementById('edgeno').value||'—'}</span></div>
+        <div>Brand: <span class="i2">${document.getElementById('brand').value||'—'}</span></div>
+        <div>Gender: <span class="i3">${document.getElementById('gender').value||'—'}</span></div>
+        <div>COO: <span class="i4">${document.getElementById('coo').value||'—'}</span></div>
+        <div style="grid-column:1/-1">Location: <span class="i5">${(document.querySelectorAll('.locName')[0]?.value)||'—'}</span></div>
+        <div style="grid-column:1/-1">Total Qty: <b>${qty}</b></div>
+      </div>
+      <svg id="barcodeInv"></svg>
+      <div id="qrinv"></div>
+      <div class="center" style="font-weight:800; letter-spacing:.4px; margin-top:4px">${upc}</div>`;
+    container.appendChild(lp);
+    try{ JsBarcode(lp.querySelector('#barcodeInv'), upc, {format:'CODE128', displayValue:false, height:40, margin:0}); }catch(e){}
+    try{ new QRCode(lp.querySelector('#qrinv'), { text: upc, width:120, height:120 }); }catch(e){}
+  }
 
-    const btnLoad=document.getElementById('btnLoad'); if(btnLoad) btnLoad.onclick=async()=>{ try{ const r=await callGET('ping'); alert(r && r.ok? '✓ Endpoint reachable' : ('Endpoint error: '+(r.error||r.raw))); }catch(e){ alert('Endpoint error: '+e.message); } };
-    const btnLoadExpected=document.getElementById('btnLoadExpected'); if(btnLoadExpected) btnLoadExpected.onclick=loadExpected;
-    const btnSaveCfg=document.getElementById('btnSaveCfg'); if(btnSaveCfg) btnSaveCfg.onclick=saveCfg;
+  function renderCartonLabels(container){
+    const cartons=getCartonsAuto(nowISO()); const total=cartons.length; 
+    cartons.forEach(c=>{ const lp=document.createElement('div'); lp.className='label-preview'; lp.innerHTML=
+      `<div style="font-weight:800">CARTON LABEL</div>
+       <div>${(c.brand||'—')} — ${(c.description||'—')}</div>
+       <div>Qty: <b>${c.pieces_per_carton}</b> pcs</div>
+       <div>Carton: ${c.box_number} of ${total}</div>
+       <div>Location: ${c.location||'—'}</div>
+       <div>Counted By: ${c.counted_by||'—'}</div>
+       <div>Carton ID: ${c.carton_id}</div>
+       <svg class="barcode"></svg>
+       <div class="qr"></div>
+       <div class="center" style="font-weight:800; letter-spacing:.4px; margin-top:4px">${c.upc}</div>`; container.appendChild(lp);
+      try{ JsBarcode(lp.querySelector('.barcode'), c.upc, {format:'CODE128', displayValue:false, height:40, margin:0}); }catch(e){}
+      try{ new QRCode(lp.querySelector('.qr'), { text: c.upc, width:120, height:120 }); }catch(e){}
+    });
+    if(document.getElementById('includeSummary').checked){ const totalPieces=cartons.reduce((s,c)=>s+c.pieces_per_carton,0); const sum=document.createElement('div'); sum.className='label-preview'; sum.innerHTML=`<div style="font-weight:800">CARTON SUMMARY</div><div>${document.getElementById('brand').value||'—'} — ${document.getElementById('desc').value||'—'}</div><div>Total Boxes: ${total} | Total Pieces: ${totalPieces}</div>`; container.appendChild(sum); }
+  }
 
-    const btnScan=document.getElementById('btnScan'); if(btnScan) btnScan.onclick=startScanner;
-    const btnCloseScan=document.getElementById('btnCloseScan'); if(btnCloseScan) btnCloseScan.onclick=stopScanner;
+  function renderPalletLabel(container){
+    const cartons=getCartonsAuto(nowISO()); const total=cartons.length; const totalPieces=cartons.reduce((s,c)=>s+c.pieces_per_carton,0);
+    const lp=document.createElement('div'); lp.className='label-preview'; lp.innerHTML =
+      `<div style="font-weight:800">PALLET LABEL</div>
+       <div>${document.getElementById('brand').value||'—'} — ${document.getElementById('desc').value||'—'}</div>
+       <div>Total Boxes: ${total} | Total Pieces: ${totalPieces}</div>
+       <div>Date: ${(new Date()).toLocaleDateString()} | Weight: ${document.getElementById('totalGwt').textContent} lb</div>
+       <svg id="barcodePal"></svg><div id="qrpal"></div>`;
+    container.appendChild(lp);
+    const upc=document.getElementById('upc').value.trim();
+    try{ JsBarcode(lp.querySelector('#barcodePal'), upc, {format:'CODE128', displayValue:false, height:40, margin:0}); }catch(e){}
+    try{ new QRCode(lp.querySelector('#qrpal'), { text: upc, width:120, height:120 }); }catch(e){}
+  }
 
-    loadCfg(); calcBreakdown(); setProgress(0,0);
+  function renderLabels(){ const cont=document.getElementById('labelsContainer'); cont.innerHTML=''; const type=document.getElementById('labelType').value; if(type==='inventoried') renderInventoried(cont); else if(type==='cartons') renderCartonLabels(cont); else renderPalletLabel(cont); }
+  document.getElementById('labelType').addEventListener('change', renderLabels);
+  document.getElementById('includeSummary').addEventListener('change', renderLabels);
+  document.getElementById('showBoxXofY').addEventListener('change', renderLabels);
+
+  // ===== Print gate + open modal =====
+  document.getElementById('btnLabels').addEventListener('click', async function(){
+    const upc=document.getElementById('upc').value.trim(); if(!/^\d+$/.test(upc)){ alert('Valid numeric UPC required for labels.'); return; }
+    let canPrint=true; try{ const cp=await callEndpoint('canprint',{upc:upc}); canPrint=!!(cp && cp.ok!==false); }catch(e){}
+    const bypass = G('toggleBypass')===true; document.getElementById('labelGate').classList.toggle('hidden', !bypass);
+    if(!canPrint && !bypass){ alert('Printing is blocked by policy. Ask supervisor to approve or enable bypass in Settings.'); return; }
+    const cartons=getCartonsAuto(nowISO()); document.getElementById('cartonLabelCount').textContent=String(cartons.length);
+    renderLabels(); document.getElementById('labelsModal').style.display='flex';
+  });
+  document.getElementById('btnCloseLabels').addEventListener('click', ()=>{ document.getElementById('labelsModal').style.display='none'; });
+  document.getElementById('btnPrintAll').addEventListener('click', ()=> window.print());
+  document.getElementById('btnSavePDF').addEventListener('click', ()=> window.print());
+
+  // ===== Presets quick-fill to first location =====
+  document.getElementById('presetLoc').addEventListener('change', (e)=>{ if(!e.target.value) return; const n=document.querySelectorAll('.locName')[0]; if(n) n.value=e.target.value; });
+
+  // ===== Submit (skeleton) =====
+  document.getElementById('btnSubmitNext').addEventListener('click', async()=>{
+    const payload={
+      upc: document.getElementById('upc').value.trim(),
+      brand: document.getElementById('brand').value, desc: document.getElementById('desc').value,
+      coo: document.getElementById('coo').value, gender: document.getElementById('gender').value, cd: document.getElementById('cd').value,
+      expected: +document.getElementById('expectedQty').value||0,
+      subtotal: +document.getElementById('subtotal').textContent||0,
+      locations: $$('#locations .row').map(r=>({ name:r.querySelector('.locName').value, qty:+r.querySelector('.locQty').value||0 })),
+      discReason: document.getElementById('discReason').value,
+      notes: document.getElementById('notes').value,
+      countedBy: document.getElementById('countedBy').value,
+      edgeno: document.getElementById('edgeno').value,
+      ts: new Date().toISOString()
+    };
+    try{ const j=await callEndpoint('submit', payload); alert('Submitted: '+(j && j.ok ? 'OK' : JSON.stringify(j))); progress++; updateProgress(); /* auto-next cycle */ showPage(1); /* clear as needed */ }catch(e){ alert('Submit failed: '+e.message); }
+  });
+
+  // ===== Open QR from button =====
+  // (already wired above)
+
   </script>
 </body>
 </html>
