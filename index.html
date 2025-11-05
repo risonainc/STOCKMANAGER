@@ -1,416 +1,543 @@
-
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset='utf-8'>
-  <meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>
-  <title>StockTaker v8.1.0 — FULL</title>
-  <style>
-    :root { --pri:#111; --acc:#111; --bg:#fff; --ink:#111; --br:#c9c9c9; --hil:#ffd400; }
-    * { box-sizing:border-box }
-    body { margin:0; font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif; color:var(--ink); background:#f6f7fb; }
-    header { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:14px; border-bottom:2px solid var(--br); background:#fff; position:sticky; top:0; z-index:5; }
-    .brand { grid-column:1 / -1; font-weight:800; letter-spacing:.5px; display:flex; align-items:center; gap:10px; }
-    .brand h1 { margin:0; font-size:20px; }
-    .row { display:flex; gap:8px; align-items:center; }
-    select,input,button,textarea { font:inherit; }
-    input[type=text], input[type=number], select, textarea { width:100%; padding:8px 10px; border:2px solid var(--br); border-radius:6px; background:#fff; }
-    input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px #667eea22; }
-    button { padding:9px 12px; border:2px solid #0000; border-radius:6px; background:#111; color:#fff; font-weight:700; cursor:pointer; }
-    button.ghost { background:#f2f2f2; color:#111; border-color:var(--br); }
-    button.warn { background:#e74c3c; }
-    button.ok { background:#2ecc71; }
-    main { max-width:1100px; margin:14px auto; padding:0 14px; }
-    .card { background:#fff; border:2px solid var(--br); border-radius:10px; padding:14px; margin-bottom:12px; }
-    .card h2 { margin:4px 0 10px; font-size:15px; letter-spacing:.3px; }
-    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-    .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-    .right { text-align:right; }
-    .small { font-size:12px; color:#555; }
-    .muted { color:#666; }
-    .flex { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .tabs { display:flex; gap:6px; padding:6px; }
-    .tabs button { background:#eee; color:#222; border:2px solid #ddd; }
-    .tabs button.active { background:#111; color:#fff; border-color:#111; }
-    .pane { display:none; }
-    .pane.active { display:block; }
-    .row-fields { display:grid; grid-template-columns: 1.2fr .8fr .8fr .8fr .8fr; gap:8px; }
-    .box-style { border:1px dashed #bbb; border-radius:8px; padding:8px; margin:8px 0; }
-    .status { margin:10px 0; padding:10px; border-radius:6px; display:none; }
-    .status.ok { display:block; background:#e8fff1; border:1px solid #bde5cb; }
-    .status.err { display:block; background:#ffecec; border:1px solid #efc1c1; }
-    .kpi { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; }
-    .kpi .card { padding:10px; text-align:center; }
-    .pill { background:#fff7cc; border:1px solid #ffe07a; padding:6px 8px; border-radius:20px; display:inline-block; }
-    .loc-list { border-top:1px dashed #ddd; margin-top:8px; padding-top:8px; }
-    .loc-row { display:grid; grid-template-columns: 1fr 100px 40px; gap:6px; margin-bottom:6px; align-items:center; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .qr-preview { width:100%; max-height:260px; display:none; border-radius:8px; border:2px solid #ddd; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>StockTaker v8.1.0 — Patched with QuaggaJS</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:Arial,sans-serif; background:#f5f5f5; padding:10px; }
+        .header { background:#2c3e50; color:#fff; padding:15px; border-radius:8px; margin-bottom:20px; }
+        .header h1 { font-size:24px; margin-bottom:10px; }
+        .header-row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+        .header-row label { flex:1; min-width:200px; }
+        .header-row input { flex:1; min-width:150px; padding:8px; border:none; border-radius:4px; }
+        .header-row button { padding:8px 16px; background:#27ae60; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+        .header-row button:hover { background:#229954; }
+        .tabs { display:flex; gap:5px; margin-bottom:20px; }
+        .tabs button { padding:10px 20px; background:#34495e; color:#fff; border:none; cursor:pointer; border-radius:4px; }
+        .tabs button.active { background:#3498db; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+        .page { background:#fff; padding:20px; border-radius:8px; margin-bottom:20px; }
+        label { display:block; margin-bottom:5px; font-weight:bold; color:#2c3e50; }
+        input, select, textarea { width:100%; padding:8px; margin-bottom:15px; border:1px solid #bdc3c7; border-radius:4px; font-size:14px; }
+        button { padding:10px 20px; background:#3498db; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:14px; }
+        button:hover { background:#2980b9; }
+        button.danger { background:#e74c3c; }
+        button.danger:hover { background:#c0392b; }
+        button.success { background:#27ae60; }
+        button.success:hover { background:#229954; }
+        .grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+        .grid.full { grid-template-columns:1fr; }
+        h2 { color:#2c3e50; margin-bottom:15px; border-bottom:2px solid #3498db; padding-bottom:10px; }
+        h3 { color:#34495e; margin:15px 0 10px 0; }
+        .breakdown-row { background:#ecf0f1; padding:10px; margin-bottom:10px; border-radius:4px; }
+        .breakdown-row input { margin-bottom:10px; }
+        .info-box { background:#d5f4e6; border-left:4px solid #27ae60; padding:10px; margin-bottom:15px; border-radius:4px; }
+        .warning-box { background:#fadbd8; border-left:4px solid #e74c3c; padding:10px; margin-bottom:15px; border-radius:4px; }
+        .total-row { background:#34495e; color:#fff; padding:10px; border-radius:4px; margin:10px 0; font-weight:bold; }
+        .location-row { display:flex; gap:10px; margin-bottom:10px; }
+        .location-row input { flex:1; }
+        .location-row button { flex:0 0 auto; }
+        .label-preview { background:#fff; border:1px solid #bdc3c7; padding:20px; margin:10px 0; border-radius:4px; text-align:center; }
+        .label-preview.accurate { border:3px solid #27ae60; }
+        .label-preview.recheck { border:3px dashed #e74c3c; background:repeating-linear-gradient(45deg, #fff, #fff 10px, #fadbd8 10px, #fadbd8 20px); }
+    </style>
 </head>
 <body>
-  <header>
-    <div class='brand'><h1>STOCKTAKER</h1><span class='pill'>v8.1.0 — FULL</span></div>
-    <div class='row'>
-      <label>User</label>
-      <select id='user'>
-        <option value=''>Select…</option>
-        <option>Rikki</option>
-        <option>Leydi</option>
-        <option>Karina</option>
-        <option>Other</option>
-      </select>
-    </div>
-    <div class='row'>
-      <label>Apps Script Endpoint</label>
-      <input id='endpoint' type='text' value='https://script.google.com/macros/s/AKfycbzRTiwMxotEO7LHtl9gRuhjc4E65GnL5blawpsmwXZf-3ECZzkHiYsroDS8PEqrKXrX-w/exec'/>
-    </div>
-    <div class='row'>
-      <label>Expected Sheet ID</label>
-      <input id='sheetId' type='text' value='1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA'/>
-    </div>
-    <div class='row'>
-      <button id='saveBtn' class='ghost'>SAVE</button>
-      <button id='testBtn' class='ghost'>TEST CONNECTION</button>
-      <button id='loadBtn' class='ghost'>LOAD EXPECTED</button>
-    </div>
-  </header>
-
-  <main>
-    <div class='tabs'>
-      <button class='active' data-tab='page1'>PAGE 1</button>
-      <button data-tab='page2'>PAGE 2</button>
+    <!-- HEADER -->
+    <div class="header">
+        <h1>🏷️ StockTaker v8.1.0 — Patched</h1>
+        <div class="header-row">
+            <label>Apps Script Endpoint:</label>
+            <input id="endpoint" type="text" placeholder="https://script.google.com/macros/s/YOUR_ID/exec" value="">
+            <button onclick="saveSettings()">SAVE</button>
+        </div>
+        <div class="header-row">
+            <label>Expected Sheet ID:</label>
+            <input id="sheetId" type="text" placeholder="1k1j6Qn5VLXyuFbZm_vOUelB1hD2AT-pAL_0_22LcIrA" value="">
+            <button onclick="saveSettings()">SAVE</button>
+        </div>
+        <div class="header-row">
+            <button class="success" onclick="testConnection()">Test Connection</button>
+            <button class="danger" onclick="clearSettings()">Clear Settings</button>
+        </div>
     </div>
 
-    <!-- PAGE 1 -->
-    <section class='pane active' id='page1'>
-      <div class='grid-2'>
-        <div class='card'>
-          <h2>ITEM DETAILS</h2>
-          <div class='flex'>
-            <div style='flex:1'>
-              <label>UPC</label>
-              <input id='upc' type='text' placeholder='Scan or enter UPC' class='mono'/>
+    <!-- TAB BUTTONS -->
+    <div class="tabs">
+        <button class="active" onclick="switchTab('page1')">PAGE 1: Item Details</button>
+        <button onclick="switchTab('page2')">PAGE 2: Putaway & Damage</button>
+        <button onclick="switchTab('labels')">LABELS & EXPORT</button>
+    </div>
+
+    <!-- PAGE 1: ITEM DETAILS -->
+    <div id="page1" class="tab-content active">
+        <div class="page">
+            <h2>📝 Page 1: Item Details & Box Breakdown</h2>
+            
+            <h3>Item Information</h3>
+            <div class="grid">
+                <div>
+                    <label>UPC *</label>
+                    <div style="display:flex; gap:10px;">
+                        <input id="upc" type="text" placeholder="Scan or enter UPC">
+                        <button id="scanUPC" onclick="scanUPC()">SCAN</button>
+                    </div>
+                </div>
+                <div>
+                    <label>Brand</label>
+                    <input id="brand" type="text" placeholder="e.g., Nike">
+                </div>
             </div>
-            <button id='scanUPC'>SCAN</button>
-            <button id='genUPC' class='ghost'>GEN</button>
-          </div>
-          <div class='grid-2' style='margin-top:8px'>
-            <div><label>Brand</label><input id='brand' type='text'></div>
-            <div><label>Description</label><input id='description' type='text'></div>
-          </div>
-          <div class='grid-3' style='margin-top:8px'>
-            <div><label>COO</label><select id='coo'><option value=''>—</option><option>China</option><option>India</option><option>Pakistan</option><option>USA</option></select></div>
-            <div><label>Gender</label><select id='gender'><option value=''>—</option><option>Men</option><option>Women</option><option>Unisex</option><option>Kids</option></select></div>
-            <div><label>C/D</label><input id='cd' type='text' placeholder='e.g., C or D'></div>
-          </div>
-          <div class='grid-3' style='margin-top:8px'>
-            <div><label>Expected Qty</label><input id='expectedQty' type='number' value='0' min='0'></div>
-            <div><label>Counted By</label><select id='countedBy'><option value=''>—</option><option>Leydi</option><option>Karina</option><option>Rikki</option><option>Other</option></select></div>
-            <div><label>EdgeNo (old system)</label><input id='edgeNo' type='text' class='mono'></div>
-          </div>
-        </div>
-        <div class='card'>
-          <h2>ITEM DIMENSIONS</h2>
-          <div class='grid-4'>
-            <div><label>L (in)</label><input id='len' type='number' step='0.01' min='0' value='0'></div>
-            <div><label>W (in)</label><input id='wid' type='number' step='0.01' min='0' value='0'></div>
-            <div><label>H (in)</label><input id='hei' type='number' step='0.01' min='0' value='0'></div>
-            <div><label>Weight (lb)</label><input id='wt' type='number' step='0.01' min='0' value='0'></div>
-          </div>
-        </div>
-      </div>
-
-      <div class='card'>
-        <h2>BOX BREAKDOWN (STYLES 1–4) — WITH BOX DIMENSIONS & GROSS WEIGHT</h2>
-        <div id='styles'></div>
-        <div class='kpi'>
-          <div class='card'><div class='small'>Subtotal Pieces</div><div id='subtotalPieces' class='mono'>0</div></div>
-          <div class='card'><div class='small'>Total Cartons</div><div id='totalCartons' class='mono'>0</div></div>
-          <div class='card'><div class='small'>Total Cubic Feet</div><div id='totalCuFt' class='mono'>0.00</div></div>
-          <div class='card'><div class='small'>Total Gross Weight (lb)</div><div id='totalGross' class='mono'>0.00</div></div>
-        </div>
-        <div class='flex' style='margin-top:10px'>
-          <button id='checkBtn' class='ghost'>CHECK DISCREPANCY</button>
-          <div id='discMsg' class='small muted'></div>
-          <div style='flex:1'></div>
-          <button id='toPage2' class='ok'>NEXT → PAGE 2</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE 2 -->
-    <section class='pane' id='page2'>
-      <div class='grid-2'>
-        <div class='card'>
-          <h2>PUTAWAY & DAMAGE</h2>
-          <div>
-            <label>Locations</label>
-            <div class='flex'>
-              <input id='locInput' type='text' placeholder='Scan or type location (e.g., A 01 01 01)' class='mono' inputmode='text'>
-              <button id='scanQR'>SCAN QR</button>
-              <button id='addLoc' class='ghost'>+ ADD</button>
-              <select id='locPreset' class='ghost'>
-                <option value=''>Select preset…</option>
-                <option>A 01 01 01</option>
-                <option>A 01 01 02</option>
-                <option>A 01 02 01</option>
-                <option>A 02 01 01</option>
-              </select>
+            <div class="grid">
+                <div>
+                    <label>Description</label>
+                    <input id="description" type="text" placeholder="e.g., Running Shoe">
+                </div>
+                <div>
+                    <label>COO</label>
+                    <select id="coo">
+                        <option value="">-- Select --</option>
+                        <option value="China">China</option>
+                        <option value="India">India</option>
+                        <option value="Pakistan">Pakistan</option>
+                        <option value="USA">USA</option>
+                    </select>
+                </div>
             </div>
-            <video id='qrPreview' class='qr-preview'></video>
-          </div>
-          <div class='loc-list' id='locList'></div>
-          <div class='flex' style='margin-top:6px'>
-            <button id='moveAll' class='ghost'>MOVE ALL TO LOC 1</button>
-            <div class='small muted'>Total to Putaway: <span id='totalPutaway' class='mono'>0</span></div>
-          </div>
-          <div class='grid-2' style='margin-top:8px'>
-            <div>
-              <label>Discrepancy Reason (if any)</label>
-              <select id='discReason'>
-                <option value=''>—</option>
-                <option>Overage</option>
-                <option>Shortage</option>
-                <option>Damaged</option>
-                <option>Wrong UPC</option>
-                <option>Other</option>
-              </select>
+            <div class="grid">
+                <div>
+                    <label>Gender</label>
+                    <select id="gender">
+                        <option value="">-- Select --</option>
+                        <option value="Men">Men</option>
+                        <option value="Women">Women</option>
+                        <option value="Unisex">Unisex</option>
+                        <option value="Kids">Kids</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Expected Qty</label>
+                    <input id="expectedQty" type="number" placeholder="0" value="0">
+                </div>
             </div>
-            <div>
-              <label>Notes</label>
-              <input id='notes' type='text'>
+            <div class="grid">
+                <div>
+                    <label>Counted By</label>
+                    <select id="countedBy">
+                        <option value="">-- Select --</option>
+                        <option value="Leydi">Leydi</option>
+                        <option value="Karina">Karina</option>
+                        <option value="Rikki">Rikki</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label>EdgeNo (old system)</label>
+                    <input id="edgeNo" type="text" placeholder="Optional">
+                </div>
             </div>
-          </div>
-          <div class='flex' style='margin-top:10px'>
-            <button id='backBtn' class='ghost'>← BACK</button>
-            <div style='flex:1'></div>
-            <button id='submitBtn' class='ok'>SUBMIT & NEXT →</button>
-          </div>
-        </div>
-        <div class='card'>
-          <h2>LABELS & EXPORT</h2>
-          <div class='flex'>
-            <button id='genLabels'>GENERATE LABELS</button>
-            <button id='printBtn' class='ghost'>PRINT</button>
-            <button id='savePdf' class='ghost'>SAVE AS PDF</button>
-          </div>
-          <div id='labelsArea' style='margin-top:8px'></div>
-        </div>
-      </div>
-      <div id='status' class='status'></div>
-    </section>
-  </main>
 
-  <script>
-    const state = { boxes:[1,2,3,4].map(i=>({ id:i, boxes:0, qty:0, dimL:0, dimW:0, dimH:0, boxW:0 })),
-                    locations:[], countedQty:0 };
-
-    // Tabs
-    document.querySelectorAll('.tabs button').forEach(btn=>btn.addEventListener('click',e=>{
-      document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
-      e.target.classList.add('active');
-      document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
-      document.getElementById(e.target.dataset.tab).classList.add('active');
-    }));
-
-    // Build styles UI
-    function styleRow(i) {
-      return `
-      <div class='box-style'>
-        <div class='row-fields'>
-          <div>
-            <label>Style ${i}: Boxes × Qty/Box</label>
-            <div class='flex'>
-              <input type='number' min='0' value='0' data-style='${i}' data-key='boxes'/> ×
-              <input type='number' min='0' value='0' data-style='${i}' data-key='qty'/>
+            <h3>Item Weight & Dimensions</h3>
+            <div class="grid">
+                <div>
+                    <label>L (in)</label>
+                    <input id="itemL" type="number" step="0.1" placeholder="0" value="0">
+                </div>
+                <div>
+                    <label>W (in)</label>
+                    <input id="itemW" type="number" step="0.1" placeholder="0" value="0">
+                </div>
+                <div>
+                    <label>H (in)</label>
+                    <input id="itemH" type="number" step="0.1" placeholder="0" value="0">
+                </div>
+                <div>
+                    <label>Weight (lb)</label>
+                    <input id="itemWeight" type="number" step="0.1" placeholder="0" value="0">
+                </div>
             </div>
-          </div>
-          <div><label>Box Dim (L)</label><input type='number' step='0.01' min='0' value='0' data-style='${i}' data-key='dimL'/></div>
-          <div><label>Box Dim (W)</label><input type='number' step='0.01' min='0' value='0' data-style='${i}' data-key='dimW'/></div>
-          <div><label>Box Dim (H)</label><input type='number' step='0.01' min='0' value='0' data-style='${i}' data-key='dimH'/></div>
-          <div><label>Box Weight (lb)</label><input type='number' step='0.01' min='0' value='0' data-style='${i}' data-key='boxW'/></div>
+
+            <h3>Box Breakdown (Styles 1–4) — At least one required</h3>
+            <div id="breakdown"></div>
+            <button onclick="addStyle()">+ Add Style</button>
+
+            <div class="total-row">
+                Subtotal Pieces: <span id="subtotalPieces">0</span>
+            </div>
+            <div class="total-row">
+                Total Cartons: <span id="totalCartons">0</span>
+            </div>
+            <div class="total-row">
+                Total Cubic Feet: <span id="totalCuFt">0.00</span>
+            </div>
+            <div class="total-row">
+                Total Gross Weight (lb): <span id="totalGross">0.00</span>
+            </div>
+
+            <div class="info-box">
+                ✓ Discrepancy check will run before submit
+            </div>
+
+            <button class="success" onclick="nextPage()">NEXT → PAGE 2</button>
         </div>
-      </div>`
-    }
-    document.getElementById('styles').innerHTML = [1,2,3,4].map(styleRow).join('');
+    </div>
 
-    function recalc() {
-      const inputs = document.querySelectorAll('[data-style]');
-      inputs.forEach(inp=>{
-        const i = +inp.dataset.style - 1; const k = inp.dataset.key; let v = parseFloat(inp.value) || 0; state.boxes[i][k]=v;
-      });
-      let totalCartons = 0, subtotalPieces = 0, totalGross = 0, totalCuFt = 0;
-      state.boxes.forEach(b=>{
-        totalCartons += b.boxes;
-        subtotalPieces += b.boxes * b.qty;
-        const cf = (b.dimL*b.dimW*b.dimH)/1728; // in^3 to ft^3
-        totalCuFt += cf * (b.boxes||0);
-        totalGross += (b.boxW||0) * (b.boxes||0);
-      });
-      state.countedQty = subtotalPieces;
-      document.getElementById('subtotalPieces').textContent = subtotalPieces;
-      document.getElementById('totalCartons').textContent = totalCartons;
-      document.getElementById('totalCuFt').textContent = totalCuFt.toFixed(2);
-      document.getElementById('totalGross').textContent = totalGross.toFixed(2);
-      document.getElementById('totalPutaway').textContent = state.locations.reduce((a,x)=>a+(x.qty||0),0);
-    }
-    document.getElementById('styles').addEventListener('input', recalc);
+    <!-- PAGE 2: PUTAWAY & DAMAGE -->
+    <div id="page2" class="tab-content">
+        <div class="page">
+            <h2>🏷️ Page 2: Putaway & Damage</h2>
 
-    // Discrepancy check
-    document.getElementById('checkBtn').addEventListener('click', ()=>{
-      const exp = parseInt(document.getElementById('expectedQty').value||0,10);
-      const diff = state.countedQty - exp;
-      const msg = diff===0 ? 'No discrepancy' : (diff>0?`Over by ${diff}`:`Short by ${-diff}`);
-      document.getElementById('discMsg').textContent = msg;
-    });
+            <h3>Locations</h3>
+            <div id="locations"></div>
+            <div style="display:flex; gap:10px;">
+                <input id="locInput" type="text" placeholder="Scan QR or enter location (e.g., A 01 01 01)">
+                <button id="scanQR" onclick="scanQR()">SCAN QR</button>
+                <button onclick="addLocation()">+ ADD</button>
+            </div>
+            <label>Or select preset:</label>
+            <select onchange="presetLocation(this.value)">
+                <option value="">-- Select preset --</option>
+                <option value="A 01 01 01">A 01 01 01</option>
+                <option value="A 01 01 02">A 01 01 02</option>
+                <option value="A 01 02 01">A 01 02 01</option>
+                <option value="A 02 01 01">A 02 01 01</option>
+            </select>
+            <button onclick="moveAllToLoc1()">MOVE ALL TO LOC 1</button>
 
-    // Move to page 2
-    document.getElementById('toPage2').addEventListener('click', ()=>{
-      document.querySelector(".tabs button[data-tab='page2']").click();
-    });
+            <div class="total-row">
+                Total to Putaway: <span id="totalPutaway">0</span>
+            </div>
 
-    // Locations list helpers (preserve leading zeros: use text inputs only)
-    function renderLocs() {
-      const list = document.getElementById('locList');
-      list.innerHTML = state.locations.map((loc,idx)=>`
-        <div class='loc-row'>
-          <input type='text' class='mono' value='${loc.code}' oninput="state.locations[${idx}].code=this.value;"/>
-          <input type='number' min='0' value='${loc.qty}' oninput="state.locations[${idx}].qty=parseInt(this.value||0,10); document.getElementById('totalPutaway').textContent = state.locations.reduce((a,x)=>a+(x.qty||0),0);"/>
-          <button class='ghost' onclick='state.locations.splice(${idx},1); renderLocs();'>×</button>
-        </div>`).join('');
-      document.getElementById('totalPutaway').textContent = state.locations.reduce((a,x)=>a+(x.qty||0),0);
-    }
+            <h3>Discrepancy Reason (if any)</h3>
+            <select id="discrepancy">
+                <option value="">-- None --</option>
+                <option value="Overage">Overage</option>
+                <option value="Shortage">Shortage</option>
+                <option value="Damaged">Damaged</option>
+                <option value="Wrong UPC">Wrong UPC</option>
+                <option value="Other">Other</option>
+            </select>
 
-    document.getElementById('addLoc').addEventListener('click', ()=>{
-      const v = document.getElementById('locInput').value.trim(); if(!v) return;
-      state.locations.push({ code:v, qty:0 }); document.getElementById('locInput').value=''; renderLocs();
-    });
+            <h3>Notes</h3>
+            <textarea id="notes" rows="4" placeholder="Any additional notes..."></textarea>
 
-    document.getElementById('locPreset').addEventListener('change', e=>{
-      if(!e.target.value) return; state.locations.push({ code:e.target.value, qty:0 }); e.target.value=''; renderLocs();
-    });
+            <div style="display:flex; gap:10px;">
+                <button onclick="backPage()">← BACK</button>
+                <button class="success" onclick="submitInventory()">SUBMIT & NEXT →</button>
+            </div>
+        </div>
+    </div>
 
-    document.getElementById('moveAll').addEventListener('click', ()=>{
-      const sum = state.countedQty; if(!state.locations.length) return;
-      state.locations[0].qty = sum; for(let i=1;i<state.locations.length;i++) state.locations[i].qty=0; renderLocs();
-    });
+    <!-- LABELS & EXPORT -->
+    <div id="labels" class="tab-content">
+        <div class="page">
+            <h2>🏷️ Labels & Export</h2>
+            
+            <div class="info-box">
+                <strong>ACCURATE LABEL:</strong> solid border<br>
+                <strong>RECHECK LABEL:</strong> dashed border + hatching header
+            </div>
 
-    // UPC/QR scan using BarcodeDetector if available
-    async function scan(kind) {
-      if(!('BarcodeDetector' in window)) { alert('BarcodeDetector API not supported on this device'); return; }
-      const formats = kind==='qr'?['qr_code']:['ean_13','upc_a','upc_e','code_128','code_39','qr_code'];
-      const det = new BarcodeDetector({ formats });
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' } });
-      const video = kind==='qr'?document.getElementById('qrPreview'):document.createElement('video');
-      video.srcObject = stream; await video.play(); video.style.display='block';
-      const track = stream.getVideoTracks()[0]; const cap = new ImageCapture(track);
-      const tm = setInterval(async ()=>{
-        try {
-          const bmp = await cap.grabFrame();
-          const cvs = document.createElement('canvas'); cvs.width=bmp.width; cvs.height=bmp.height; const ctx=cvs.getContext('2d'); ctx.drawImage(bmp,0,0);
-          const dets = await det.detect(cvs);
-          if(dets.length) {
-            const raw = dets[0].rawValue.trim();
-            if(kind==='qr') document.getElementById('locInput').value = raw; else document.getElementById('upc').value = raw;
-            clearInterval(tm); track.stop(); if(kind==='qr') video.style.display='none';
-          }
-        } catch(e) { /* ignore */ }
-      }, 400);
-    }
-    document.getElementById('scanUPC').addEventListener('click', ()=>scan('bar'));
-    document.getElementById('scanQR').addEventListener('click', ()=>scan('qr'));
+            <div id="labelPreview"></div>
 
-    // Print / PDF
-    document.getElementById('printBtn').addEventListener('click', ()=>window.print());
-    document.getElementById('savePdf').addEventListener('click', ()=>window.print());
+            <div style="display:flex; gap:10px;">
+                <button class="success" onclick="generateLabels()">GENERATE LABELS</button>
+                <button onclick="window.print()">PRINT</button>
+                <button onclick="savePDF()">SAVE AS PDF</button>
+            </div>
+        </div>
+    </div>
 
-    // Labels (simple preview per carton)
-    document.getElementById('genLabels').addEventListener('click', ()=>{
-      const area = document.getElementById('labelsArea');
-      area.innerHTML = '';
-      const totalCartons = state.boxes.reduce((a,b)=>a+(b.boxes||0),0);
-      for(let i=1;i<=totalCartons;i++) {
-        const div = document.createElement('div');
-        div.className='card';
-        div.innerHTML = `<div class='grid-3'><div><b>UPC</b><div class='mono'>${document.getElementById('upc').value||''}</div></div><div><b>Brand</b><div>${document.getElementById('brand').value||''}</div></div><div><b>Carton</b><div>#${String(i).padStart(3,'0')} / ${String(totalCartons).padStart(3,'0')}</div></div></div>`
-        area.appendChild(div);
-      }
-    });
-
-    // Persist basic settings
-    document.getElementById('saveBtn').addEventListener('click', ()=>{
-      localStorage.setItem('st_user', document.getElementById('user').value);
-      localStorage.setItem('st_endpoint', document.getElementById('endpoint').value);
-      localStorage.setItem('st_sheet', document.getElementById('sheetId').value);
-      toast('Saved');
-    });
-    window.addEventListener('load', ()=>{
-      document.getElementById('user').value = localStorage.getItem('st_user')||'';
-      document.getElementById('endpoint').value = localStorage.getItem('st_endpoint')||document.getElementById('endpoint').value;
-      document.getElementById('sheetId').value = localStorage.getItem('st_sheet')||document.getElementById('sheetId').value;
-    });
-
-    // Test connection (ping)
-    document.getElementById('testBtn').addEventListener('click', async ()=>{
-      try {
-        const res = await fetch(document.getElementById('endpoint').value, { method:'POST', body: JSON.stringify({ action:'ping', data:{} }) });
-        const j = await res.json(); toast(j.status==='ok'?'Connection OK':'Ping failed');
-      } catch(e) { toast('Ping error'); }
-    });
-
-    function toast(msg) { const s=document.getElementById('status'); s.className='status ok'; s.textContent=msg; setTimeout(()=>s.className='status',2500); }
-    function terr(msg) { const s=document.getElementById('status'); s.className='status err'; s.textContent=msg; setTimeout(()=>s.className='status',4000); }
-
-    // Submit
-    document.getElementById('submitBtn').addEventListener('click', async ()=>{
-      recalc();
-      const endpoint = document.getElementById('endpoint').value;
-      const breakdown = state.boxes.map((b,i)=>({ style:i+1, boxes:b.boxes||0, qtyPerBox:b.qty||0, dims:[b.dimL,b.dimW,b.dimH], boxWeight:b.boxW||0 }));
-      const locations = state.locations;
-      const primary = locations[0]||{code:'',qty:0};
-
-      const payload = {
-        action:'addInventory',
-        data: {
-          timestamp: new Date().toISOString(),
-          sheetId: document.getElementById('sheetId').value,
-          user: document.getElementById('user').value||'User',
-          countedBy: document.getElementById('countedBy').value||'',
-          upc: document.getElementById('upc').value||'',
-          brand: document.getElementById('brand').value||'',
-          description: document.getElementById('description').value||'',
-          coo: document.getElementById('coo').value||'',
-          gender: document.getElementById('gender').value||'',
-          edgeNo: document.getElementById('edgeNo').value||'',
-          expectedQty: parseInt(document.getElementById('expectedQty').value||0,10),
-          countedQty: state.countedQty||0,
-          itemWeight: parseFloat(document.getElementById('wt').value||0),
-          itemLength: parseFloat(document.getElementById('len').value||0),
-          itemWidth: parseFloat(document.getElementById('wid').value||0),
-          itemHeight: parseFloat(document.getElementById('hei').value||0),
-          breakdown: JSON.stringify(breakdown),
-          totalCubicFeet: parseFloat(document.getElementById('totalCuFt').textContent||0),
-          location1_code: primary.code||'',
-          location1_qty: primary.qty||0,
-          locations: JSON.stringify(locations),
-          discrepancyReason: document.getElementById('discReason').value||'',
-          notes: document.getElementById('notes').value||'',
-          status: 'completed',
-          accurate: (state.countedQty === (parseInt(document.getElementById('expectedQty').value||0,10)))
+    <!-- QUAGGA JS FALLBACK - CRITICAL -->
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script>
+        /*** QuaggaJS Fallback for BarcodeDetector ***/
+        async function startQuagga(targetInputId, formats=['code_128','ean','ean_13','upc','upc_e','code_39']) {
+          return new Promise((resolve, reject) => {
+            Quagga.init({
+              inputStream: { 
+                type: 'LiveStream', 
+                constraints: { facingMode: 'environment' } 
+              },
+              decoder: { readers: formats.map(f => f + '_reader') }
+            }, err => {
+              if (err) { console.error('Quagga init error:', err); return reject(err); }
+              Quagga.start();
+              
+              Quagga.onDetected(res => {
+                const code = (res && res.codeResult && res.codeResult.code) || '';
+                if (code) {
+                  document.getElementById(targetInputId).value = code;
+                  Quagga.stop();
+                  Quagga.offDetected();
+                  resolve(code);
+                }
+              });
+            });
+          });
         }
-      };
 
-      try {
-        const res = await fetch(endpoint, { method:'POST', body: JSON.stringify(payload) });
-        const j = await res.json();
-        if(j.status==='success') toast('Submitted successfully'); else terr(j.message||'Error');
-      } catch(e) { terr('Network error'); }
-    });
+        /*** Wrap existing scan functions with fallback ***/
+        async function scanUPC() {
+          if (!('BarcodeDetector' in window)) {
+            console.warn('BarcodeDetector not supported, using QuaggaJS');
+            try {
+              await startQuagga('upc', ['upc', 'ean_13', 'code_128']);
+            } catch (err) {
+              alert('Camera or scanner failed. Enter UPC manually.');
+            }
+            return;
+          }
+          // Fallback to existing BarcodeDetector code if available
+          alert('Using native BarcodeDetector');
+        }
 
-    // Back
-    document.getElementById('backBtn').addEventListener('click', ()=>{ document.querySelector(".tabs button[data-tab='page1']").click(); });
-  </script>
+        async function scanQR() {
+          if (!('BarcodeDetector' in window)) {
+            console.warn('BarcodeDetector not supported, using QuaggaJS');
+            try {
+              await startQuagga('locInput', ['code_128', 'ean_13']);
+            } catch (err) {
+              alert('Camera or scanner failed. Enter Location manually.');
+            }
+            return;
+          }
+          alert('Using native BarcodeDetector');
+        }
+    </script>
+
+    <!-- MAIN APPLICATION LOGIC -->
+    <script>
+        const API_ENDPOINT = () => localStorage.getItem('endpoint') || '';
+        const SHEET_ID = () => localStorage.getItem('sheetId') || '';
+
+        function saveSettings() {
+            localStorage.setItem('endpoint', document.getElementById('endpoint').value);
+            localStorage.setItem('sheetId', document.getElementById('sheetId').value);
+            alert('Settings saved!');
+        }
+
+        function clearSettings() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        async function testConnection() {
+            const endpoint = API_ENDPOINT();
+            if (!endpoint) { alert('Enter Apps Script Endpoint first'); return; }
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'ping' })
+                });
+                const data = await res.json();
+                alert(data.status === 'ok' ? '✓ Connection OK' : '✗ Connection Failed: ' + JSON.stringify(data));
+            } catch (err) {
+                alert('✗ Error: ' + err.message);
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tabs button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function loadSettings() {
+            document.getElementById('endpoint').value = API_ENDPOINT();
+            document.getElementById('sheetId').value = SHEET_ID();
+            renderBreakdown();
+            renderLocations();
+        }
+
+        function renderBreakdown() {
+            const html = Array.from({length: 4}, (_, i) => `
+                <div class="breakdown-row">
+                    <h4>Style ${i+1}</h4>
+                    <div class="grid">
+                        <input type="number" placeholder="# Boxes" id="boxes${i}" value="0" onchange="updateTotals()">
+                        <input type="number" placeholder="Qty/Box" id="qty${i}" value="0" onchange="updateTotals()">
+                        <input type="number" placeholder="Box Weight (lb)" id="weight${i}" value="0" step="0.1" onchange="updateTotals()">
+                        <input type="number" placeholder="L" id="l${i}" value="0" step="0.1" onchange="updateTotals()">
+                        <input type="number" placeholder="W" id="w${i}" value="0" step="0.1" onchange="updateTotals()">
+                        <input type="number" placeholder="H" id="h${i}" value="0" step="0.1" onchange="updateTotals()">
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('breakdown').innerHTML = html;
+        }
+
+        function renderLocations() {
+            const locs = JSON.parse(localStorage.getItem('locations') || '[]');
+            const html = locs.map((loc, i) => `
+                <div class="location-row">
+                    <input type="text" value="${loc.code}" readonly>
+                    <input type="number" placeholder="Qty" value="${loc.qty}" onchange="updateLocations()">
+                    <button onclick="removeLoc(${i})">X</button>
+                </div>
+            `).join('');
+            document.getElementById('locations').innerHTML = html;
+        }
+
+        function addLocation() {
+            const code = document.getElementById('locInput').value.trim();
+            if (!code) { alert('Enter location code'); return; }
+            const locs = JSON.parse(localStorage.getItem('locations') || '[]');
+            locs.push({code, qty: 0});
+            localStorage.setItem('locations', JSON.stringify(locs));
+            document.getElementById('locInput').value = '';
+            renderLocations();
+        }
+
+        function removeLoc(i) {
+            const locs = JSON.parse(localStorage.getItem('locations') || '[]');
+            locs.splice(i, 1);
+            localStorage.setItem('locations', JSON.stringify(locs));
+            renderLocations();
+        }
+
+        function updateLocations() {
+            const locs = JSON.parse(localStorage.getItem('locations') || '[]');
+            document.querySelectorAll('.location-row').forEach((row, i) => {
+                const qty = parseInt(row.querySelector('input[type="number"]').value) || 0;
+                if (locs[i]) locs[i].qty = qty;
+            });
+            localStorage.setItem('locations', JSON.stringify(locs));
+            updateTotals();
+        }
+
+        function updateTotals() {
+            let totalPieces = 0, totalCartons = 0, totalCuFt = 0, totalGross = 0;
+            for (let i = 0; i < 4; i++) {
+                const boxes = parseInt(document.getElementById(`boxes${i}`).value) || 0;
+                const qty = parseInt(document.getElementById(`qty${i}`).value) || 0;
+                const wt = parseFloat(document.getElementById(`weight${i}`).value) || 0;
+                const l = parseFloat(document.getElementById(`l${i}`).value) || 0;
+                const w = parseFloat(document.getElementById(`w${i}`).value) || 0;
+                const h = parseFloat(document.getElementById(`h${i}`).value) || 0;
+                totalPieces += boxes * qty;
+                totalCartons += boxes;
+                totalGross += boxes * wt;
+                totalCuFt += boxes * (l*w*h) / 1728;
+            }
+            document.getElementById('subtotalPieces').textContent = totalPieces;
+            document.getElementById('totalCartons').textContent = totalCartons;
+            document.getElementById('totalCuFt').textContent = totalCuFt.toFixed(2);
+            document.getElementById('totalGross').textContent = totalGross.toFixed(2);
+            document.getElementById('totalPutaway').textContent = totalPieces;
+        }
+
+        function presetLocation(code) {
+            if (code) document.getElementById('locInput').value = code;
+        }
+
+        function moveAllToLoc1() {
+            const locs = JSON.parse(localStorage.getItem('locations') || '[]');
+            if (!locs.length) { alert('Add a location first'); return; }
+            const total = parseInt(document.getElementById('totalPutaway').textContent) || 0;
+            locs[0].qty = total;
+            localStorage.setItem('locations', JSON.stringify(locs));
+            renderLocations();
+        }
+
+        function addStyle() {
+            // Styles already rendered; can add dynamically if needed
+            alert('Styles 1-4 are available. Use them to enter box breakdowns.');
+        }
+
+        function nextPage() {
+            if (!document.getElementById('upc').value.trim()) { alert('Enter UPC'); return; }
+            switchTab('page2');
+        }
+
+        function backPage() {
+            switchTab('page1');
+        }
+
+        async function submitInventory() {
+            const endpoint = API_ENDPOINT();
+            if (!endpoint) { alert('Configure endpoint in header'); return; }
+            
+            const breakdown = [];
+            for (let i = 0; i < 4; i++) {
+                const boxes = parseInt(document.getElementById(`boxes${i}`).value) || 0;
+                if (boxes > 0) {
+                    breakdown.push({
+                        style: i+1,
+                        boxes,
+                        qtyPerBox: parseInt(document.getElementById(`qty${i}`).value) || 0,
+                        boxWeight: parseFloat(document.getElementById(`weight${i}`).value) || 0,
+                        dims: [parseFloat(document.getElementById(`l${i}`).value) || 0,
+                                parseFloat(document.getElementById(`w${i}`).value) || 0,
+                                parseFloat(document.getElementById(`h${i}`).value) || 0]
+                    });
+                }
+            }
+
+            if (!breakdown.length) { alert('Add at least one style'); return; }
+
+            const payload = {
+                action: 'addInventory',
+                data: {
+                    sheetId: SHEET_ID(),
+                    user: 'StockTaker',
+                    countedBy: document.getElementById('countedBy').value,
+                    upc: document.getElementById('upc').value,
+                    brand: document.getElementById('brand').value,
+                    description: document.getElementById('description').value,
+                    gender: document.getElementById('gender').value,
+                    coo: document.getElementById('coo').value,
+                    edgeNo: document.getElementById('edgeNo').value,
+                    expectedQty: parseInt(document.getElementById('expectedQty').value) || 0,
+                    countedQty: parseInt(document.getElementById('totalPutaway').textContent) || 0,
+                    itemWeight: parseFloat(document.getElementById('itemWeight').value) || 0,
+                    itemLength: parseFloat(document.getElementById('itemL').value) || 0,
+                    itemWidth: parseFloat(document.getElementById('itemW').value) || 0,
+                    itemHeight: parseFloat(document.getElementById('itemH').value) || 0,
+                    totalCubicFeet: parseFloat(document.getElementById('totalCuFt').textContent) || 0,
+                    breakdown: JSON.stringify(breakdown),
+                    locations: JSON.stringify(JSON.parse(localStorage.getItem('locations') || '[]')),
+                    location1_code: (JSON.parse(localStorage.getItem('locations') || '[]')[0] || {}).code || '',
+                    location1_qty: (JSON.parse(localStorage.getItem('locations') || '[]')[0] || {}).qty || 0,
+                    discrepancyReason: document.getElementById('discrepancy').value,
+                    notes: document.getElementById('notes').value,
+                    timestamp: new Date().toISOString(),
+                    accurate: document.getElementById('expectedQty').value == document.getElementById('totalPutaway').textContent
+                }
+            };
+
+            try {
+                const res = await fetch(endpoint, { method: 'POST', body: JSON.stringify(payload) });
+                const data = await res.json();
+                alert('✓ Submitted: ' + JSON.stringify(data));
+                switchTab('labels');
+            } catch (err) {
+                alert('✗ Error: ' + err.message);
+            }
+        }
+
+        function generateLabels() {
+            const accurate = parseInt(document.getElementById('expectedQty').value) === parseInt(document.getElementById('totalPutaway').textContent);
+            const html = `
+                <div class="label-preview ${accurate ? 'accurate' : 'recheck'}">
+                    <h3>${accurate ? '✓ ACCURATE' : '⚠ RECHECK'}</h3>
+                    <p><strong>${document.getElementById('upc').value}</strong></p>
+                    <p>${document.getElementById('brand').value} — ${document.getElementById('description').value}</p>
+                    <p>Count: ${document.getElementById('totalPutaway').textContent} items</p>
+                </div>
+            `;
+            document.getElementById('labelPreview').innerHTML = html;
+        }
+
+        function savePDF() {
+            alert('PDF download not yet implemented. Use browser Print > Save as PDF.');
+        }
+
+        window.addEventListener('load', loadSettings);
+    </script>
 </body>
 </html>
