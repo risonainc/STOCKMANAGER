@@ -334,7 +334,7 @@
     try {
         const res = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'ping' })
         });
 
@@ -375,12 +375,30 @@ function switchTab(tab, btn) {
                 <div class="breakdown-row">
                     <h4>Style ${i+1}</h4>
                     <div class="grid">
-                        <input type="number" placeholder="# Boxes" id="boxes${i}" value="0" onchange="updateTotals()">
-                        <input type="number" placeholder="Qty/Box" id="qty${i}" value="0" onchange="updateTotals()">
-                        <input type="number" placeholder="Box Weight (lb)" id="weight${i}" value="0" step="0.1" onchange="updateTotals()">
-                        <input type="number" placeholder="L" id="l${i}" value="0" step="0.1" onchange="updateTotals()">
-                        <input type="number" placeholder="W" id="w${i}" value="0" step="0.1" onchange="updateTotals()">
-                        <input type="number" placeholder="H" id="h${i}" value="0" step="0.1" onchange="updateTotals()">
+                        <div>
+                            <label># Boxes</label>
+                            <input type="number" placeholder="# Boxes" id="boxes${i}" value="0" min="0" onchange="updateTotals()">
+                        </div>
+                        <div>
+                            <label>Qty per Box</label>
+                            <input type="number" placeholder="Qty per box" id="qty${i}" value="0" min="0" onchange="updateTotals()">
+                        </div>
+                        <div>
+                            <label>Box Weight (lb)</label>
+                            <input type="number" placeholder="Box weight (lb)" id="weight${i}" value="0" step="0.1" min="0" onchange="updateTotals()">
+                        </div>
+                        <div>
+                            <label>Length (in)</label>
+                            <input type="number" placeholder="Length (in)" id="l${i}" value="0" step="0.1" min="0" onchange="updateTotals()">
+                        </div>
+                        <div>
+                            <label>Width (in)</label>
+                            <input type="number" placeholder="Width (in)" id="w${i}" value="0" step="0.1" min="0" onchange="updateTotals()">
+                        </div>
+                        <div>
+                            <label>Height (in)</label>
+                            <input type="number" placeholder="Height (in)" id="h${i}" value="0" step="0.1" min="0" onchange="updateTotals()">
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -539,7 +557,7 @@ const payload = {
     try {
         const res = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8'},
             body: JSON.stringify(payload)
         });
 
@@ -561,7 +579,7 @@ const payload = {
 
   const res = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({
       action: "submitInventoryPreview", // optional preview
       upc: document.getElementById('upc').value
