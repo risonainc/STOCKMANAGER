@@ -5,22 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Carton Labels — Print Station</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root{
-    --ink:#10110f;
-    --panel:#1c1f1a;
-    --panel-2:#262a23;
-    --line:#3a4034;
-    --accent:#c7f04a;       /* high-vis warehouse green-yellow */
-    --muted:#9aa394;
-    --paper:#ffffff;
+    --ink:#10110f; --panel:#1c1f1a; --panel-2:#262a23; --line:#3a4034;
+    --accent:#c7f04a; --muted:#9aa394; --paper:#ffffff;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
   body{
-    background:var(--ink);
-    color:#e9efe1;
-    font-family:"Helvetica Neue",Helvetica,"Arial Narrow",Arial,sans-serif;
+    background:var(--ink); color:#e9efe1;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
 
@@ -28,69 +23,63 @@
   .controls{
     position:sticky; top:0; z-index:10;
     background:linear-gradient(180deg,var(--panel),var(--panel-2));
-    border-bottom:1px solid var(--line);
-    padding:14px 18px;
+    border-bottom:1px solid var(--line); padding:14px 18px;
     display:flex; flex-wrap:wrap; gap:14px 18px; align-items:flex-end;
   }
-  .controls h1{
-    font-size:13px; letter-spacing:.18em; text-transform:uppercase;
-    margin:0; color:var(--muted); font-weight:700; width:100%;
-  }
+  .controls h1{font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin:0; color:var(--muted); font-weight:700; width:100%}
   .field{display:flex; flex-direction:column; gap:5px}
   .field label{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
-  .field input{
-    background:#0e100c; border:1px solid var(--line); color:#f2f6ec;
-    padding:9px 11px; border-radius:7px; font-size:14px; font-family:inherit;
-  }
+  .field input{background:#0e100c; border:1px solid var(--line); color:#f2f6ec; padding:9px 11px; border-radius:7px; font-size:14px; font-family:inherit}
   .field input:focus{outline:none; border-color:var(--accent)}
   #endpoint{min-width:340px}
   #plate{min-width:160px; font-family:ui-monospace,"SF Mono",Consolas,monospace; text-transform:uppercase}
-  button{
-    border:1px solid var(--line); background:#0e100c; color:#f2f6ec;
-    padding:9px 14px; border-radius:7px; font-size:13px; cursor:pointer;
-    font-family:inherit; letter-spacing:.02em;
-  }
+  button{border:1px solid var(--line); background:#0e100c; color:#f2f6ec; padding:9px 14px; border-radius:7px; font-size:13px; cursor:pointer; font-family:inherit}
   button:hover{border-color:var(--accent)}
   button.primary{background:var(--accent); color:#10110f; border-color:var(--accent); font-weight:700}
-  .status{
-    padding:10px 18px; font-size:13px; color:var(--muted);
-    border-bottom:1px solid var(--line); background:#15170f;
-  }
+  .status{padding:10px 18px; font-size:13px; color:var(--muted); border-bottom:1px solid var(--line); background:#15170f}
   .status b{color:var(--accent)}
   .stage{padding:26px 18px; display:flex; flex-direction:column; align-items:center; gap:20px}
 
-  /* ---------- The 4x6 label ---------- */
+  /* ---------- The 6x4 LANDSCAPE label ---------- */
   .label{
-    width:4in; height:6in; background:var(--paper); color:#000;
+    width:6in; height:4in; background:var(--paper); color:#000;
     border:1px solid #cfd3c6;            /* screen guide only */
     padding:0.16in 0.18in; overflow:hidden;
     display:flex; flex-direction:column;
     font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
   }
-  .l-top{display:flex; justify-content:space-between; align-items:baseline; border-bottom:2px solid #000; padding-bottom:4px}
-  .l-kicker{font-size:11pt; font-weight:800; letter-spacing:.16em}
-  .l-status{font-size:10pt; font-weight:700; border:1.5px solid #000; padding:1px 7px; border-radius:3px}
-  .l-barcode{display:flex; justify-content:center; align-items:center; margin-top:8px}
-  .l-barcode svg{width:3.5in; height:0.95in}
-  .l-plate{
-    text-align:center; font-family:ui-monospace,"SF Mono",Consolas,monospace;
-    font-size:26pt; font-weight:700; letter-spacing:.04em; margin:2px 0 6px;
-  }
-  .l-fields{border-top:1px dashed #000; padding-top:7px; flex:1}
-  .l-row{display:flex; gap:8px; margin-bottom:5px}
-  .l-cell .k{font-size:8.5pt; letter-spacing:.1em; text-transform:uppercase; color:#333}
-  .l-cell .v{font-size:13pt; font-weight:700; line-height:1.12; word-break:break-word}
-  .l-upc .v{font-family:ui-monospace,"SF Mono",Consolas,monospace; font-size:15pt}
-  .l-desc .v{font-size:11.5pt; font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
-  .l-big{display:flex; gap:10px; margin-top:4px}
-  .l-big .box{flex:1; border:2px solid #000; border-radius:5px; padding:5px 8px}
-  .l-big .box .k{font-size:8.5pt; letter-spacing:.1em; text-transform:uppercase}
-  .l-big .box .v{font-size:24pt; font-weight:800; line-height:1}
-  .l-foot{display:flex; justify-content:space-between; font-size:8pt; color:#222; border-top:1px solid #000; padding-top:4px; margin-top:6px}
+  .l-head{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2.5px solid #000; padding-bottom:5px}
+  .l-title{font-size:15pt; font-weight:800; letter-spacing:.04em}
+  .l-ship{text-align:right}
+  .l-ship .k{font-size:7.5pt; letter-spacing:.12em; text-transform:uppercase; color:#333}
+  .l-ship .v{font-size:13pt; font-weight:800; font-family:ui-monospace,"SF Mono",Consolas,monospace}
+
+  .l-body{flex:1; display:flex; gap:0.16in; padding-top:7px; min-height:0}
+  .l-main{flex:1; display:flex; flex-direction:column; min-width:0}
+  .l-desc{font-size:17pt; font-weight:800; line-height:1.04; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+  .l-upc{font-family:ui-monospace,"SF Mono",Consolas,monospace; font-size:13pt; font-weight:700; margin-top:3px}
+  .l-fields{margin-top:7px; display:grid; grid-template-columns:1fr 1fr; gap:3px 14px}
+  .l-fields .f .k{font-size:7.5pt; letter-spacing:.08em; text-transform:uppercase; color:#444}
+  .l-fields .f .v{font-size:11pt; font-weight:700}
+  .l-fields .f.wide{grid-column:1 / -1}
+  .l-barcode{margin-top:auto; padding-top:6px}
+  .l-barcode svg{width:3.1in; height:0.62in}
+  .l-plate{font-family:ui-monospace,"SF Mono",Consolas,monospace; font-size:12pt; font-weight:700; letter-spacing:.03em; margin-top:1px}
+
+  .l-side{width:1.6in; display:flex; flex-direction:column; align-items:center; justify-content:space-between; border-left:1px dashed #000; padding-left:0.14in}
+  .l-qty{text-align:center}
+  .l-qty .n{font-size:30pt; font-weight:800; line-height:.95}
+  .l-qty .u{font-size:9pt; font-weight:700; letter-spacing:.08em}
+  .l-status{font-size:9pt; font-weight:700; border:1.5px solid #000; border-radius:3px; padding:1px 8px; margin-top:4px}
+  .l-qr{text-align:center}
+  .l-qr .box{width:1.05in; height:1.05in; display:flex; align-items:center; justify-content:center}
+  .l-qr .box img,.l-qr .box canvas{width:1.05in !important; height:1.05in !important}
+  .l-qr .cap{font-size:7pt; color:#333; letter-spacing:.06em; margin-top:1px}
+
   .empty{color:var(--muted); font-size:15px; padding:40px}
 
   /* ---------- Print ---------- */
-  @page{ size:4in 6in; margin:0 }
+  @page{ size:6in 4in; margin:0 }
   @media print{
     .controls,.status{display:none !important}
     body{background:#fff}
@@ -125,10 +114,10 @@
 
 <script>
 (function(){
+  var COMPANY = 'RISONA';                 // <-- change your company name here
   var $ = function(id){ return document.getElementById(id); };
-  var ENDPOINT_KEY = 'endpoint'; // same key the main app uses on this origin
+  var ENDPOINT_KEY = 'endpoint';
 
-  // Prefill endpoint (shared with the main app if it was saved on this PC) and date.
   $('endpoint').value = localStorage.getItem(ENDPOINT_KEY) || '';
   (function setToday(){
     var d = new Date(), p = function(n){ return String(n).padStart(2,'0'); };
@@ -141,19 +130,14 @@
   });
 
   function setStatus(msg, isError){
-    var s = $('status');
-    s.innerHTML = msg;
-    s.style.color = isError ? '#ff8a8a' : '';
+    var s = $('status'); s.innerHTML = msg; s.style.color = isError ? '#ff8a8a' : '';
   }
-
   function getEndpoint(){
     var ep = ($('endpoint').value || '').trim();
     if(!ep){ setStatus('Enter your Apps Script /exec endpoint first.', true); return null; }
-    localStorage.setItem(ENDPOINT_KEY, ep);
-    return ep;
+    localStorage.setItem(ENDPOINT_KEY, ep); return ep;
   }
 
-  // Reuse the proven POST + text/plain transport (no CORS preflight).
   function fetchCartons(req){
     var ep = getEndpoint(); if(!ep) return;
     setStatus('Loading…');
@@ -174,55 +158,66 @@
 
   function esc(v){
     if(v === null || v === undefined) return '';
-    return String(v).replace(/[&<>"]/g, function(c){
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];
-    });
+    return String(v).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; });
   }
   function dims(c){
     var L=c.carton_l_in, W=c.carton_w_in, H=c.carton_h_in;
     if(!L && !W && !H) return '—';
-    return [L,W,H].map(function(x){ return x||0; }).join(' × ') + ' in';
+    return [L,W,H].map(function(x){ return x||0; }).join(' × ');
   }
   function dateOnly(v){ return v ? String(v).slice(0,10) : ''; }
 
   function render(cartons){
-    var stage = $('stage');
-    stage.innerHTML = '';
-    if(!cartons.length){
-      stage.innerHTML = '<div class="empty">No cartons found for that date or plate.</div>';
-      return;
-    }
+    var stage = $('stage'); stage.innerHTML = '';
+    if(!cartons.length){ stage.innerHTML = '<div class="empty">No cartons found for that date or plate.</div>'; return; }
+
     cartons.forEach(function(c){
       var el = document.createElement('div');
       el.className = 'label';
       el.innerHTML =
-        '<div class="l-top"><span class="l-kicker">CARTON</span>'+
-          '<span class="l-status">'+esc(c.status||'')+'</span></div>'+
-        '<div class="l-barcode"><svg class="bc"></svg></div>'+
-        '<div class="l-plate">'+esc(c.carton_id)+'</div>'+
-        '<div class="l-fields">'+
-          '<div class="l-row"><div class="l-cell l-upc"><div class="k">UPC</div>'+
-            '<div class="v">'+esc(c.upc)+'</div></div></div>'+
-          '<div class="l-row"><div class="l-cell"><div class="k">Brand</div>'+
-            '<div class="v">'+esc(c.brand)+'</div></div></div>'+
-          '<div class="l-row"><div class="l-cell l-desc"><div class="k">Description</div>'+
-            '<div class="v">'+esc(c.item_desc)+'</div></div></div>'+
-          '<div class="l-big">'+
-            '<div class="box"><div class="k">Qty / carton</div><div class="v">'+esc(c.qty||0)+'</div></div>'+
-            '<div class="box"><div class="k">Location</div><div class="v">'+esc(c.location||'—')+'</div></div>'+
-          '</div>'+
+        '<div class="l-head">'+
+          '<div class="l-title">'+esc(COMPANY)+' CARTON LABEL</div>'+
+          '<div class="l-ship"><div class="k">Shipment</div><div class="v">'+esc(c.shipment_id||'—')+'</div></div>'+
         '</div>'+
-        '<div class="l-foot"><span>'+esc(dims(c))+'</span>'+
-          '<span>'+esc(c.carton_gross_lb||0)+' lb · '+esc(c.carton_cuft||0)+' cu ft</span>'+
-          '<span>'+esc(dateOnly(c.created_ts))+'</span></div>';
+        '<div class="l-body">'+
+          '<div class="l-main">'+
+            '<div class="l-desc">'+esc(c.item_desc||'(no description)')+'</div>'+
+            '<div class="l-upc">UPC: '+esc(c.upc)+'</div>'+
+            '<div class="l-fields">'+
+              '<div class="f"><div class="k">Brand</div><div class="v">'+esc(c.brand||'—')+'</div></div>'+
+              '<div class="f"><div class="k">Location</div><div class="v">'+esc(c.location||'—')+'</div></div>'+
+              '<div class="f"><div class="k">Weight (lb)</div><div class="v">'+esc(c.carton_gross_lb||0)+'</div></div>'+
+              '<div class="f"><div class="k">Cube (cu ft)</div><div class="v">'+esc(c.carton_cuft||0)+'</div></div>'+
+              '<div class="f"><div class="k">Dimensions (in)</div><div class="v">'+esc(dims(c))+'</div></div>'+
+              '<div class="f"><div class="k">Counted by</div><div class="v">'+esc(c.counted_by||'—')+'</div></div>'+
+              '<div class="f wide"><div class="k">Created</div><div class="v" style="font-size:9.5pt">'+esc(dateOnly(c.created_ts))+'</div></div>'+
+            '</div>'+
+            '<div class="l-barcode"><svg class="bc"></svg><div class="l-plate">'+esc(c.carton_id)+'</div></div>'+
+          '</div>'+
+          '<div class="l-side">'+
+            '<div>'+
+              '<div class="l-qty"><div class="n">'+esc(c.qty||0)+'</div><div class="u">PC / CARTON</div></div>'+
+              '<div style="text-align:center"><span class="l-status">'+esc(c.status||'')+'</span></div>'+
+            '</div>'+
+            '<div class="l-qr"><div class="box"></div><div class="cap">SCAN CARTON</div></div>'+
+          '</div>'+
+        '</div>';
       stage.appendChild(el);
 
-      // Code 128 of the license plate — always valid, our controlled format.
+      // Linear barcode = unique carton plate.
       try{
         JsBarcode(el.querySelector('.bc'), String(c.carton_id), {
-          format:'CODE128', displayValue:false, margin:0, width:2, height:80
+          format:'CODE128', displayValue:false, margin:0, width:2, height:70
         });
-      }catch(e){ /* leave blank if barcode fails */ }
+      }catch(e){}
+
+      // QR = unique carton plate (a phone-scannable identity for the carton).
+      try{
+        new QRCode(el.querySelector('.l-qr .box'), {
+          text:String(c.carton_id), width:128, height:128,
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }catch(e){}
     });
   }
 
