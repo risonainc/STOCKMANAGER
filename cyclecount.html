@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Cycle Count</title>
+<style>
+  :root{
+    --ink:#10110f; --panel:#1c1f1a; --panel-2:#262a23; --line:#3a4034;
+    --accent:#c7f04a; --muted:#9aa394; --ok:#7ee081; --bad:#ff8a8a; --card:#191c16;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--ink); color:#e9efe1;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size:17px; padding-bottom:40px;
+  }
+  /* ---- top nav ---- */
+  nav{display:flex; gap:6px; background:#0e100c; border-bottom:1px solid var(--line); padding:8px 10px; position:sticky; top:0; z-index:10}
+  nav a{flex:1; text-align:center; padding:12px 8px; border-radius:8px; text-decoration:none; color:var(--muted); font-size:14px; font-weight:700; letter-spacing:.02em; border:1px solid transparent}
+  nav a.active{background:var(--accent); color:#10110f}
+  nav a:not(.active):hover{border-color:var(--line)}
+
+  .wrap{max-width:680px; margin:0 auto; padding:14px}
+  .settings{display:flex; flex-wrap:wrap; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:14px}
+  .settings .f{display:flex; flex-direction:column; gap:5px; flex:1; min-width:150px}
+  label{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+  input{background:#0e100c; border:1px solid var(--line); color:#f2f6ec; padding:13px 12px; border-radius:9px; font-size:17px; font-family:inherit; width:100%}
+  input:focus{outline:none; border-color:var(--accent)}
+  #endpoint{min-width:100%}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px}
+  .card h2{margin:0 0 4px; font-size:15px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent)}
+  .card p.hint{margin:0 0 12px; font-size:13px; color:var(--muted)}
+  .row{display:flex; gap:10px; flex-wrap:wrap}
+  .row .f{flex:1; min-width:120px; display:flex; flex-direction:column; gap:5px}
+  .scan input{font-size:22px; font-family:ui-monospace,"SF Mono",Consolas,monospace; text-transform:uppercase; padding:16px 14px}
+  button{border:none; border-radius:10px; padding:16px 18px; font-size:17px; font-weight:800; font-family:inherit; cursor:pointer; background:var(--accent); color:#10110f; margin-top:10px; width:100%}
+  button.ghost{background:#0e100c; color:#f2f6ec; border:1px solid var(--line); font-weight:700}
+
+  .feed{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px; min-height:60px}
+  .feed .tally{display:flex; gap:16px; padding:6px 8px 10px; font-size:14px; color:var(--muted); border-bottom:1px solid var(--line); margin-bottom:6px}
+  .feed .tally b{color:var(--accent); font-size:18px}
+  .item{display:flex; gap:10px; align-items:baseline; padding:9px 8px; border-bottom:1px solid #23271f; font-size:15px}
+  .item:last-child{border-bottom:none}
+  .item .tag{font-size:11px; font-weight:800; padding:2px 7px; border-radius:5px; letter-spacing:.04em}
+  .item .tag.v{background:rgba(126,224,129,.16); color:var(--ok)}
+  .item .tag.n{background:rgba(199,240,74,.16); color:var(--accent)}
+  .item .tag.x{background:rgba(255,138,138,.16); color:var(--bad)}
+  .item .mono{font-family:ui-monospace,"SF Mono",Consolas,monospace}
+  .item .desc{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#dfe6d4}
+  .muted{color:var(--muted)}
+  .err{color:var(--bad)}
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Receiving</a>
+    <a href="cyclecount.html" class="active">Cycle Count</a>
+    <a href="labels.html">Print Labels</a>
+  </nav>
+
+  <div class="wrap">
+    <div class="settings">
+      <div class="f"><label for="endpoint">Apps Script endpoint (/exec)</label>
+        <input id="endpoint" placeholder="https://script.google.com/macros/s/.../exec"></div>
+      <div class="f"><label for="counter">Counter name</label>
+        <input id="counter" placeholder="e.g. Karina"></div>
+      <div class="f"><label for="loc">Location for this count</label>
+        <input id="loc" list="loclist" placeholder="e.g. C 01 08 02"><datalist id="loclist"></datalist></div>
+    </div>
+
+    <div class="card scan">
+      <h2>Verify a carton</h2>
+      <p class="hint">Scan or type a plate and press Enter. Each scan marks that carton counted and stamps this location.</p>
+      <input id="plate" placeholder="CTN-000123" autocomplete="off" autofocus>
+    </div>
+
+    <div class="card">
+      <h2>New carton — no plate yet</h2>
+      <p class="hint">For stock not yet in the system (your first count). This creates a plate; print its label at the station.</p>
+      <div class="row">
+        <div class="f" style="flex:2"><label for="ncUpc">UPC</label>
+          <input id="ncUpc" inputmode="numeric" placeholder="Scan or type UPC" autocomplete="off"></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="f" style="flex:2"><label for="ncBrand">Brand</label><input id="ncBrand" placeholder="(auto-fills)"></div>
+        <div class="f" style="flex:3"><label for="ncDesc">Description</label><input id="ncDesc" placeholder="(auto-fills)"></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="f"><label for="ncQty">Qty / carton</label><input id="ncQty" inputmode="numeric" value="0"></div>
+        <div class="f"><label for="ncBoxes"># Cartons</label><input id="ncBoxes" inputmode="numeric" value="1"></div>
+        <div class="f"><label for="ncWt">Box wt (lb)</label><input id="ncWt" inputmode="decimal" value="0"></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="f"><label for="ncL">L (in)</label><input id="ncL" inputmode="decimal" value="0"></div>
+        <div class="f"><label for="ncW">W (in)</label><input id="ncW" inputmode="decimal" value="0"></div>
+        <div class="f"><label for="ncH">H (in)</label><input id="ncH" inputmode="decimal" value="0"></div>
+      </div>
+      <button id="ncCreate">Register &amp; create plate(s)</button>
+    </div>
+
+    <div class="feed">
+      <div class="tally">
+        <span>Verified <b id="tVer">0</b></span>
+        <span>New plates <b id="tNew">0</b></span>
+        <span id="msg" class="muted">Ready.</span>
+      </div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var verCount = 0, newCount = 0;
+
+  // ---- settings (shared with the other pages on this origin) ----
+  $('endpoint').value = localStorage.getItem('endpoint') || '';
+  $('counter').value  = localStorage.getItem('counter')  || '';
+  try{
+    var locs = JSON.parse(localStorage.getItem('locations') || '[]');
+    if(Array.isArray(locs)) $('loclist').innerHTML = locs.map(function(l){ return '<option value="'+esc(l)+'">'; }).join('');
+  }catch(e){}
+  $('endpoint').addEventListener('change', function(){ localStorage.setItem('endpoint', $('endpoint').value.trim()); });
+  $('counter').addEventListener('change',  function(){ localStorage.setItem('counter',  $('counter').value.trim()); });
+
+  function esc(v){ if(v==null) return ''; return String(v).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+  function msg(t, cls){ var m=$('msg'); m.textContent=t; m.className = cls||'muted'; }
+  function endpoint(){ var e=($('endpoint').value||'').trim(); if(!e){ msg('Set the endpoint first.','err'); return null;} localStorage.setItem('endpoint',e); return e; }
+
+  function post(body){
+    var e = endpoint(); if(!e) return Promise.reject('no endpoint');
+    return fetch(e, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body) })
+      .then(function(r){ return r.json(); });
+  }
+
+  function logRow(tagCls, tagText, plate, desc, extra){
+    var d = document.createElement('div'); d.className='item';
+    d.innerHTML = '<span class="tag '+tagCls+'">'+tagText+'</span>'+
+                  '<span class="mono">'+esc(plate)+'</span>'+
+                  '<span class="desc">'+esc(desc||'')+'</span>'+
+                  '<span class="muted">'+esc(extra||'')+'</span>';
+    var log=$('log'); log.insertBefore(d, log.firstChild);
+  }
+
+  // ---- VERIFY: scan a plate, press Enter ----
+  function doVerify(){
+    var plate = ($('plate').value||'').trim().toUpperCase();
+    if(!plate) return;
+    msg('Verifying '+plate+'…');
+    post({ action:'verifyCarton', carton_id:plate, user:$('counter').value.trim(), device:'cyclecount', location:$('loc').value.trim() })
+      .then(function(data){
+        if(data && data.ok && data.carton){
+          verCount++; $('tVer').textContent=verCount;
+          var c=data.carton;
+          logRow('v','VERIFIED', c.carton_id, c.item_desc, 'qty '+(c.qty||0)+' @ '+(c.location||'—'));
+          msg('Verified '+c.carton_id+'.','muted');
+        } else if(data && data.not_found){
+          logRow('x','NOT FOUND', plate, 'not in registry — check the plate', '');
+          msg('Plate not found: '+plate,'err');
+        } else {
+          msg('Error: '+((data&&data.error)||'unknown'),'err');
+        }
+      })
+      .catch(function(err){ msg('Connection failed: '+err,'err'); });
+    $('plate').value=''; $('plate').focus();
+  }
+  $('plate').addEventListener('keydown', function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); doVerify(); } });
+
+  // ---- NEW CARTON: autofill from UPC, then create plate(s) ----
+  function doLookup(){
+    var upc = ($('ncUpc').value||'').trim();
+    if(!upc) return;
+    post({ action:'lookupItem', upc:upc })
+      .then(function(data){
+        if(data && data.ok && data.item){
+          $('ncBrand').value = data.item.brand || '';
+          $('ncDesc').value  = data.item.description || '';
+          if(data.item.item_weight) $('ncWt').value = data.item.item_weight;
+          msg('Item found: '+(data.item.description||upc),'muted');
+        } else { msg('UPC not in item_master — type the brand/description.','muted'); }
+      })
+      .catch(function(err){ msg('Lookup failed: '+err,'err'); });
+  }
+  $('ncUpc').addEventListener('change', doLookup);
+  $('ncUpc').addEventListener('keydown', function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); doLookup(); } });
+
+  $('ncCreate').addEventListener('click', function(){
+    var upc=($('ncUpc').value||'').trim();
+    var qty=parseInt($('ncQty').value)||0, boxes=parseInt($('ncBoxes').value)||0;
+    if(!upc){ msg('Enter a UPC.','err'); return; }
+    if(boxes<1){ msg('# Cartons must be at least 1.','err'); return; }
+    var payload = {
+      action:'submitInventory', context:'COUNT',
+      upc:upc, brand:$('ncBrand').value.trim(), description:$('ncDesc').value.trim(),
+      location:$('loc').value.trim(), user:$('counter').value.trim(), device:'cyclecount',
+      counted: qty*boxes, totalCartons:boxes, piecesPerCarton:qty,
+      timestamp:new Date().toISOString(),
+      breakdown:[{ style:1, boxes:boxes, qtyPerBox:qty, boxWeight:parseFloat($('ncWt').value)||0,
+        dims:[parseFloat($('ncL').value)||0, parseFloat($('ncW').value)||0, parseFloat($('ncH').value)||0] }]
+    };
+    msg('Creating '+boxes+' carton(s)…');
+    post(payload).then(function(data){
+      if(data && data.ok && data.cartons_created){
+        var made=data.cartons_created;
+        newCount += made.length; $('tNew').textContent=newCount;
+        made.forEach(function(c){ logRow('n','NEW PLATE', c.carton_id, c.item_desc, 'qty '+(c.qty||0)); });
+        msg(made.length+' plate(s) created'+(data.shipment_id?(' · '+data.shipment_id):'')+' — print at the station.','muted');
+        $('ncUpc').value=''; $('ncBrand').value=''; $('ncDesc').value='';
+        $('ncQty').value='0'; $('ncBoxes').value='1'; $('ncWt').value='0';
+        $('ncL').value='0'; $('ncW').value='0'; $('ncH').value='0';
+        $('ncUpc').focus();
+      } else { msg('Error: '+((data&&data.error)||'unknown'),'err'); }
+    }).catch(function(err){ msg('Connection failed: '+err,'err'); });
+  });
+})();
+</script>
+</body>
+</html>
