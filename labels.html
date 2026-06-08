@@ -57,7 +57,7 @@
   .l-body{flex:1; display:flex; gap:0.16in; padding-top:7px; min-height:0}
   .l-main{flex:1; display:flex; flex-direction:column; min-width:0}
   .l-desc{font-size:17pt; font-weight:800; line-height:1.04; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
-  .l-upc{font-family:ui-monospace,"SF Mono",Consolas,monospace; font-size:13pt; font-weight:700; margin-top:3px}
+  .l-upc{font-family:ui-monospace,"SF Mono",Consolas,monospace; font-size:16pt; font-weight:800; margin-top:3px}
   .l-fields{margin-top:7px; display:grid; grid-template-columns:1fr 1fr; gap:3px 14px}
   .l-fields .f .k{font-size:7.5pt; letter-spacing:.08em; text-transform:uppercase; color:#444}
   .l-fields .f .v{font-size:11pt; font-weight:700}
@@ -68,13 +68,13 @@
 
   .l-side{width:1.6in; display:flex; flex-direction:column; align-items:center; justify-content:space-between; border-left:1px dashed #000; padding-left:0.14in}
   .l-qty{text-align:center}
-  .l-qty .n{font-size:30pt; font-weight:800; line-height:.95}
-  .l-qty .u{font-size:9pt; font-weight:700; letter-spacing:.08em}
+  .l-qty .n{font-size:40pt; font-weight:800; line-height:.95}
+  .l-qty .u{font-size:10pt; font-weight:700; letter-spacing:.08em}
   .l-status{font-size:9pt; font-weight:700; border:1.5px solid #000; border-radius:3px; padding:1px 8px; margin-top:4px}
   .l-qr{text-align:center}
   .l-qr .box{width:1.05in; height:1.05in; display:flex; align-items:center; justify-content:center}
   .l-qr .box img,.l-qr .box canvas{width:1.05in !important; height:1.05in !important}
-  .l-qr .cap{font-size:7pt; color:#333; letter-spacing:.06em; margin-top:1px}
+  .l-qr .cap{font-family:ui-monospace,"SF Mono",Consolas,monospace; font-size:8pt; font-weight:700; color:#222; letter-spacing:.02em; margin-top:2px}
 
   .empty{color:var(--muted); font-size:15px; padding:40px}
 
@@ -192,21 +192,21 @@
               '<div class="f"><div class="k">Counted by</div><div class="v">'+esc(c.counted_by||'—')+'</div></div>'+
               '<div class="f wide"><div class="k">Created</div><div class="v" style="font-size:9.5pt">'+esc(dateOnly(c.created_ts))+'</div></div>'+
             '</div>'+
-            '<div class="l-barcode"><svg class="bc"></svg><div class="l-plate">'+esc(c.carton_id)+'</div></div>'+
+            '<div class="l-barcode"><svg class="bc"></svg><div class="l-plate">'+esc(c.upc)+'</div></div>'+
           '</div>'+
           '<div class="l-side">'+
             '<div>'+
               '<div class="l-qty"><div class="n">'+esc(c.qty||0)+'</div><div class="u">PC / CARTON</div></div>'+
               '<div style="text-align:center"><span class="l-status">'+esc(c.status||'')+'</span></div>'+
             '</div>'+
-            '<div class="l-qr"><div class="box"></div><div class="cap">SCAN CARTON</div></div>'+
+            '<div class="l-qr"><div class="box"></div><div class="cap">'+esc(c.carton_id)+'</div></div>'+
           '</div>'+
         '</div>';
       stage.appendChild(el);
 
-      // Linear barcode = unique carton plate.
+      // Linear barcode = UPC (item identity, matches the floor's existing scanning).
       try{
-        JsBarcode(el.querySelector('.bc'), String(c.carton_id), {
+        JsBarcode(el.querySelector('.bc'), String(c.upc), {
           format:'CODE128', displayValue:false, margin:0, width:2, height:70
         });
       }catch(e){}
