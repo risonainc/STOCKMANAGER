@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Carton Labels — Print Station</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<style>
+  :root{
+    --ink:#10110f;
+    --panel:#1c1f1a;
+    --panel-2:#262a23;
+    --line:#3a4034;
+    --accent:#c7f04a;       /* high-vis warehouse green-yellow */
+    --muted:#9aa394;
+    --paper:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--ink);
+    color:#e9efe1;
+    font-family:"Helvetica Neue",Helvetica,"Arial Narrow",Arial,sans-serif;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+
+  /* ---------- Control bar (screen only) ---------- */
+  .controls{
+    position:sticky; top:0; z-index:10;
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border-bottom:1px solid var(--line);
+    padding:14px 18px;
+    display:flex; flex-wrap:wrap; gap:14px 18px; align-items:flex-end;
+  }
+  .controls h1{
+    font-size:13px; letter-spacing:.18em; text-transform:uppercase;
+    margin:0; color:var(--muted); font-weight:700; width:100%;
+  }
+  .field{display:flex; flex-direction:column; gap:5px}
+  .field label{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+  .field input{
+    background:#0e100c; border:1px solid var(--line); color:#f2f6ec;
+    padding:9px 11px; border-radius:7px; font-size:14px; font-family:inherit;
+  }
+  .field input:focus{outline:none; border-color:var(--accent)}
+  #endpoint{min-width:340px}
+  #plate{min-width:160px; font-family:ui-monospace,"SF Mono",Consolas,monospace; text-transform:uppercase}
+  button{
+    border:1px solid var(--line); background:#0e100c; color:#f2f6ec;
+    padding:9px 14px; border-radius:7px; font-size:13px; cursor:pointer;
+    font-family:inherit; letter-spacing:.02em;
+  }
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent); color:#10110f; border-color:var(--accent); font-weight:700}
+  .status{
+    padding:10px 18px; font-size:13px; color:var(--muted);
+    border-bottom:1px solid var(--line); background:#15170f;
+  }
+  .status b{color:var(--accent)}
+  .stage{padding:26px 18px; display:flex; flex-direction:column; align-items:center; gap:20px}
+
+  /* ---------- The 4x6 label ---------- */
+  .label{
+    width:4in; height:6in; background:var(--paper); color:#000;
+    border:1px solid #cfd3c6;            /* screen guide only */
+    padding:0.16in 0.18in; overflow:hidden;
+    display:flex; flex-direction:column;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  .l-top{display:flex; justify-content:space-between; align-items:baseline; border-bottom:2px solid #000; padding-bottom:4px}
+  .l-kicker{font-size:11pt; font-weight:800; letter-spacing:.16em}
+  .l-status{font-size:10pt; font-weight:700; border:1.5px solid #000; padding:1px 7px; border-radius:3px}
+  .l-barcode{display:flex; justify-content:center; align-items:center; margin-top:8px}
+  .l-barcode svg{width:3.5in; height:0.95in}
+  .l-plate{
+    text-align:center; font-family:ui-monospace,"SF Mono",Consolas,monospace;
+    font-size:26pt; font-weight:700; letter-spacing:.04em; margin:2px 0 6px;
+  }
+  .l-fields{border-top:1px dashed #000; padding-top:7px; flex:1}
+  .l-row{display:flex; gap:8px; margin-bottom:5px}
+  .l-cell .k{font-size:8.5pt; letter-spacing:.1em; text-transform:uppercase; color:#333}
+  .l-cell .v{font-size:13pt; font-weight:700; line-height:1.12; word-break:break-word}
+  .l-upc .v{font-family:ui-monospace,"SF Mono",Consolas,monospace; font-size:15pt}
+  .l-desc .v{font-size:11.5pt; font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+  .l-big{display:flex; gap:10px; margin-top:4px}
+  .l-big .box{flex:1; border:2px solid #000; border-radius:5px; padding:5px 8px}
+  .l-big .box .k{font-size:8.5pt; letter-spacing:.1em; text-transform:uppercase}
+  .l-big .box .v{font-size:24pt; font-weight:800; line-height:1}
+  .l-foot{display:flex; justify-content:space-between; font-size:8pt; color:#222; border-top:1px solid #000; padding-top:4px; margin-top:6px}
+  .empty{color:var(--muted); font-size:15px; padding:40px}
+
+  /* ---------- Print ---------- */
+  @page{ size:4in 6in; margin:0 }
+  @media print{
+    .controls,.status{display:none !important}
+    body{background:#fff}
+    .stage{padding:0; gap:0}
+    .label{border:none; page-break-after:always; break-after:page}
+    .label:last-child{page-break-after:auto; break-after:auto}
+  }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <h1>Carton Label — Print Station</h1>
+    <div class="field" style="flex:1">
+      <label for="endpoint">Apps Script endpoint (/exec)</label>
+      <input id="endpoint" placeholder="https://script.google.com/macros/s/.../exec" />
+    </div>
+    <div class="field">
+      <label for="date">Count date</label>
+      <input id="date" type="date" />
+    </div>
+    <button id="loadDate">Load date</button>
+    <div class="field">
+      <label for="plate">Reprint one plate</label>
+      <input id="plate" placeholder="CTN-000123" />
+    </div>
+    <button id="loadPlate">Find plate</button>
+    <button id="print" class="primary">Print labels</button>
+  </div>
+
+  <div class="status" id="status">Set your endpoint, then load a date. The endpoint is remembered on this PC.</div>
+  <div class="stage" id="stage"></div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var ENDPOINT_KEY = 'endpoint'; // same key the main app uses on this origin
+
+  // Prefill endpoint (shared with the main app if it was saved on this PC) and date.
+  $('endpoint').value = localStorage.getItem(ENDPOINT_KEY) || '';
+  (function setToday(){
+    var d = new Date(), p = function(n){ return String(n).padStart(2,'0'); };
+    $('date').value = d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  })();
+
+  $('endpoint').addEventListener('change', function(){
+    localStorage.setItem(ENDPOINT_KEY, $('endpoint').value.trim());
+    setStatus('Endpoint saved on this PC.');
+  });
+
+  function setStatus(msg, isError){
+    var s = $('status');
+    s.innerHTML = msg;
+    s.style.color = isError ? '#ff8a8a' : '';
+  }
+
+  function getEndpoint(){
+    var ep = ($('endpoint').value || '').trim();
+    if(!ep){ setStatus('Enter your Apps Script /exec endpoint first.', true); return null; }
+    localStorage.setItem(ENDPOINT_KEY, ep);
+    return ep;
+  }
+
+  // Reuse the proven POST + text/plain transport (no CORS preflight).
+  function fetchCartons(req){
+    var ep = getEndpoint(); if(!ep) return;
+    setStatus('Loading…');
+    fetch(ep, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ action:'getCartons' }, req))
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data || !data.ok){ setStatus('Error: ' + ((data&&data.error)||'unknown'), true); return; }
+      render(data.cartons || []);
+      var label = req.carton_id ? ('plate ' + req.carton_id) : ('count date ' + req.date);
+      setStatus('Loaded <b>' + (data.cartons||[]).length + '</b> label(s) for ' + label + '. Review, then Print labels.');
+    })
+    .catch(function(err){ setStatus('Connection failed: ' + err + '. Check the endpoint and your network.', true); });
+  }
+
+  function esc(v){
+    if(v === null || v === undefined) return '';
+    return String(v).replace(/[&<>"]/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];
+    });
+  }
+  function dims(c){
+    var L=c.carton_l_in, W=c.carton_w_in, H=c.carton_h_in;
+    if(!L && !W && !H) return '—';
+    return [L,W,H].map(function(x){ return x||0; }).join(' × ') + ' in';
+  }
+  function dateOnly(v){ return v ? String(v).slice(0,10) : ''; }
+
+  function render(cartons){
+    var stage = $('stage');
+    stage.innerHTML = '';
+    if(!cartons.length){
+      stage.innerHTML = '<div class="empty">No cartons found for that date or plate.</div>';
+      return;
+    }
+    cartons.forEach(function(c){
+      var el = document.createElement('div');
+      el.className = 'label';
+      el.innerHTML =
+        '<div class="l-top"><span class="l-kicker">CARTON</span>'+
+          '<span class="l-status">'+esc(c.status||'')+'</span></div>'+
+        '<div class="l-barcode"><svg class="bc"></svg></div>'+
+        '<div class="l-plate">'+esc(c.carton_id)+'</div>'+
+        '<div class="l-fields">'+
+          '<div class="l-row"><div class="l-cell l-upc"><div class="k">UPC</div>'+
+            '<div class="v">'+esc(c.upc)+'</div></div></div>'+
+          '<div class="l-row"><div class="l-cell"><div class="k">Brand</div>'+
+            '<div class="v">'+esc(c.brand)+'</div></div></div>'+
+          '<div class="l-row"><div class="l-cell l-desc"><div class="k">Description</div>'+
+            '<div class="v">'+esc(c.item_desc)+'</div></div></div>'+
+          '<div class="l-big">'+
+            '<div class="box"><div class="k">Qty / carton</div><div class="v">'+esc(c.qty||0)+'</div></div>'+
+            '<div class="box"><div class="k">Location</div><div class="v">'+esc(c.location||'—')+'</div></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="l-foot"><span>'+esc(dims(c))+'</span>'+
+          '<span>'+esc(c.carton_gross_lb||0)+' lb · '+esc(c.carton_cuft||0)+' cu ft</span>'+
+          '<span>'+esc(dateOnly(c.created_ts))+'</span></div>';
+      stage.appendChild(el);
+
+      // Code 128 of the license plate — always valid, our controlled format.
+      try{
+        JsBarcode(el.querySelector('.bc'), String(c.carton_id), {
+          format:'CODE128', displayValue:false, margin:0, width:2, height:80
+        });
+      }catch(e){ /* leave blank if barcode fails */ }
+    });
+  }
+
+  $('loadDate').addEventListener('click', function(){ fetchCartons({ date: $('date').value }); });
+  $('loadPlate').addEventListener('click', function(){
+    var p = ($('plate').value||'').trim().toUpperCase();
+    if(!p){ setStatus('Type a plate like CTN-000123 first.', true); return; }
+    fetchCartons({ carton_id: p });
+  });
+  $('print').addEventListener('click', function(){ window.print(); });
+})();
+</script>
+</body>
+</html>
