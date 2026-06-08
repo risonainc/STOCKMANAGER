@@ -65,12 +65,11 @@
         </div>
     </div>
 
-    <!-- TAB BUTTONS -->
     <div class="tabs">
-        <button class="active" onclick="switchTab('page1')">PAGE 1: Item Details</button>
-        <button onclick="switchTab('page2')">PAGE 2: Putaway & Damage</button>
-        <button onclick="switchTab('labels')">LABELS & EXPORT</button>
-    </div>
+    <button class="active" onclick="switchTab('page1', this)">PAGE 1</button>
+    <button onclick="switchTab('page2', this)">PAGE 2</button>
+    <button onclick="switchTab('labels', this)">LABELS</button>
+</div>
 
     <!-- PAGE 1: ITEM DETAILS -->
     <div id="page1" class="tab-content active">
@@ -325,27 +324,44 @@
             location.reload();
         }
 
-        async function testConnection() {
-            const endpoint = API_ENDPOINT();
-            if (!endpoint) { alert('Enter Apps Script Endpoint first'); return; }
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'ping' })
-                });
-                const data = await res.json();
-                alert(data.status === 'ok' ? '✓ Connection OK' : '✗ Connection Failed: ' + JSON.stringify(data));
-            } catch (err) {
-                alert('✗ Error: ' + err.message);
-            }
+       async function testConnection() {
+    const endpoint = API_ENDPOINT();
+    if (!endpoint) { 
+        alert('Enter Apps Script Endpoint first'); 
+        return; 
+    }
+
+    try {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'ping' })
+        });
+
+        const data = await res.json();
+
+        console.log("Ping response:", data); // helpful debug
+
+        if (data && data.ok === true) {
+            alert('✓ Connection OK');
+        } else {
+            alert('✗ Connection Failed: ' + JSON.stringify(data));
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tabs button').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
-        }
+    } catch (err) {
+        alert('✗ Error: ' + err.message);
+    }
+}
+
+
+function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tabs button').forEach(el => el.classList.remove('active'));
+
+    document.getElementById(tab).classList.add('active');
+
+    if (btn) btn.classList.add('active');
+}
 
         function loadSettings() {
             document.getElementById('endpoint').value = API_ENDPOINT();
@@ -458,80 +474,117 @@
             switchTab('page1');
         }
 
-        async function submitInventory() {
-            const endpoint = API_ENDPOINT();
-            if (!endpoint) { alert('Configure endpoint in header'); return; }
-            
-            const breakdown = [];
-            for (let i = 0; i < 4; i++) {
-                const boxes = parseInt(document.getElementById(`boxes${i}`).value) || 0;
-                if (boxes > 0) {
-                    breakdown.push({
-                        style: i+1,
-                        boxes,
-                        qtyPerBox: parseInt(document.getElementById(`qty${i}`).value) || 0,
-                        boxWeight: parseFloat(document.getElementById(`weight${i}`).value) || 0,
-                        dims: [parseFloat(document.getElementById(`l${i}`).value) || 0,
-                                parseFloat(document.getElementById(`w${i}`).value) || 0,
-                                parseFloat(document.getElementById(`h${i}`).value) || 0]
-                    });
-                }
-            }
+ async function submitInventory() {
+    const endpoint = API_ENDPOINT();
+    if (!endpoint) { 
+        alert('Configure endpoint in header'); 
+        return; 
+    }
 
-            if (!breakdown.length) { alert('Add at least one style'); return; }
+    const breakdown = [];
 
-            const payload = {
-                action: 'addInventory',
-                data: {
-                    sheetId: SHEET_ID(),
-                    user: 'StockTaker',
-                    countedBy: document.getElementById('countedBy').value,
-                    upc: document.getElementById('upc').value,
-                    brand: document.getElementById('brand').value,
-                    description: document.getElementById('description').value,
-                    gender: document.getElementById('gender').value,
-                    coo: document.getElementById('coo').value,
-                    edgeNo: document.getElementById('edgeNo').value,
-                    expectedQty: parseInt(document.getElementById('expectedQty').value) || 0,
-                    countedQty: parseInt(document.getElementById('totalPutaway').textContent) || 0,
-                    itemWeight: parseFloat(document.getElementById('itemWeight').value) || 0,
-                    itemLength: parseFloat(document.getElementById('itemL').value) || 0,
-                    itemWidth: parseFloat(document.getElementById('itemW').value) || 0,
-                    itemHeight: parseFloat(document.getElementById('itemH').value) || 0,
-                    totalCubicFeet: parseFloat(document.getElementById('totalCuFt').textContent) || 0,
-                    breakdown: JSON.stringify(breakdown),
-                    locations: JSON.stringify(JSON.parse(localStorage.getItem('locations') || '[]')),
-                    location1_code: (JSON.parse(localStorage.getItem('locations') || '[]')[0] || {}).code || '',
-                    location1_qty: (JSON.parse(localStorage.getItem('locations') || '[]')[0] || {}).qty || 0,
-                    discrepancyReason: document.getElementById('discrepancy').value,
-                    notes: document.getElementById('notes').value,
-                    timestamp: new Date().toISOString(),
-                    accurate: document.getElementById('expectedQty').value == document.getElementById('totalPutaway').textContent
-                }
-            };
+    for (let i = 0; i < 4; i++) {
+        const boxes = parseInt(document.getElementById(`boxes${i}`).value) || 0;
 
-            try {
-                const res = await fetch(endpoint, { method: 'POST', body: JSON.stringify(payload) });
-                const data = await res.json();
-                alert('✓ Submitted: ' + JSON.stringify(data));
-                switchTab('labels');
-            } catch (err) {
-                alert('✗ Error: ' + err.message);
-            }
+        if (boxes > 0) {
+            breakdown.push({
+                style: i + 1,
+                boxes: boxes,
+                qtyPerBox: parseInt(document.getElementById(`qty${i}`).value) || 0,
+                boxWeight: parseFloat(document.getElementById(`weight${i}`).value) || 0,
+                dims: [
+                    parseFloat(document.getElementById(`l${i}`).value) || 0,
+                    parseFloat(document.getElementById(`w${i}`).value) || 0,
+                    parseFloat(document.getElementById(`h${i}`).value) || 0
+                ]
+            });
         }
+    }
 
-        function generateLabels() {
-            const accurate = parseInt(document.getElementById('expectedQty').value) === parseInt(document.getElementById('totalPutaway').textContent);
-            const html = `
-                <div class="label-preview ${accurate ? 'accurate' : 'recheck'}">
-                    <h3>${accurate ? '✓ ACCURATE' : '⚠ RECHECK'}</h3>
-                    <p><strong>${document.getElementById('upc').value}</strong></p>
-                    <p>${document.getElementById('brand').value} — ${document.getElementById('description').value}</p>
-                    <p>Count: ${document.getElementById('totalPutaway').textContent} items</p>
-                </div>
-            `;
-            document.getElementById('labelPreview').innerHTML = html;
-        }
+    if (!breakdown.length) {
+        alert('Add at least one style');
+        return;
+    }
+
+    
+const payload = {
+  action: "submitInventory",
+
+  // Page 1
+  upc: document.getElementById('upc').value,
+  brand: document.getElementById('brand').value,
+  description: document.getElementById('description').value,
+  gender: document.getElementById('gender').value,
+  coo: document.getElementById('coo').value,
+  expected: parseInt(document.getElementById('expectedQty').value) || 0,
+  counted: parseInt(document.getElementById('subtotalPieces').textContent) || 0,
+  user: document.getElementById('countedBy').value,
+  notes: document.getElementById('notes').value,
+
+  // Page 2
+  location: document.getElementById('locInput').value,
+  totalCartons: parseInt(document.getElementById('totalCartons').textContent) || 0,
+  piecesPerCarton: 0, // optional for now
+  breakdown: breakdown,
+
+  // (optional for later)
+  cartons: [],
+
+  device: "Web App",
+  timestamp: new Date().toISOString()
+};
+
+
+
+    try {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        console.log("Submit response:", data);
+        alert('✓ Submitted: ' + JSON.stringify(data));
+
+        switchTab('labels');
+
+    } catch (err) {
+        alert('✗ Error: ' + err.message);
+    }
+}
+
+
+  async function generateLabels() {
+  const endpoint = localStorage.getItem('endpoint');
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: "submitInventoryPreview", // optional preview
+      upc: document.getElementById('upc').value
+    })
+  });
+
+  const data = await res.json();
+
+  const cartons = data.cartons_created || [];
+
+  const html = cartons.map(c => `
+    <div class="label-preview accurate">
+      <h3>📦 CARTON</h3>
+      <p><strong>${c.carton_id}</strong></p>
+      <p>UPC: ${c.upc}</p>
+      <p>Qty: ${c.qty}</p>
+      <p>Location: ${c.location}</p>
+    </div>
+  `).join('');
+
+  document.getElementById('labelPreview').innerHTML = html;
+}
+
 
         function savePDF() {
             alert('PDF download not yet implemented. Use browser Print > Save as PDF.');
