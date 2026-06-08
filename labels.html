@@ -177,7 +177,9 @@
       el.innerHTML =
         '<div class="l-head">'+
           '<div class="l-title">'+esc(COMPANY)+' CARTON LABEL</div>'+
-          '<div class="l-ship"><div class="k">Shipment</div><div class="v">'+esc(c.shipment_id||'—')+'</div></div>'+
+          '<div class="l-ship">'+(c.shipment_id
+              ? '<div class="k">Shipment</div><div class="v">'+esc(c.shipment_id)+'</div>'
+              : '<div class="k">Source</div><div class="v">Cycle Count</div>')+'</div>'+
         '</div>'+
         '<div class="l-body">'+
           '<div class="l-main">'+
