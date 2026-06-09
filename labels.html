@@ -137,6 +137,10 @@
     if(!ep){ setStatus('Enter your Apps Script /exec endpoint first.', true); return null; }
     localStorage.setItem(ENDPOINT_KEY, ep); return ep;
   }
+  function getQueryParam(name) {
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name) || '';
+}
 
   function fetchCartons(req){
     var ep = getEndpoint(); if(!ep) return;
@@ -223,13 +227,31 @@
     });
   }
 
-  $('loadDate').addEventListener('click', function(){ fetchCartons({ date: $('date').value }); });
+   $('loadDate').addEventListener('click', function(){
+    fetchCartons({ date: $('date').value });
+  });
+
   $('loadPlate').addEventListener('click', function(){
-    var p = ($('plate').value||'').trim().toUpperCase();
-    if(!p){ setStatus('Type a plate like CTN-000123 first.', true); return; }
+    var p = ($('plate').value || '').trim().toUpperCase();
+    if(!p){
+      setStatus('Type a plate like CTN-000123 first.', true);
+      return;
+    }
     fetchCartons({ carton_id: p });
   });
-  $('print').addEventListener('click', function(){ window.print(); });
+
+  $('print').addEventListener('click', function(){
+    window.print();
+  });
+
+  (function initFromUrl() {
+    var plateFromUrl = getQueryParam('carton_id').trim().toUpperCase();
+    if (!plateFromUrl) return;
+
+    $('plate').value = plateFromUrl;
+    fetchCartons({ carton_id: plateFromUrl });
+  })();
+
 })();
 </script>
 </body>
