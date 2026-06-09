@@ -337,29 +337,83 @@
             location.reload();
         }
 
-       async function testConnection() {
+       async function submitInventory() {
     const endpoint = API_ENDPOINT();
     if (!endpoint) { 
-        alert('Enter Apps Script Endpoint first'); 
+        alert('Configure endpoint in header'); 
         return; 
     }
+
+    const breakdown = [];
+
+    for (let i = 0; i < 4; i++) {
+        const boxes = parseInt(document.getElementById(`boxes${i}`).value) || 0;
+
+        if (boxes > 0) {
+            breakdown.push({
+                style: i + 1,
+                boxes: boxes,
+                qtyPerBox: parseInt(document.getElementById(`qty${i}`).value) || 0,
+                boxWeight: parseFloat(document.getElementById(`weight${i}`).value) || 0,
+                dims: [
+                    parseFloat(document.getElementById(`l${i}`).value) || 0,
+                    parseFloat(document.getElementById(`w${i}`).value) || 0,
+                    parseFloat(document.getElementById(`h${i}`).value) || 0
+                ]
+            });
+        }
+    }
+
+    if (!breakdown.length) {
+        alert('Add at least one style');
+        return;
+    }
+
+    const payload = {
+        action: "submitInventory",
+        context: "RECEIVING",
+
+        upc: document.getElementById('upc').value.trim(),
+        brand: document.getElementById('brand').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        gender: document.getElementById('gender').value,
+        coo: document.getElementById('coo').value,
+        expected: parseInt(document.getElementById('expectedQty').value) || 0,
+        counted: parseInt(document.getElementById('subtotalPieces').textContent) || 0,
+        user: document.getElementById('countedBy').value,
+        notes: document.getElementById('notes').value.trim(),
+
+        location: document.getElementById('locInput').value.trim(),
+        totalCartons: parseInt(document.getElementById('totalCartons').textContent) || 0,
+        piecesPerCarton: 0,
+        breakdown: breakdown,
+
+        device: "Web App",
+        timestamp: new Date().toISOString()
+    };
 
     try {
         const res = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'ping' })
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json();
+        console.log("Submit response:", data);
 
-        console.log("Ping response:", data); // helpful debug
-
-        if (data && data.ok === true) {
-            alert('✓ Connection OK');
-        } else {
-            alert('✗ Connection Failed: ' + JSON.stringify(data));
+        if (!data || !data.ok) {
+            alert('✗ Submit failed: ' + (data && data.error ? data.error : 'Unknown error'));
+            return;
         }
+
+        const cartons = Array.isArray(data.cartons_created) ? data.cartons_created : [];
+        sessionStorage.setItem('sessionCartons', JSON.stringify(cartons));
+
+        alert(`✓ Submitted: ${cartons.length} cartons created${data.shipment_id ? ' for ' + data.shipment_id : ''}`);
+
+        switchTab('labels');
+        renderSessionLabels();
 
     } catch (err) {
         alert('✗ Error: ' + err.message);
@@ -591,17 +645,36 @@ const payload = {
     document.getElementById('labelPreview').innerHTML = '<div class="info-box">Session cleared.</div>';
   }
   function generateLabels() {
-    const session = getSession();
-    if (!session.length) { alert('No cartons in this session yet. Submit a receipt first.'); return; }
-    document.getElementById('labelPreview').innerHTML =
-      '<div class="info-box">This session: <strong>' + session.length + '</strong> carton(s). Building PDF...</div>' +
-      session.map(function (c) {
-        return '<div class="label-preview accurate"><h3>CARTON ' + (c.carton_id || '') + '</h3>' +
-               '<p>' + (c.item_desc || '') + '</p>' +
-               '<p>UPC ' + (c.upc || '') + ' &middot; Qty ' + (c.qty || 0) + ' &middot; ' + (c.location || '') + '</p></div>';
-      }).join('');
-    try { buildLabelsPDF(session); } catch (e) { alert('PDF error: ' + e.message); }
-  }
+    renderSessionLabels();
+}
+function renderSessionLabels() {
+    let cartons = [];
+    try {
+        cartons = JSON.parse(sessionStorage.getItem('sessionCartons') || '[]');
+    } catch (e) {
+        cartons = [];
+    }
+
+    if (!cartons.length) {
+        document.getElementById('labelPreview').innerHTML =
+            '<div class="warning-box">No cartons in this session yet. Submit a receipt first.</div>';
+        return;
+    }
+
+    const html = cartons.map(c => `
+        <div class="label-preview accurate">
+            <h3>📦 CARTON</h3>
+            <p><strong>${c.carton_id || ''}</strong></p>
+            <p>UPC: ${c.upc || ''}</p>
+            <p>Description: ${c.item_desc || ''}</p>
+            <p>Qty: ${c.qty || 0}</p>
+            <p>Location: ${c.location || ''}</p>
+            <p>Shipment: ${c.shipment_id || ''}</p>
+        </div>
+    `).join('');
+
+    document.getElementById('labelPreview').innerHTML = html;
+}
   function barcodeDataUrl_(value) {
     const c = document.createElement('canvas');
     try { JsBarcode(c, String(value || ' '), { format: 'CODE128', displayValue: false, margin: 0, width: 2, height: 60 }); } catch (e) {}
