@@ -59,7 +59,6 @@
         <a href="index.html" class="active">Receiving</a>
         <a href="cyclecount.html">Cycle Count</a>
         <a href="countsheet.html">Count Sheet</a>
-        <a href="labels.html">Print Labels</a>
     </nav>
     <!-- HEADER -->
     <div class="header">
@@ -245,23 +244,25 @@
         </div>
     </div>
 
-    <!-- LABELS & EXPORT -->
-    <div id="labels" class="tab-content">
-        <div class="page">
-            <h2>🏷️ Labels & Export</h2>
-            
-            <div class="info-box">
-                <strong>GENERATE LABELS</strong> builds a 4x6 PDF of every carton received in this session, ready to print. <strong>CLEAR SESSION</strong> empties the list to start a fresh receipt.
-            </div>
+    <!-- LABELS EXPORT -->
+<div id="labels" class="tab-content">
+  <div class="page">
+    <h2>Labels & Print Station</h2>
 
-            <div id="labelPreview"></div>
-
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="success" onclick="generateLabels()">GENERATE LABELS (PDF)</button>
-                <button class="danger" onclick="clearSession()">CLEAR SESSION</button>
-            </div>
-        </div>
+    <div class="info-box">
+      <strong>PRINT LABELS</strong> opens the dedicated labels page that uses your finalized production format.
+      <strong>CLEAR SESSION</strong> removes the latest receipt session from this browser only.
     </div>
+
+    <div id="labelPreview"></div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="success" onclick="openLabelsPage()">OPEN PRINT LABELS</button>
+      <button onclick="openLastPlate()">OPEN LAST CARTON</button>
+      <button class="danger" onclick="clearSession()">CLEAR SESSION</button>
+    </div>
+  </div>
+</div>
 
     <!-- QUAGGA JS FALLBACK - CRITICAL -->
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
@@ -639,6 +640,59 @@ const payload = {
 
   function getSession() {
     try { return JSON.parse(sessionStorage.getItem('sessionCartons') || '[]'); } catch (e) { return []; }
+    function getSession() {
+  try {
+    return JSON.parse(sessionStorage.getItem('sessionCartons'));
+  } catch (e) {
+    return [];
+  }
+}
+
+function getLastCarton() {
+  const session = getSession();
+  return session.length ? session[session.length - 1] : null;
+}
+
+function openLabelsPage() {
+  const endpoint = document.getElementById('endpoint').value.trim();
+  if (!endpoint) {
+    alert('Enter and save the Apps Script endpoint first.');
+    return;
+  }
+
+  localStorage.setItem('endpoint', endpoint);
+
+  const last = getLastCarton();
+  if (last && last.carton_id) {
+    window.location.href = 'labels.html?carton_id=' + encodeURIComponent(last.carton_id);
+    return;
+  }
+
+  window.location.href = 'labels.html';
+}
+
+function openLastPlate() {
+  const endpoint = document.getElementById('endpoint').value.trim();
+  if (!endpoint) {
+    alert('Enter and save the Apps Script endpoint first.');
+    return;
+  }
+
+  localStorage.setItem('endpoint', endpoint);
+
+  const last = getLastCarton();
+  if (!last || !last.carton_id) {
+    alert('No carton found in this session yet.');
+    return;
+  }
+
+  window.location.href = 'labels.html?carton_id=' + encodeURIComponent(last.carton_id);
+}
+
+function clearSession() {
+  sessionStorage.removeItem('sessionCartons');
+  document.getElementById('labelPreview').innerHTML = '<div class="info-box">Session cleared.</div>';
+}
   }
   function clearSession() {
     sessionStorage.removeItem('sessionCartons');
