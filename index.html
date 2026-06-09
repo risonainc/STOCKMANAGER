@@ -243,25 +243,7 @@
         </div>
     </div>
 
-    <!-- LABELS EXPORT -->
-<div id="labels" class="tab-content">
-  <div class="page">
-    <h2>Labels & Print Station</h2>
 
-    <div class="info-box">
-      <strong>PRINT LABELS</strong> opens the dedicated labels page that uses your finalized production format.
-      <strong>CLEAR SESSION</strong> removes the latest receipt session from this browser only.
-    </div>
-
-    <div id="labelPreview"></div>
-
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <button class="success" onclick="openLabelsPage()">OPEN PRINT LABELS</button>
-      <button onclick="openLastPlate()">OPEN LAST CARTON</button>
-      <button class="danger" onclick="clearSession()">CLEAR SESSION</button>
-    </div>
-  </div>
-</div>
 
     <!-- QUAGGA JS FALLBACK - CRITICAL -->
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
@@ -629,7 +611,18 @@ const payload = {
         } catch (e) {}
         const n = (data && data.cartons_created && data.cartons_created.length) || 0;
         alert('✓ Received ' + n + ' carton(s)' + (data && data.shipment_id ? ' · ' + data.shipment_id : ''));
-        switchTab('labels');
+
+const lastCarton = data && Array.isArray(data.cartons_created) && data.cartons_created.length
+  ? data.cartons_created[data.cartons_created.length - 1]
+  : null;
+
+localStorage.setItem('endpoint', document.getElementById('endpoint').value.trim());
+
+if (lastCarton && lastCarton.carton_id) {
+  window.location.href = 'labels.html?carton_id=' + encodeURIComponent(lastCarton.carton_id);
+} else {
+  window.location.href = 'labels.html';
+}
 
     } catch (err) {
         alert('✗ Error: ' + err.message);
