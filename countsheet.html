@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Count Sheet</title>
+<style>
+  :root{ --ink:#10110f; --panel:#1c1f1a; --panel-2:#262a23; --line:#3a4034; --accent:#c7f04a; --muted:#9aa394; }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{ background:var(--ink); color:#e9efe1; font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; }
+
+  nav{display:flex; gap:6px; background:#0e100c; border-bottom:1px solid var(--line); padding:8px 10px}
+  nav a{flex:1; text-align:center; padding:12px 8px; border-radius:8px; text-decoration:none; color:var(--muted); font-size:14px; font-weight:700; border:1px solid transparent}
+  nav a.active{background:var(--accent); color:#10110f}
+  nav a:not(.active):hover{border-color:var(--line)}
+
+  .controls{background:var(--panel); border-bottom:1px solid var(--line); padding:14px 18px}
+  .crow{display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:12px}
+  .crow:last-child{margin-bottom:0}
+  .f{display:flex; flex-direction:column; gap:5px}
+  label{font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted)}
+  input{background:#0e100c; border:1px solid var(--line); color:#f2f6ec; padding:10px 11px; border-radius:8px; font-size:15px; font-family:inherit}
+  #endpoint{min-width:320px; flex:1}
+  button{border:1px solid var(--line); background:#0e100c; color:#f2f6ec; padding:10px 14px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent); color:#10110f; border-color:var(--accent)}
+  .sep{width:1px; align-self:stretch; background:var(--line); margin:0 2px}
+  .chk{display:flex; align-items:center; gap:8px; color:#e9efe1; font-size:14px}
+  .chk input{width:18px; height:18px}
+  .status{padding:9px 18px; font-size:13px; color:var(--muted); background:#15170f; border-bottom:1px solid var(--line)}
+  .status b{color:var(--accent)}
+
+  /* ---- the printable worksheet ---- */
+  .sheetwrap{padding:22px; display:flex; justify-content:center}
+  .sheet{background:#fff; color:#000; width:8.5in; min-height:11in; padding:0.5in; font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+  .sheet h1{font-size:18pt; margin:0 0 2px; letter-spacing:.02em}
+  .sheet .meta{display:flex; flex-wrap:wrap; gap:6px 26px; font-size:10.5pt; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:10px}
+  .sheet .meta b{font-weight:800}
+  table{width:100%; border-collapse:collapse; font-size:10pt}
+  th,td{border:1px solid #000; padding:5px 6px; text-align:left; vertical-align:top}
+  th{background:#eee; font-size:8.5pt; letter-spacing:.04em; text-transform:uppercase}
+  td.num,th.num{text-align:center; width:0.55in}
+  td.upc{font-family:ui-monospace,"SF Mono",Consolas,monospace}
+  td.count,th.count{width:1in}            /* blank for handwriting */
+  td.chk2,th.chk2{width:0.5in; text-align:center}
+  td.init,th.init{width:0.8in}
+  .sysqty{display:none}                    /* shown only when "show system qty" is on */
+  body.show-sys .sysqty{display:table-cell}
+  .rm{cursor:pointer; color:#b00; font-weight:800; border:none; background:none; font-size:14px}
+  .foot{display:flex; gap:40px; margin-top:18px; font-size:10pt}
+  .foot .l{flex:1; border-top:1px solid #000; padding-top:4px}
+  .empty{color:#888; font-size:11pt; padding:20px 0}
+
+  @page{ size:letter; margin:0.5in }
+  @media print{
+    nav,.controls,.status{display:none !important}
+    body{background:#fff}
+    .sheetwrap{padding:0}
+    .sheet{width:auto; min-height:0; padding:0; box-shadow:none}
+    .rm{display:none !important}
+    thead{display:table-header-group}
+    tr{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Receiving</a>
+    <a href="cyclecount.html">Cycle Count</a>
+    <a href="countsheet.html" class="active">Count Sheet</a>
+    <a href="labels.html">Print Labels</a>
+  </nav>
+
+  <div class="controls">
+    <div class="crow">
+      <div class="f" style="flex:1"><label for="endpoint">Apps Script endpoint (/exec)</label>
+        <input id="endpoint" placeholder="https://script.google.com/macros/s/.../exec"></div>
+    </div>
+    <div class="crow">
+      <div class="f"><label for="zone">Zone / area</label><input id="zone" placeholder="e.g. Aisle C"></div>
+      <div class="f"><label for="counter">Counter</label><input id="counter" placeholder="Name"></div>
+      <div class="f"><label for="date">Date</label><input id="date" type="date"></div>
+      <div class="f"><label for="sheetno">Sheet #</label><input id="sheetno" placeholder="optional"></div>
+      <label class="chk"><input type="checkbox" id="showSys"> Show system qty on printout</label>
+    </div>
+    <div class="crow">
+      <div class="f"><label for="loc">Pull by location (prefix)</label><input id="loc" placeholder="e.g. C 01"></div>
+      <button id="pullLoc">Pull from registry</button>
+      <div class="sep"></div>
+      <div class="f"><label for="filter">Pull expected (filter)</label><input id="filter" placeholder="brand or blank for all"></div>
+      <button id="pullExp">Pull expected list</button>
+      <div class="sep"></div>
+      <div class="f"><label for="mUpc">Add item by UPC</label><input id="mUpc" placeholder="scan/type UPC"></div>
+      <button id="addManual">Add</button>
+      <div class="sep"></div>
+      <button id="clear">Clear list</button>
+      <button id="print" class="primary">Print sheet</button>
+    </div>
+  </div>
+  <div class="status" id="status">Pull items by location or from your expected list, or add them by UPC. Then Print.</div>
+
+  <div class="sheetwrap">
+    <div class="sheet">
+      <h1>Cycle Count Sheet</h1>
+      <div class="meta">
+        <span>Zone: <b id="mZone">—</b></span>
+        <span>Counter: <b id="mCounter">—</b></span>
+        <span>Date: <b id="mDate">—</b></span>
+        <span>Sheet #: <b id="mSheet">—</b></span>
+        <span>Items: <b id="mItems">0</b></span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="num">#</th><th>Location</th><th>UPC</th><th>Description</th>
+            <th class="sysqty">System Qty</th><th class="count">Counted</th>
+            <th class="chk2">✓</th><th class="init">Init</th><th class="rm"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div id="emptyMsg" class="empty">No items yet.</div>
+      <div class="foot">
+        <div class="l">Counted by / date</div>
+        <div class="l">Verified by / date</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var items = [];
+
+  $('endpoint').value = localStorage.getItem('endpoint') || '';
+  $('counter').value  = localStorage.getItem('counter')  || '';
+  (function today(){ var d=new Date(),p=function(n){return String(n).padStart(2,'0');}; $('date').value=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); })();
+  $('endpoint').addEventListener('change', function(){ localStorage.setItem('endpoint',$('endpoint').value.trim()); });
+  $('counter').addEventListener('change',  function(){ localStorage.setItem('counter',$('counter').value.trim()); });
+  $('showSys').addEventListener('change', function(){ document.body.classList.toggle('show-sys', $('showSys').checked); });
+
+  function esc(v){ if(v==null) return ''; return String(v).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+  function setStatus(t,err){ var s=$('status'); s.innerHTML=t; s.style.color=err?'#ff8a8a':''; }
+  function endpoint(){ var e=($('endpoint').value||'').trim(); if(!e){ setStatus('Set the endpoint first.',true); return null;} localStorage.setItem('endpoint',e); return e; }
+  function post(body){ var e=endpoint(); if(!e) return Promise.reject('no endpoint');
+    return fetch(e,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).then(function(r){return r.json();}); }
+
+  function syncMeta(){
+    $('mZone').textContent    = $('zone').value.trim()    || '—';
+    $('mCounter').textContent = $('counter').value.trim() || '—';
+    $('mDate').textContent    = $('date').value           || '—';
+    $('mSheet').textContent   = $('sheetno').value.trim() || '—';
+    $('mItems').textContent   = items.length;
+  }
+  ['zone','counter','date','sheetno'].forEach(function(id){ $(id).addEventListener('input', syncMeta); });
+
+  function render(){
+    var tb=$('tbody'); tb.innerHTML='';
+    items.forEach(function(it,i){
+      var tr=document.createElement('tr');
+      tr.innerHTML =
+        '<td class="num">'+(i+1)+'</td>'+
+        '<td>'+esc(it.location)+'</td>'+
+        '<td class="upc">'+esc(it.upc)+'</td>'+
+        '<td>'+esc(it.description)+'</td>'+
+        '<td class="sysqty">'+esc(it.system_qty)+'</td>'+
+        '<td class="count"></td><td class="chk2"></td><td class="init"></td>'+
+        '<td class="rm"><button class="rm" data-i="'+i+'">×</button></td>';
+      tb.appendChild(tr);
+    });
+    $('emptyMsg').style.display = items.length ? 'none' : 'block';
+    syncMeta();
+    Array.prototype.forEach.call(document.querySelectorAll('button.rm[data-i]'), function(b){
+      b.addEventListener('click', function(){ items.splice(parseInt(b.getAttribute('data-i')),1); render(); });
+    });
+  }
+
+  function addRows(rows){
+    if(!rows || !rows.length){ setStatus('Nothing found for that pull.'); return; }
+    rows.forEach(function(r){ items.push(r); });
+    render(); setStatus('Added <b>'+rows.length+'</b> item(s). Total now '+items.length+'.');
+  }
+
+  $('pullLoc').addEventListener('click', function(){
+    setStatus('Pulling from registry…');
+    post({ action:'countSheet', source:'registry', location:$('loc').value.trim() })
+      .then(function(d){ if(d&&d.ok) addRows(d.rows); else setStatus('Error: '+((d&&d.error)||'unknown'),true); })
+      .catch(function(e){ setStatus('Connection failed: '+e,true); });
+  });
+  $('pullExp').addEventListener('click', function(){
+    setStatus('Pulling expected list…');
+    post({ action:'countSheet', source:'expected', filter:$('filter').value.trim() })
+      .then(function(d){ if(d&&d.ok) addRows(d.rows); else setStatus('Error: '+((d&&d.error)||'unknown'),true); })
+      .catch(function(e){ setStatus('Connection failed: '+e,true); });
+  });
+  $('addManual').addEventListener('click', function(){
+    var upc=($('mUpc').value||'').trim(); if(!upc){ setStatus('Type a UPC to add.',true); return; }
+    post({ action:'lookupItem', upc:upc }).then(function(d){
+      var it=(d&&d.ok&&d.item) ? {location:'',upc:upc,description:d.item.description,brand:d.item.brand,system_qty:'',carton_count:''}
+                               : {location:'',upc:upc,description:'',brand:'',system_qty:'',carton_count:''};
+      items.push(it); render(); $('mUpc').value=''; $('mUpc').focus();
+      setStatus(d&&d.ok&&d.item ? ('Added '+(d.item.description||upc)) : 'Added UPC '+upc+' (not in item_master — fill description by hand).');
+    }).catch(function(e){ setStatus('Lookup failed: '+e,true); });
+  });
+  $('mUpc').addEventListener('keydown', function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); $('addManual').click(); } });
+  $('clear').addEventListener('click', function(){ items=[]; render(); setStatus('List cleared.'); });
+  $('print').addEventListener('click', function(){ if(!items.length){ setStatus('Add some items first.',true); return; } syncMeta(); window.print(); });
+
+  render();
+})();
+</script>
+</body>
+</html>
