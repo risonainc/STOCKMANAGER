@@ -577,7 +577,7 @@ function getEndpoint(){
 function api(body){
   const ep = getEndpoint();
   if(!ep) return Promise.reject(new Error('Paste your Apps Script endpoint in the top bar first.'));
-  return fetch(ep, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).then(r=>r.json());
+  return fetch(ep + '?cb=' + Date.now(), {method:'POST', body:JSON.stringify(body)}).then(r=>r.json());
 }
 
 function switchView(view){
@@ -1280,7 +1280,7 @@ window.addEventListener('load', init);
   function csPost(body){
     var ep=(document.getElementById('endpoint')||{value:''}).value.trim();
     if(!ep){ csStatus('Set the Apps Script endpoint first.', true); return Promise.reject('no endpoint'); }
-    return fetch(ep,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).then(r=>r.json());
+    return fetch(ep + '?cb=' + Date.now(),{method:'POST',body:JSON.stringify(body)}).then(r=>r.json());
   }
 
   // set today's date
