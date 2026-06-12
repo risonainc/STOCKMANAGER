@@ -792,8 +792,9 @@ async function loadInboundShipments(){
     if(!shipments.length){ list.innerHTML='<div class="helper">No purchase orders found.</div>'; return; }
     list.innerHTML = shipments.map(s=>`
       <div class="pickItem" data-purchase="${safe(s.purchase_no)}">
-        <h4>${safe(s.purchase_no)} <span class="badge">${safe(s.total_qty_open)} open</span></h4>
-        <div class="tiny muted">${safe(s.vendor)} · ${safe(s.purchase_date)}</div>
+        <h4>PO ${safe(s.purchase_no)} <span class="badge">${safe(s.total_qty_open)} open</span></h4>
+        <div class="tiny muted">${safe(s.vendor)}</div>
+        <div class="tiny" style="margin-top:2px"><span class="muted">Date: ${safe(s.purchase_date)}${s.vendor_invoice?' · Inv: '+safe(s.vendor_invoice):''}</span></div>
         <div class="tiny" style="margin-top:4px">
           <span class="tag ${s.receiving_status==='RECEIVED'?'tag-good':s.receiving_status==='PARTIAL'?'tag-warn':'tag-info'}">${safe(s.receiving_status)}</span>
           <span class="muted" style="margin-left:8px">${safe(s.line_count)} line${s.line_count!==1?'s':''}</span>
@@ -919,18 +920,33 @@ async function loadOrdersByDate(){
   list.innerHTML = '<div class="helper">Loading orders…</div>';
   setMsg('shipListMsg','');
   try {
-    const data = await api({action:'getOutboundOrders', ship_date:date});
+    const data = await api({action:'getOutboundOrders', shipDate:date});
     if(!data.ok) throw new Error(data.error||'Load failed');
     const orders = data.orders || [];
+    console.log('[Risona] Raw orders sample:', orders[0]);
     el('shipOrdersMetric').textContent = orders.length;
     if(!orders.length){ list.innerHTML='<div class="helper">No orders found for this date.</div>'; return; }
+    // Normalize backend camelCase -> frontend fields (always overwrite to be safe)
+    orders.forEach(o=>{
+      o.edge_inv_no = o.edge_inv_no || o.edgeInvNo || o.EDGEINVNO || o.invoiceNo || '';
+      o.ship_date   = o.ship_date   || o.shipDate   || o.SHIP_DATE  || '';
+      o.status      = o.status      || o.orderStatus|| o.ORDER_STATUS|| o.STATUS || 'OPEN';
+      o.customer    = o.customer    || o.Customer   || o.CUSTOMER   || '';
+      (o.lines||[]).forEach(l=>{
+        l.upc         = l.upc        || l.UPC         || l.Upc        || '';
+        l.item_number = l.item_number|| l.itemNo      || l.ITEM_NO    || l.item_no || '';
+        l.description = l.description|| l.item_desc   || l.ITEM_DESC  || l.Description || '';
+        l.qty         = l.qty        || l.QTY         || l.Qty        || 0;
+      });
+    });
     list.innerHTML = orders.map(o=>{
       const tot = (o.lines||[]).reduce((a,b)=>a+Number(b.qty||0),0);
       const st  = String(o.status||'').toUpperCase();
       const tagCls = st==='ALLOCATED'||st==='READY TO PACK'?'tag-good': st==='PRE-ORDERED'?'tag-neutral':'tag-warn';
       return `<div class="pickItem" data-invoice="${safe(o.edge_inv_no)}">
-        <h4>${safe(o.edge_inv_no)} <span class="badge">${tot} pcs</span></h4>
+        <h4>Invoice ${safe(o.edge_inv_no)} <span class="badge">${tot} pcs</span></h4>
         <div class="tiny muted">${safe(o.customer)}</div>
+        <div class="tiny" style="margin-top:2px"><span class="muted">Ship: ${safe(o.ship_date)}</span></div>
         <div class="tiny" style="margin-top:4px">
           <span class="tag ${tagCls}">${safe(o.status||'OPEN')}</span>
           <span class="muted" style="margin-left:8px">${(o.lines||[]).length} line${(o.lines||[]).length!==1?'s':''}</span>
@@ -1022,7 +1038,7 @@ async function reloadSelectedOrder(){
   const date = el('shipDate').value;
   if(!date) return;
   try {
-    const data = await api({action:'getOutboundOrders', ship_date:date});
+    const data = await api({action:'getOutboundOrders', shipDate:date});
     if(!data.ok) return;
     const refreshed = (data.orders||[]).find(o=>String(o.edge_inv_no)===String(currentShipOrder.edge_inv_no));
     if(refreshed){
