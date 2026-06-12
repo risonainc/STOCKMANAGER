@@ -333,6 +333,7 @@
             <div class="dateBar">
               <div class="field"><label>Ship date</label><input id="shipDate" type="date"></div>
               <button class="btn btn-primary" id="shipLoadOrdersBtn">Load orders</button>
+              <button class="btn btn-ghost btn-sm" id="shipLoadAllBtn" title="Load all orders regardless of date">Load all</button>
               <button class="btn btn-ghost" id="shipTodayBtn">Today</button>
             </div>
             <div id="shipInvoiceList" class="list"><div class="helper">Choose a ship date and click Load orders.</div></div>
@@ -934,8 +935,8 @@ async function loadOrdersByDate(){
       o.customer    = o.customer    || o.Customer   || o.CUSTOMER   || '';
       (o.lines||[]).forEach(l=>{
         l.upc         = l.upc        || l.UPC         || l.Upc        || '';
-        l.item_number = l.item_number|| l.itemNo      || l.ITEM_NO    || l.item_no || '';
-        l.description = l.description|| l.item_desc   || l.ITEM_DESC  || l.Description || '';
+        l.item_number = l.item_number|| l.itemNo      || l.item_no    || l.ITEM_NO || '';
+        l.description = l.description|| l.description  || l.item_desc  || l.ITEM_DESC || l.Description || '';
         l.qty         = l.qty        || l.QTY         || l.Qty        || 0;
       });
     });
@@ -1230,7 +1231,11 @@ function init(){
   el('clearReceiveBtn').onclick     = clearInboundSelection;
 
   el('shipLoadOrdersBtn').onclick   = loadOrdersByDate;
-  el('shipTodayBtn').onclick        = ()=>{ setToday('shipDate'); loadOrdersByDate(); };
+  if(el('shipTodayBtn')) el('shipTodayBtn').onclick = ()=>{ setToday('shipDate'); loadOrdersByDate(); };
+  if(el('shipLoadAllBtn')) el('shipLoadAllBtn').onclick = ()=>{
+    el('shipDate').value = '';
+    loadOrdersByDate();
+  };
   el('runAllocBtn').onclick         = runAllocation;
   el('readyPackBtn').onclick        = markReadyToPack;
   el('shipOrderBtn').onclick        = shipOrder;
