@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Risona Stock Manager</title>
+  <style>
+    :root{--bg:#f4f7fb;--panel:#fff;--panel2:#f8fbff;--text:#172033;--muted:#667389;--line:#d9e2ec;--primary:#01696f;--primaryHov:#0c4e54;--primaryTint:#e8f4f5;--green:#1a8f5a;--amber:#b9781d;--red:#c33d3d;--dark:#0f1724;--shadow:0 12px 32px rgba(23,32,51,.08);--radius:18px}
+    *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}button,input,select,textarea{font:inherit}
+    .app{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
+    .sidebar{background:var(--dark);color:#e5eef9;padding:22px 18px;display:flex;flex-direction:column;gap:16px}
+    .brand{padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+    .brand h1{margin:0 0 4px;font-size:17px;font-weight:800}.brand p{margin:0;color:#b8c4d8;font-size:12px;line-height:1.4}
+    .nav{display:flex;flex-direction:column;gap:6px}
+    .nav button{all:unset;cursor:pointer;padding:11px 14px;border-radius:14px;color:#dce6f7;font-size:14px;display:flex;align-items:center;gap:10px}
+    .nav button:hover,.nav button.active{background:rgba(255,255,255,.09)}
+    .nav button .navico{font-size:16px;opacity:.7}.nav button.active .navico{opacity:1}
+    .subnote{margin-top:auto;padding:12px;border-radius:14px;background:rgba(255,255,255,.04);font-size:11px;line-height:1.5;color:#8ca4c8}
+    .main{padding:24px;overflow:auto}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}
+    .topbar h2{margin:0;font-size:26px;font-weight:800}.topbar p{margin:4px 0 0;color:var(--muted);font-size:14px}
+    .endpointGlobal{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--line);background:var(--panel);border-radius:999px;box-shadow:var(--shadow)}
+    .endpointGlobal .dot{width:8px;height:8px;border-radius:999px;background:var(--green);flex-shrink:0}
+    .endpointGlobal input{border:none;background:transparent;padding:0;font-size:13px;width:260px;color:var(--muted);outline:none}
+    .view{display:none}.view.active{display:block}
+    .hero{background:linear-gradient(135deg,#0f1724,#0c4e54);color:#fff;border-radius:22px;padding:22px;margin-bottom:18px}
+    .hero h3{margin:0 0 6px;font-size:18px}.hero p{margin:0;color:#b8dfe0;max-width:72ch;line-height:1.55;font-size:14px}
+    .kpiStrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .metric{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.metricValue{font-size:26px;font-weight:800;margin-top:5px}
+    .split{display:grid;grid-template-columns:340px 1fr;gap:18px}
+    .stack{display:flex;flex-direction:column;gap:18px}
+    .panelTitle{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    .panelTitle h3{margin:0;font-size:16px;font-weight:700}.panelTitle span{font-size:12px;color:var(--muted)}
+    .field{display:flex;flex-direction:column;gap:5px}
+    .field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);font-size:14px}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary)}
+    textarea{min-height:90px;resize:vertical}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{border:none;border-radius:11px;padding:10px 16px;cursor:pointer;font-size:14px;font-weight:600;transition:all .15s}
+    .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primaryHov)}
+    .btn-secondary{background:var(--primaryTint);color:var(--primary);border:1px solid #9dd0d2}.btn-secondary:hover{background:#d4ecee}
+    .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--text)}.btn-ghost:hover{background:#f4f7fb}
+    .btn-danger{background:#fff1f1;color:var(--red);border:1px solid #f1c4c4}.btn-danger:hover{background:#ffe0e0}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .list{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto}
+    .pickItem{padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:#fff;cursor:pointer;transition:border-color .12s,background .12s}
+    .pickItem:hover,.pickItem.active{border-color:var(--primary);background:var(--primaryTint)}
+    .pickItem h4{margin:0 0 4px;font-size:15px;display:flex;justify-content:space-between}
+    .pickItem h4 .badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#eef2f7;color:var(--muted)}
+    .pickItem.active h4 .badge{background:var(--primary);color:#fff}
+    .tableWrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{padding:11px 10px;border-bottom:1px solid #edf2f7;text-align:left;font-size:13px;vertical-align:top}
+    .table th{position:sticky;top:0;background:#f8fbff;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .table tr:last-child td{border-bottom:none}
+    .table tr.selectedRow{background:#edf5ff!important}
+    .table tr:hover:not(.selectedRow){background:#f8fbff}
+    .tag{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+    .tag-good{background:#e9f8f0;color:var(--green)}.tag-warn{background:#fff5e8;color:var(--amber)}.tag-bad{background:#fff1f1;color:var(--red)}.tag-info{background:var(--primaryTint);color:var(--primary)}.tag-neutral{background:#eef2f7;color:var(--muted)}
+    .tiny{font-size:12px}.muted{color:var(--muted)}.good{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .message{margin-top:10px;font-size:13px;line-height:1.4}
+    .message.good{color:var(--green)}.message.bad{color:var(--red)}.message.warn{color:var(--amber)}
+    .helper{font-size:12px;color:var(--muted);line-height:1.5}
+    .resultBox{padding:14px;border-radius:13px;border:1px solid var(--line);background:var(--panel2)}
+    .resultBox h4{margin:0 0 10px;font-size:14px}
+    .scanBox{padding:16px;border:2px dashed #9dd0d2;border-radius:16px;background:#f5fbfc}
+    .scanInput{font-size:18px;font-weight:700;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .allocationBanner{padding:12px 16px;border-radius:13px;border:1.5px solid #9dd0d2;background:var(--primaryTint);color:var(--primaryHov);font-size:14px;font-weight:600;margin-bottom:14px}
+    .orderDetail{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+    .orderMeta{border:1px solid var(--line);border-radius:13px;padding:12px 14px;background:#fff}
+    .orderMeta .metaLabel{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+    .orderMeta .metaVal{font-size:18px;font-weight:800}
+    .orderMeta .metaVal.status-allocated{color:var(--green)}.orderMeta .metaVal.status-ready{color:var(--primary)}.orderMeta .metaVal.status-open{color:var(--amber)}.orderMeta .metaVal.status-pre{color:var(--muted)}
+    .shipActions{display:flex;gap:10px;margin-top:14px}
+    .shipActions .btn{flex:1}
+    .dateBar{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:18px}
+    .dateBar .field{flex:1;min-width:130px}.dateBar .btn{flex-shrink:0;white-space:nowrap}
+    .dateBar .btn-ghost{padding-left:12px;padding-right:12px}
+    .poSearchBar{display:flex;gap:10px;align-items:end;margin-bottom:14px}
+    .poSearchBar .field{flex:1}
+    /* Label */
+    .labelStage{display:flex;flex-direction:column;gap:14px}
+    .printCard{width:100%;max-width:6in;min-height:4in;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;color:#000;box-shadow:var(--shadow)}
+    .labelHead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:10px}
+    .labelTitle{font-size:18px;font-weight:800}.labelMeta{font-size:12px;text-align:right}
+    .labelBody{display:grid;grid-template-columns:1fr 150px;gap:16px}
+    .labelDesc{font-size:24px;font-weight:800;line-height:1.02;margin-bottom:8px}
+    .labelUpc{font-size:18px;font-weight:800;margin-bottom:10px}
+    .metaGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:13px}
+    .metaGrid strong{display:block;font-size:10px;text-transform:uppercase;color:#555;letter-spacing:.04em}
+    .labelSide{border-left:1px dashed #999;padding-left:14px;display:flex;flex-direction:column;justify-content:space-between;align-items:center}
+    .qtyBig{font-size:46px;font-weight:800;line-height:1}.statusChip{padding:4px 10px;border:1.5px solid #000;border-radius:999px;font-size:12px;font-weight:700}.statusChip.cycle{border-color:#d96b11;color:#d96b11}
+    .barcodeBox,.qrBox{display:flex;justify-content:center;align-items:center}
+    .labelsControlBar{display:grid;grid-template-columns:1fr 160px auto auto;gap:12px;align-items:end;margin-bottom:12px}
+    .panelGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .moduleGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .moduleCard{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px}
+    .moduleCard h3{margin:0 0 7px;font-size:16px}.moduleCard p{margin:0;color:var(--muted);line-height:1.5;font-size:14px}
+    
+    .breakdownGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end}
+    .breakdownRow{background:#f3f7fb;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+    .breakdownRow h4{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--primary)}
+    .totalsStrip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 4px}
+    .totalTile{background:var(--primaryTint);border:1px solid #9dd0d2;border-radius:10px;padding:10px 12px}
+    .totalTile .tLabel{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--primary)}
+    .totalTile .tVal{font-size:18px;font-weight:800;color:var(--primaryHov);margin-top:2px}
+    .discrepancyNote{padding:9px 12px;border-radius:10px;background:#fff8e8;border:1px solid #f0d080;font-size:12px;color:#7a5c00;margin-top:6px}
+    @media(max-width:900px){.breakdownGrid{grid-template-columns:repeat(3,1fr)}.totalsStrip{grid-template-columns:repeat(2,1fr)}}
+
+    @media(max-width:1200px){.kpiStrip,.moduleGrid,.orderDetail{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}.labelsControlBar{grid-template-columns:1fr 1fr}}
+    @media(max-width:860px){.app{grid-template-columns:1fr}.sidebar{padding-bottom:8px}.main{padding:14px}.kpiStrip,.moduleGrid,.row2,.row3,.orderDetail{grid-template-columns:1fr}.topbar{flex-direction:column;align-items:flex-start}.endpointGlobal input{width:180px}}
+    @media print{.sidebar,.topbar,.nav,.btn,.labelsControlBar,.panelTitle span,.helper,.subnote,.endpointGlobal,.card:not(.printOnly),.dateBar{display:none!important}body{background:#fff}.app,.main{display:block!important}.view{display:none!important}.view.printing{display:block!important}.labelStage{display:flex!important;flex-direction:column!important}.printCard{box-shadow:none;border:none;border-radius:0;page-break-after:always;margin:0 auto;max-width:none}}
+  
+    /* ── COUNT SHEET ───────────────────────────────────── */
+    .csControlBar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
+    .csControlBar .field{flex:1;min-width:140px}
+    .csCheckLabel{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;padding-bottom:2px}
+    .csCheckLabel input{accent-color:var(--primary);width:16px;height:16px}
+    .csActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:2px}
+    .csStatus{font-size:12px;font-weight:600;padding:8px 12px;border-radius:10px;background:var(--primaryTint);color:var(--primary);margin-top:6px;min-height:32px}
+
+    /* printable sheet */
+    .sheetWrap{margin-top:18px;display:flex;justify-content:center}
+    .sheetDoc{background:#fff;color:#000;width:100%;max-width:820px;min-height:500px;padding:32px 36px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;border:1px solid #ddd;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+    .sheetDoc h2{font-size:20pt;margin:0 0 4px;letter-spacing:.01em}
+    .sheetMeta{display:flex;flex-wrap:wrap;gap:4px 24px;font-size:10.5pt;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:10px}
+    .sheetMeta b{font-weight:800}
+    .sheetDoc table{width:100%;border-collapse:collapse;font-size:9.5pt}
+    .sheetDoc th{background:#000;color:#fff;padding:5px 6px;text-align:left;font-size:8.5pt;text-transform:uppercase;letter-spacing:.04em}
+    .sheetDoc td{border-bottom:1px solid #ccc;padding:5px 6px;vertical-align:top}
+    .sheetDoc tr:nth-child(even) td{background:#f7f7f7}
+    .sheetDoc td.num{width:28px;text-align:right;color:#777;font-size:8pt}
+    .sheetDoc td.loc{width:110px;font-family:monospace;font-size:8.5pt}
+    .sheetDoc td.upc{width:110px;font-family:monospace;font-size:8.5pt}
+    .sheetDoc td.sysqty{width:60px;text-align:center;font-weight:700}
+    .sheetDoc td.counted{width:70px}
+    .sheetDoc td.chk{width:32px}
+    .sheetDoc td.init{width:52px}
+    .sheetDoc td.rm{width:22px;text-align:center}
+    .sheetDoc td.rm button{background:none;border:none;color:#c00;font-size:14px;cursor:pointer;padding:0}
+    .sheetDoc .sheetEmpty{text-align:center;padding:28px;color:#999;font-style:italic}
+    .sheetDoc .sheetFoot{display:flex;justify-content:space-between;margin-top:24px;padding-top:12px;border-top:1px solid #000;font-size:9.5pt}
+    .sheetDoc .sheetFoot .sig{width:46%;border-bottom:1px solid #000;padding-bottom:2px}
+    .hide-sys .sysqtyCol{display:none}
+
+    @media print{
+      body > *:not(.printTarget){display:none!important}
+      .printTarget,.printTarget *{display:revert!important}
+      .sheetDoc{box-shadow:none;border:none;width:100%;max-width:none;padding:0.4in}
+      .sheetDoc td.rm,.sheetDoc th.rm{display:none}
+      .csStatus,.csControlBar,.csActions,.sheetWrap > *:not(.sheetDoc){display:none!important}
+    }
+
+  
+    /* ── SCAN BUTTON & MODAL ──────────────────────────────── */
+    .inputWithScan{display:flex;gap:6px;align-items:flex-end}
+    .inputWithScan .field{flex:1;margin:0}
+    .btn-scan{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;padding:0 13px;height:40px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:background .18s}
+    .btn-scan:hover{background:var(--primaryHov)}
+    .btn-scan svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .scanModal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
+    .scanModal.open{display:flex}
+    .scanModalBox{background:#1a1a1a;border-radius:20px;padding:20px;width:min(92vw,420px);box-shadow:0 8px 40px rgba(0,0,0,.6)}
+    .scanModalHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .scanModalHeader h4{margin:0;color:#fff;font-size:16px}
+    .scanModalClose{background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+    .scanModalClose:hover{color:#fff}
+    #scanVideo{width:100%;aspect-ratio:4/3;border-radius:12px;background:#000;object-fit:cover;display:block}
+    .scanModalStatus{margin-top:10px;font-size:13px;color:#9dd0d2;text-align:center;min-height:20px}
+    .scanManualRow{display:flex;gap:8px;margin-top:12px}
+    .scanManualRow input{flex:1;padding:9px 12px;border-radius:9px;border:1px solid #444;background:#2a2a2a;color:#fff;font-size:14px;font-family:monospace}
+    .scanManualRow button{padding:0 16px;border-radius:9px;background:var(--primary);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer}
+
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>Risona Stock Manager</h1>
+      <p>Receiving · Shipping · Count / Putaway · Labels</p>
+    </div>
+    <nav class="nav">
+      <button class="active" data-view="dashboard"><span class="navico">🏠</span> Overview</button>
+      <button data-view="receiving"><span class="navico">📦</span> Receiving</button>
+      <button data-view="shipping"><span class="navico">🚚</span> Shipping</button>
+      <button data-view="count"><span class="navico">📋</span> Count / Putaway</button>
+      <button data-view="labels"><span class="navico">🏷️</span> Labels</button>
+    </nav>
+    <div class="subnote">v4 · All tabs share one endpoint. Shipping includes invoice order picker + carton pick list. Receiving includes open PO list with line-level receive.</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="pageTitle">Warehouse Overview</h2>
+        <p id="pageDesc">Unified inbound and outbound operations.</p>
+      </div>
+      <div class="endpointGlobal">
+        <span class="dot"></span>
+        <input id="globalEndpoint" placeholder="Paste Apps Script endpoint…" title="Shared endpoint for all tabs">
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="view active">
+      <div class="hero">
+        <h3>Risona Inc – Stock Manager v4</h3>
+        <p>Pick open POs on Receiving. Browse and allocate customer invoices on Shipping. Create cycle-count cartons and print labels — all without leaving this screen.</p>
+      </div>
+      <div class="moduleGrid">
+        <div class="moduleCard"><h3>📦 Receiving</h3><p>Load open POs from your endpoint, pick a shipment from the list, select a line, and receive cartons directly into the registry.</p></div>
+        <div class="moduleCard"><h3>🚚 Shipping</h3><p>Load orders by ship date, pick an invoice, run allocation, review allocated cartons, mark ready-to-pack, and ship.</p></div>
+        <div class="moduleCard"><h3>📋 Count / Putaway</h3><p>Scan and verify cartons, move stock to storage locations, and create first-touch cycle-count carton labels.</p></div>
+        <div class="moduleCard"><h3>🏷️ Labels</h3><p>Load carton labels by date or carton ID, or accept a newly created cycle-count carton and print without leaving the app.</p></div>
+        <div class="moduleCard"><h3>🔗 One endpoint</h3><p>Paste your Apps Script URL once in the top bar — every tab uses the same endpoint. It is remembered on this browser.</p></div>
+        <div class="moduleCard"><h3>📊 Live metrics</h3><p>Each tab shows live KPIs pulled from the carton registry and order sheets so the floor always sees current status.</p></div>
+      </div>
+    </section>
+
+    <!-- RECEIVING -->
+    <section id="receiving" class="view">
+      <div class="kpiStrip">
+        <div class="card"><div class="metric">Open POs</div><div class="metricValue" id="rxShipmentsMetric">—</div></div>
+        <div class="card"><div class="metric">Open inbound qty</div><div class="metricValue" id="rxOpenMetric">—</div></div>
+        <div class="card"><div class="metric">Partial</div><div class="metricValue" id="rxPartialMetric">—</div></div>
+        <div class="card"><div class="metric">Selected line open</div><div class="metricValue" id="rxSelectedOpen">—</div></div>
+      </div>
+      <div class="split">
+        <!-- LEFT: PO picker -->
+        <div class="stack">
+          <div class="card">
+            <div class="panelTitle"><h3>Open purchase orders</h3><span>Pick from list</span></div>
+            <div class="poSearchBar">
+              <div class="field" style="flex:2"><label>Search PO / vendor</label><input id="rxSearch" placeholder="e.g. 4521 or Calvin Klein"></div>
+              <div class="field"><label>Status</label><select id="rxStatusFilter"><option value="OPEN">OPEN</option><option value="PARTIAL">PARTIAL</option><option value="RECEIVED">RECEIVED</option><option value="ALL">ALL</option></select></div>
+              <button class="btn btn-primary" id="rxLoadBtn">Load POs</button>
+            <button class="btn btn-ghost" id="rxReimportBtn" title="Clear sheet and re-import all POs from Drive">↺ Re-import</button>
+            </div>
+            <div id="inboundList" class="list"><div class="helper">Click Load POs to fetch open purchase orders from your endpoint.</div></div>
+            <div id="rxListMsg" class="message"></div>
+          </div>
+
+        </div>
+        <!-- RIGHT: selected PO + lines + receive -->
+        <div class="stack">
+          <div class="card">
+            <div class="panelTitle"><h3>Selected PO</h3><span id="rxSelectionTag">Nothing selected</span></div>
+            <div class="row3">
+              <div class="field"><label>Purchase #</label><input id="rxPurchaseNo" readonly></div>
+              <div class="field"><label>Vendor</label><input id="rxVendor" readonly></div>
+              <div class="field"><label>Vendor invoice</label><input id="rxVendorInvoice" readonly></div>
+            </div>
+            <div class="row3" style="margin-top:10px">
+              <div class="field"><label>Ship via</label><input id="rxShipVia" readonly></div>
+              <div class="field"><label>Default location</label><input id="rxLocationDefault" readonly></div>
+              <div class="field"><label>PO date</label><input id="rxPODate" readonly></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="panelTitle"><h3>PO lines</h3><span>Click a row to receive</span></div>
+            <div class="tableWrap">
+              <table class="table">
+                <thead><tr><th>Item / UPC</th><th>Description</th><th>Ordered</th><th>Received</th><th>Open</th><th>Location</th></tr></thead>
+                <tbody id="rxLinesBody"><tr><td colspan="6" class="muted">No PO selected.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="panelTitle"><h3>Receive selected line</h3><span>Creates cartons in registry</span></div>
+            <div class="row3">
+              <div class="field"><label>Item number</label><input id="rxItemNumber" readonly></div>
+              <div class="inputWithScan"><div class="field"><label>UPC</label><input id="rxUPC" placeholder="Scan or enter UPC"></div><button class="btn-scan" onclick="openScanner('rxUPC')" aria-label="Scan barcode"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg> Scan</button></div>
+              <div class="field"><label>Location</label><input id="rxLocation"></div>
+            </div>
+            <div class="field" style="margin-top:10px"><label>Description</label><input id="rxDescription" readonly></div>
+
+            <!-- Box Breakdown Styles 1–4 -->
+            <div style="margin-top:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Box Breakdown (Styles 1–4) — At least one required</div>
+                <div class="field" style="width:120px;margin:0"><label>Pallets</label><input id="rxPallets" type="number" min="0" placeholder="0" value="0"></div>
+              </div>
+              <div id="rxBreakdown">
+                <!-- rendered by renderRxBreakdown() -->
+              </div>
+              <div class="totalsStrip">
+                <div class="totalTile"><div class="tLabel">Subtotal Pieces</div><div class="tVal" id="rxSubtotalPcs">0</div></div>
+                <div class="totalTile"><div class="tLabel">Total Cartons</div><div class="tVal" id="rxTotalCartons">0</div></div>
+                <div class="totalTile"><div class="tLabel">Total Cu Ft</div><div class="tVal" id="rxTotalCuFt">0.00</div></div>
+                <div class="totalTile"><div class="tLabel">Total Gross lb</div><div class="tVal" id="rxTotalGross">0.00</div></div>
+              </div>
+              <div id="rxDiscrepancyNote" class="discrepancyNote" style="display:none"></div>
+            </div>
+            <div class="row3" style="margin-top:10px">
+              <div class="field"><label>Received by</label><input id="rxUser" value="Rikki"></div>
+              <div class="field"><label>Device</label><input id="rxDevice" value="Warehouse Tablet"></div>
+              <div class="field"><label>COO</label><input id="rxCoo"></div>
+            </div>
+            <div class="actions" style="margin-top:12px">
+              <button class="btn btn-primary" id="receiveLineBtn" disabled>Receive line</button>
+              <button class="btn btn-ghost" id="clearReceiveBtn">Clear selection</button>
+            </div>
+            <div id="rxReceiveMsg" class="message"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SHIPPING -->
+    <section id="shipping" class="view">
+      <div class="kpiStrip">
+        <div class="card"><div class="metric">Orders loaded</div><div class="metricValue" id="shipOrdersMetric">—</div></div>
+        <div class="card"><div class="metric">Selected invoice</div><div class="metricValue" id="shipSelectedInvoice" style="font-size:20px">—</div></div>
+        <div class="card"><div class="metric">Lines</div><div class="metricValue" id="shipLinesMetric">—</div></div>
+        <div class="card"><div class="metric">Total pcs</div><div class="metricValue" id="shipPcsMetric">—</div></div>
+      </div>
+
+      <div class="split">
+        <!-- LEFT: invoice picker -->
+        <div class="stack">
+          <div class="card">
+            <div class="panelTitle"><h3>Invoices for selected date</h3><span>Pick to view & ship</span></div>
+            <div class="dateBar">
+              <div class="field"><label>Ship date</label><input id="shipDate" type="date"></div>
+              <button class="btn btn-primary" id="shipLoadOrdersBtn">Load orders</button>
+              <button class="btn btn-ghost" id="shipTodayBtn">Today</button>
+            </div>
+            <div id="shipInvoiceList" class="list"><div class="helper">Choose a ship date and click Load orders.</div></div>
+            <div id="shipListMsg" class="message"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: selected order detail -->
+        <div class="stack">
+          <div class="card" id="shipDetailCard">
+            <div class="panelTitle"><h3>Selected order</h3><span id="shipDetailTag">Nothing selected</span></div>
+            <div id="shipAllocationBanner" style="display:none" class="allocationBanner"></div>
+            <div class="orderDetail">
+              <div class="orderMeta"><div class="metaLabel">EDGE Invoice</div><div class="metaVal mono" id="sdInvoice">—</div></div>
+              <div class="orderMeta"><div class="metaLabel">Customer</div><div class="metaVal" id="sdCustomer">—</div></div>
+              <div class="orderMeta"><div class="metaLabel">Ship date</div><div class="metaVal" id="sdShipDate">—</div></div>
+              <div class="orderMeta"><div class="metaLabel">Status</div><div class="metaVal" id="sdStatus">—</div></div>
+            </div>
+            <div class="tableWrap">
+              <table class="table">
+                <thead><tr><th>UPC</th><th>Item No</th><th>Description</th><th style="text-align:right">Qty</th><th>Allocated cartons</th></tr></thead>
+                <tbody id="shipLinesBody"><tr><td colspan="5" class="muted">No order selected.</td></tr></tbody>
+              </table>
+            </div>
+            <div class="shipActions">
+              <button class="btn btn-primary" id="runAllocBtn" disabled>Run allocation</button>
+              <button class="btn btn-secondary" id="readyPackBtn" disabled>Ready to pack</button>
+              <button class="btn btn-secondary" id="shipOrderBtn" disabled>Ship order</button>
+            </div>
+            <div id="shipActionMsg" class="message"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COUNT / PUTAWAY -->
+    <section id="count" class="view">
+      <div class="hero">
+        <h3>Count, verify, and put away cartons</h3>
+        <p>Scan existing carton plates to verify, move stock to storage locations, and create first-touch cycle-count labels — all without leaving Risona.</p>
+      </div>
+      <div class="kpiStrip">
+        <div class="card"><div class="metric">Scans this session</div><div class="metricValue" id="countMetricScans">0</div></div>
+        <div class="card"><div class="metric">New labels created</div><div class="metricValue" id="countMetricCreated">0</div></div>
+        <div class="card"><div class="metric">Verified cartons</div><div class="metricValue" id="countMetricVerified">0</div></div>
+        <div class="card"><div class="metric">Putaway moves</div><div class="metricValue" id="countMetricPutaway">0</div></div>
+      </div>
+      <div class="split">
+        <div class="stack">
+          <div class="card">
+            <div class="panelTitle"><h3>Scan carton</h3><span>Verify existing plate</span></div>
+            <div class="scanBox">
+              <div class="inputWithScan"><div class="field" style="margin:0"><label>Carton plate</label><input id="countScanInput" class="scanInput mono" placeholder="CTN-000123" autocomplete="off"></div><button class="btn-scan" onclick="openScanner('countScanInput')" aria-label="Scan barcode"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg> Scan</button></div>
+              <div class="actions" style="margin-top:12px">
+                <button class="btn btn-primary" id="countVerifyBtn">Verify carton</button>
+                <button class="btn btn-ghost" id="countClearBtn">Clear</button>
+              </div>
+            </div>
+            <div id="countVerifyMsg" class="message"></div>
+            <div class="resultBox" style="margin-top:12px">
+              <h4>Scan result</h4>
+              <div class="row2">
+                <div><div class="tiny muted">Carton</div><div id="countResultCarton" class="mono">—</div></div>
+                <div><div class="tiny muted">Status</div><div id="countResultStatus">—</div></div>
+                <div><div class="tiny muted">UPC</div><div id="countResultUPC" class="mono">—</div></div>
+                <div><div class="tiny muted">Location</div><div id="countResultLocation">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="panelTitle"><h3>Putaway carton</h3><span>Move to storage location</span></div>
+            <div class="row2">
+              <div class="inputWithScan"><div class="field" style="margin:0"><label>Carton ID</label><input id="putawayCartonId" class="mono" placeholder="CTN-000123"></div><button class="btn-scan" onclick="openScanner('putawayCartonId')" aria-label="Scan barcode"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg> Scan</button></div>
+              <div class="field"><label>New location</label><input id="putawayLocation" placeholder="B 02 03 01"></div>
+            </div>
+            <div class="row2" style="margin-top:10px">
+              <div class="field"><label>User</label><input id="putawayUser" value="Rikki"></div>
+              <div class="field"><label>Device</label><input id="putawayDevice" value="Risona Manager"></div>
+            </div>
+            <div class="actions" style="margin-top:12px"><button class="btn btn-primary" id="putawayBtn">Put away carton</button></div>
+            <div id="putawayMsg" class="message"></div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <div class="panelTitle"><h3>New cycle-count carton</h3><span>First-touch label creation</span></div>
+            <div class="panelGrid">
+              <div class="inputWithScan"><div class="field"><label>UPC</label><input id="newLabelUpc" class="mono" placeholder="3614228834896"></div><button class="btn-scan" onclick="openScanner('newLabelUpc')" aria-label="Scan barcode"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg> Scan</button></div>
+              <div class="field"><label>Brand</label><input id="newLabelBrand" placeholder="CALVIN KLEIN"></div>
+              <div class="inputWithScan"><div class="field"><label>Item number</label><input id="newLabelItemNumber" class="mono" placeholder="RMETC3.4EDT"></div><button class="btn-scan" onclick="openScanner('newLabelItemNumber')" aria-label="Scan barcode"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg> Scan</button></div>
+              <div class="field"><label>Qty in box</label><input id="newLabelQty" type="number" min="1" value="24"></div>
+              <div class="field" style="grid-column:1/-1"><label>Description</label><input id="newLabelDesc" placeholder="ETERNITY COLOGNE M 3.4OZ EDT SPRAY"></div>
+              <div class="field"><label>Location</label><input id="newLabelLocation" placeholder="B 02 03 01"></div>
+              <div class="field"><label>Counted by</label><input id="newLabelCountedBy" value="Rikki"></div>
+              <div class="field"><label>Length in</label><input id="newLabelL" type="number" step="0.1" placeholder="0"></div>
+              <div class="field"><label>Width in</label><input id="newLabelW" type="number" step="0.1" placeholder="0"></div>
+              <div class="field"><label>Height in</label><input id="newLabelH" type="number" step="0.1" placeholder="0"></div>
+              <div class="field"><label>Gross lb</label><input id="newLabelWeight" type="number" step="0.1" placeholder="0"></div>
+            </div>
+            <div class="actions" style="margin-top:14px">
+              <button class="btn btn-primary" id="createCountLabelBtn">Create carton + open label</button>
+            </div>
+            <div id="newLabelMsg" class="message"></div>
+            <div class="resultBox" style="margin-top:12px">
+              <h4>Last created</h4>
+              <div id="lastCreatedCarton" class="mono">—</div>
+              <div class="helper" style="margin-top:4px">Status: CYCLE_COUNT · Shipment ID: blank</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COUNT SHEET ─────────────────────────── -->
+      <div class="card" style="margin-top:20px" id="countSheetCard">
+        <div class="panelTitle"><h3>📄 Count Sheet</h3><span>Build and print a warehouse count sheet</span></div>
+
+        <!-- controls row 1: sheet metadata -->
+        <div class="csControlBar">
+          <div class="field"><label>Zone / Area</label><input id="csZone" placeholder="e.g. Aisle C"></div>
+          <div class="field"><label>Counter</label><input id="csCounter" placeholder="Name"></div>
+          <div class="field"><label>Date</label><input id="csDate" type="date"></div>
+          <div class="field"><label>Sheet #</label><input id="csSheet" placeholder="optional"></div>
+          <label class="csCheckLabel"><input type="checkbox" id="csShowSys"> Show system qty on printout</label>
+        </div>
+
+        <!-- controls row 2: pull + add -->
+        <div class="csControlBar" style="margin-top:6px">
+          <div class="field"><label>Pull by location (prefix)</label><input id="csLoc" placeholder="e.g. B 02"></div>
+          <button class="btn btn-secondary" id="csPullLocBtn">Pull from registry</button>
+          <div class="field"><label>Pull expected (filter)</label><input id="csFilter" placeholder="brand or blank for all"></div>
+          <button class="btn btn-secondary" id="csPullExpBtn">Pull expected list</button>
+          <div class="inputWithScan"><div class="field"><label>Add item by UPC</label><input id="csUpc" class="mono" placeholder="scan / type UPC"></div><button class="btn-scan" onclick="openScanner('csUpc')" aria-label="Scan barcode"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg> Scan</button></div>
+          <button class="btn btn-secondary" id="csAddUpcBtn">Add</button>
+        </div>
+
+        <!-- action buttons -->
+        <div class="csActions">
+          <button class="btn btn-ghost" id="csClearBtn">Clear list</button>
+          <button class="btn btn-primary" id="csPrintBtn">🖨 Print sheet</button>
+        </div>
+        <div class="csStatus" id="csStatus">Pull items by location, from the expected list, or add by UPC. Then click Print.</div>
+
+        <!-- printable sheet preview -->
+        <div class="sheetWrap printTarget" id="csSheetWrap">
+          <div class="sheetDoc hide-sys" id="csSheetDoc">
+            <h2>Cycle Count Sheet</h2>
+            <div class="sheetMeta">
+              <span>Zone: <b id="csMZone">—</b></span>
+              <span>Counter: <b id="csMCounter">—</b></span>
+              <span>Date: <b id="csMDate">—</b></span>
+              <span>Sheet #: <b id="csMSheet">—</b></span>
+              <span>Items: <b id="csMItems">0</b></span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th class="num rm">#</th>
+                  <th class="loc">Location</th>
+                  <th class="upc">UPC</th>
+                  <th>Description</th>
+                  <th class="sysqtyCol sysqty">Sys Qty</th>
+                  <th class="counted">Counted</th>
+                  <th class="chk">✓</th>
+                  <th class="init">Init</th>
+                  <th class="rm"></th>
+                </tr>
+              </thead>
+              <tbody id="csTbody"></tbody>
+            </table>
+            <div id="csEmpty" class="sheetEmpty">No items yet.</div>
+            <div class="sheetFoot">
+              <div class="sig">Counted by / date</div>
+              <div class="sig">Verified by / date</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- LABELS -->
+    <section id="labels" class="view">
+      <div class="hero">
+        <h3>Carton label print station</h3>
+        <p>Load labels by date or carton ID. Accept newly created cycle-count cartons from the Count tab. Print without leaving Risona.</p>
+      </div>
+      <div class="card" style="margin-bottom:18px">
+        <div class="panelTitle"><h3>Label controls</h3><span>Print station</span></div>
+        <div class="labelsControlBar">
+          <div class="field"><label>Count / ship date</label><input id="labelsDate" type="date"></div>
+          <button class="btn btn-secondary" id="labelsLoadDateBtn">Load date</button>
+          <button class="btn btn-primary" id="labelsPrintBtn">🖨 Print labels</button>
+          <button class="btn btn-ghost" id="labelsOpenCreateBtn">+ Create new</button>
+        </div>
+        <div class="row2">
+          <div class="inputWithScan">
+            <div class="field" style="margin:0"><label>Reprint / find carton</label><input id="labelsCartonSearch" class="mono" placeholder="CTN-000123"></div>
+            <button class="btn-scan" onclick="openScanner('labelsCartonSearch')" aria-label="Scan barcode"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg> Scan</button>
+          </div>
+          <div class="field"><label>Last created carton</label><input id="labelsLastCreated" class="mono" readonly placeholder="(auto-filled after create)"></div>
+        </div>
+        <div class="actions" style="margin-top:10px">
+          <button class="btn btn-secondary" id="labelsFindCartonBtn">Find carton</button>
+        </div>
+        <div id="labelsMsg" class="message"></div>
+      </div>
+      <div class="labelStage" id="labelsStage">
+        <div class="card"><div class="helper">No labels loaded yet. Use Load date, Find carton, or create a new carton in Count / Putaway.</div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script>
+const ENDPOINT_KEY = 'risona-endpoint-v4';
+let currentInboundShipment = null, currentInboundLine = null, currentInboundLines = [];
+let currentShipOrder = null;
+let sessionCounts = {scans:0, created:0, verified:0, putaway:0};
+let labelCartons = [];
+
+const pageMap = {
+  dashboard: ['Warehouse Overview','Unified inbound and outbound operations.'],
+  receiving:  ['Receiving','Browse open POs, pick a shipment, and receive cartonized inventory.'],
+  shipping:   ['Shipping','Load orders by date, run allocation, review carton picks, and ship.'],
+  count:      ['Count / Putaway','Verify cartons, move stock, and create first-touch cycle-count labels.'],
+  labels:     ['Labels','Load and print carton labels without leaving Risona.']
+};
+
+const el = id => document.getElementById(id);
+const safe = v => (v == null) ? '' : String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const setMsg = (id, msg, cls='') => { const n=el(id); if(!n) return; n.className='message'+(cls?' '+cls:''); n.textContent=msg||''; };
+
+function getEndpoint(){
+  const v = (el('globalEndpoint')?.value||'').trim();
+  if(v) localStorage.setItem(ENDPOINT_KEY, v);
+  return v || localStorage.getItem(ENDPOINT_KEY) || '';
+}
+
+function api(body){
+  const ep = getEndpoint();
+  if(!ep) return Promise.reject(new Error('Paste your Apps Script endpoint in the top bar first.'));
+  return fetch(ep + '?cb=' + Date.now(), {method:'POST', body:JSON.stringify(body)}).then(r=>r.json());
+}
+
+function switchView(view){
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active','printing'));
+  el(view).classList.add('active');
+  el('pageTitle').textContent = pageMap[view][0];
+  el('pageDesc').textContent  = pageMap[view][1];
+}
+
+function setToday(inputId){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  const s = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+  if(el(inputId)) el(inputId).value = s;
+  return s;
+}
+
+
+
+/* ─── BARCODE SCANNER ─────────────────────────────────────── */
+let _scanTarget = null;
+let _scanStream  = null;
+let _scanInterval = null;
+
+function openScanner(targetInputId){
+  _scanTarget = targetInputId;
+  const modal = document.getElementById('scanModal');
+  modal.classList.add('open');
+  document.getElementById('scanManualInput').value = '';
+  document.getElementById('scanModalStatus').textContent = 'Initializing camera…';
+  _startCamera();
+}
+
+function closeScanner(){
+  document.getElementById('scanModal').classList.remove('open');
+  _stopCamera();
+}
+
+function _stopCamera(){
+  if(_scanInterval){ clearInterval(_scanInterval); _scanInterval=null; }
+  if(_scanStream){ _scanStream.getTracks().forEach(t=>t.stop()); _scanStream=null; }
+  const v=document.getElementById('scanVideo'); if(v) v.srcObject=null;
+}
+
+async function _startCamera(){
+  const video=document.getElementById('scanVideo');
+  const status=document.getElementById('scanModalStatus');
+  try{
+    _scanStream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
+    });
+    video.srcObject = _scanStream;
+    await video.play();
+    status.textContent = 'Point camera at barcode…';
+    _runDetection(video, status);
+  } catch(e){
+    status.textContent = '⚠ Camera unavailable. Use manual entry below.';
+  }
+}
+
+function _runDetection(video, status){
+  if(!('BarcodeDetector' in window)){
+    // Fallback: try Quagga if available
+    if(typeof Quagga !== 'undefined'){
+      _runQuagga(status);
+    } else {
+      status.textContent = 'Camera active — use manual entry or scan with external scanner.';
+    }
+    return;
+  }
+  const detector = new BarcodeDetector({formats:['code_128','ean_13','ean_8','upc_a','upc_e','code_39','qr_code']});
+  _scanInterval = setInterval(async ()=>{
+    if(video.readyState < 2) return;
+    try{
+      const codes = await detector.detect(video);
+      if(codes.length){
+        _onScanResult(codes[0].rawValue);
+      }
+    } catch(_){}
+  }, 350);
+}
+
+function _runQuagga(status){
+  status.textContent = 'Camera active (Quagga mode) — point at barcode…';
+  Quagga.init({
+    inputStream:{type:'LiveStream', target:document.getElementById('scanVideo'),
+      constraints:{facingMode:'environment'}},
+    decoder:{readers:['code_128_reader','ean_reader','upc_reader','code_39_reader']}
+  }, err=>{
+    if(err){ status.textContent='Camera ready — use manual entry below.'; return; }
+    Quagga.start();
+    Quagga.onDetected(data=>{ Quagga.stop(); _onScanResult(data.codeResult.code); });
+  });
+}
+
+function _onScanResult(value){
+  _stopCamera();
+  document.getElementById('scanModal').classList.remove('open');
+  if(_scanTarget){
+    const inp = document.getElementById(_scanTarget);
+    if(inp){ inp.value = value; inp.dispatchEvent(new Event('input',{bubbles:true})); inp.focus(); }
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('scanModalClose').onclick = closeScanner;
+  document.getElementById('scanManualOk').onclick = ()=>{
+    const v=document.getElementById('scanManualInput').value.trim();
+    if(v) _onScanResult(v);
+  };
+  document.getElementById('scanManualInput').onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('scanManualOk').click(); } };
+  document.getElementById('scanModal').addEventListener('click', e=>{ if(e.target===document.getElementById('scanModal')) closeScanner(); });
+});
+/* ─── END SCANNER ─────────────────────────────────────────── */
+
+/* ─── BOX BREAKDOWN ─────────────────────────────────────────────────────── */
+function renderRxBreakdown(){
+  const html = Array.from({length:4},(_,i)=>`
+    <div class="breakdownRow">
+      <h4>Style ${i+1}</h4>
+      <div class="breakdownGrid">
+        <div class="field"><label># Boxes</label><input type="number" id="rxBoxes${i}" value="0" min="0" oninput="updateRxTotals()"></div>
+        <div class="field"><label>Qty / box</label><input type="number" id="rxQty${i}" value="0" min="0" oninput="updateRxTotals()"></div>
+        <div class="field"><label>Box wt lb</label><input type="number" id="rxWt${i}" value="0" step="0.1" min="0" oninput="updateRxTotals()"></div>
+        <div class="field"><label>L (in)</label><input type="number" id="rxL${i}" value="0" step="0.1" min="0" oninput="updateRxTotals()"></div>
+        <div class="field"><label>W (in)</label><input type="number" id="rxW${i}" value="0" step="0.1" min="0" oninput="updateRxTotals()"></div>
+        <div class="field"><label>H (in)</label><input type="number" id="rxH${i}" value="0" step="0.1" min="0" oninput="updateRxTotals()"></div>
+      </div>
+    </div>`).join('');
+  const box = el('rxBreakdown'); if(box) box.innerHTML = html;
+  updateRxTotals();
+}
+
+function updateRxTotals(){
+  let pcs=0, cartons=0, cuft=0, gross=0;
+  for(let i=0;i<4;i++){
+    const b=Number(el(`rxBoxes${i}`)?.value||0);
+    const q=Number(el(`rxQty${i}`)?.value||0);
+    const w=Number(el(`rxWt${i}`)?.value||0);
+    const L=Number(el(`rxL${i}`)?.value||0);
+    const W=Number(el(`rxW${i}`)?.value||0);
+    const H=Number(el(`rxH${i}`)?.value||0);
+    pcs     += b*q;
+    cartons += b;
+    gross   += b*w;
+    cuft    += b*(L*W*H)/1728;
+  }
+  if(el('rxSubtotalPcs'))  el('rxSubtotalPcs').textContent  = pcs;
+  if(el('rxTotalCartons')) el('rxTotalCartons').textContent = cartons;
+  if(el('rxTotalCuFt'))    el('rxTotalCuFt').textContent    = cuft.toFixed(2);
+  if(el('rxTotalGross'))   el('rxTotalGross').textContent   = gross.toFixed(2);
+  // discrepancy check vs expected qty
+  const expectedOpen = Number(el('rxSelectedOpen')?.textContent||0);
+  const note = el('rxDiscrepancyNote');
+  if(note && expectedOpen>0){
+    if(pcs===0){ note.style.display='none'; return; }
+    if(pcs===expectedOpen){ note.style.display='none'; }
+    else {
+      const diff = pcs - expectedOpen;
+      note.style.display='block';
+      note.textContent = diff>0
+        ? `⚠ Overage: ${pcs} pieces counted vs ${expectedOpen} open (${diff>0?'+':''}${diff}). Verify before submitting.`
+        : `⚠ Shortage: ${pcs} pieces counted vs ${expectedOpen} open (${diff}). Verify before submitting.`;
+    }
+  }
+}
+
+function getRxBreakdown(){
+  const breakdown=[];
+  for(let i=0;i<4;i++){
+    const b=Number(el(`rxBoxes${i}`)?.value||0);
+    const q=Number(el(`rxQty${i}`)?.value||0);
+    if(b>0){
+      breakdown.push({
+        style:i+1, boxes:b, qty_per_box:q,
+        box_weight_lb:Number(el(`rxWt${i}`)?.value||0),
+        l_in:Number(el(`rxL${i}`)?.value||0),
+        w_in:Number(el(`rxW${i}`)?.value||0),
+        h_in:Number(el(`rxH${i}`)?.value||0)
+      });
+    }
+  }
+  return breakdown;
+}
+
+function clearRxBreakdown(){
+  for(let i=0;i<4;i++){
+    ['rxBoxes','rxQty','rxWt','rxL','rxW','rxH'].forEach(p=>{ const inp=el(`${p}${i}`); if(inp) inp.value='0'; });
+  }
+  updateRxTotals();
+  if(el('rxDiscrepancyNote')) el('rxDiscrepancyNote').style.display='none';
+}
+
+/* ─── RECEIVING ─────────────────────────────── */
+async function loadInboundShipments(){
+  const status = el('rxStatusFilter')?.value || 'OPEN';
+  const search = (el('rxSearch')?.value||'').trim().toLowerCase();
+  const list   = el('inboundList'); if(!list) return;
+  list.innerHTML = '<div class="helper">Checking Drive for new purchases…</div>';
+  setMsg('rxListMsg','');
+  // Step 1: auto-import from Drive (non-blocking — skips silently if unavailable)
+  await autoImportPurchasesFromDrive();
+  // Step 2: load whatever is now in PURCHASE_ORDERS
+  list.innerHTML = '<div class="helper">Loading purchase orders…</div>';
+  try {
+    const data = await api({action:'getInboundShipments', status});
+    if(!data.ok) throw new Error(data.error||'Load failed');
+    let shipments = data.shipments || [];
+    if(search) shipments = shipments.filter(s =>
+      (s.purchase_no||'').toLowerCase().includes(search) ||
+      (s.vendor||'').toLowerCase().includes(search) ||
+      (s.vendor_invoice||'').toLowerCase().includes(search));
+    el('rxShipmentsMetric').textContent = shipments.length;
+    el('rxOpenMetric').textContent      = shipments.reduce((a,b)=>a+Number(b.total_qty_open||0),0);
+    el('rxPartialMetric').textContent   = shipments.filter(x=>String(x.receiving_status)==='PARTIAL').length;
+    if(!shipments.length){ list.innerHTML='<div class="helper">No purchase orders found.</div>'; return; }
+    list.innerHTML = shipments.map(s=>`
+      <div class="pickItem" data-purchase="${safe(s.purchase_no)}">
+        <h4>${safe(s.purchase_no)} <span class="badge">${safe(s.total_qty_open)} open</span></h4>
+        <div class="tiny muted">${safe(s.vendor)} · ${safe(s.purchase_date)}</div>
+        <div class="tiny" style="margin-top:4px">
+          <span class="tag ${s.receiving_status==='RECEIVED'?'tag-good':s.receiving_status==='PARTIAL'?'tag-warn':'tag-info'}">${safe(s.receiving_status)}</span>
+          <span class="muted" style="margin-left:8px">${safe(s.line_count)} line${s.line_count!==1?'s':''}</span>
+        </div>
+      </div>`).join('');
+    list.querySelectorAll('.pickItem').forEach(n=>n.onclick=()=>selectInboundShipment(n.dataset.purchase,n));
+  } catch(err) { list.innerHTML=`<div class="helper bad">${safe(err.message)}</div>`; }
+}
+
+async function selectInboundShipment(purchaseNo, node){
+  el('inboundList').querySelectorAll('.pickItem').forEach(n=>n.classList.remove('active'));
+  node.classList.add('active');
+  currentInboundShipment = purchaseNo; currentInboundLine = null;
+  el('receiveLineBtn').disabled = true;
+  await loadInboundLines();
+}
+
+async function loadInboundLines(){
+  if(!currentInboundShipment || !el('rxLinesBody')) return;
+  el('rxLinesBody').innerHTML = '<tr><td colspan="6" class="muted">Loading…</td></tr>';
+  try {
+    const data = await api({action:'getInboundShipmentLines', purchase_no:currentInboundShipment});
+    if(!data.ok) throw new Error(data.error||'Could not load lines');
+    currentInboundLines = data.lines || [];
+    const po = data.po || {};
+    el('rxSelectionTag').textContent = `${currentInboundShipment} selected`;
+    el('rxPurchaseNo').value      = currentInboundShipment;
+    el('rxVendor').value          = po.vendor || '';
+    el('rxVendorInvoice').value   = po.vendor_invoice || '';
+    el('rxShipVia').value         = po.ship_via || '';
+    el('rxLocationDefault').value = po.location_default || '';
+    el('rxPODate').value          = po.po_date || '';
+    if(!currentInboundLines.length){ el('rxLinesBody').innerHTML='<tr><td colspan="6" class="muted">No lines found.</td></tr>'; return; }
+    el('rxLinesBody').innerHTML = currentInboundLines.map((line,idx)=>`
+      <tr data-idx="${idx}">
+        <td><strong class="mono">${safe(line.item_number)}</strong><div class="tiny muted">${safe(line.upc)}</div></td>
+        <td>${safe(line.description)}</td>
+        <td>${safe(line.qty_ordered)}</td>
+        <td>${safe(line.qty_received)}</td>
+        <td><strong>${safe(line.qty_open)}</strong></td>
+        <td class="tiny">${safe(line.location)}</td>
+      </tr>`).join('');
+    el('rxLinesBody').querySelectorAll('tr').forEach(row=>row.onclick=()=>selectInboundLine(Number(row.dataset.idx),row));
+  } catch(err) { el('rxLinesBody').innerHTML=`<tr><td colspan="6" class="bad">${safe(err.message)}</td></tr>`; }
+}
+
+function selectInboundLine(idx, row){
+  currentInboundLine = currentInboundLines[idx];
+  el('rxLinesBody').querySelectorAll('tr').forEach(r=>r.classList.remove('selectedRow'));
+  row.classList.add('selectedRow');
+  el('rxItemNumber').value  = currentInboundLine.item_number || '';
+  el('rxUPC').value         = currentInboundLine.upc || '';
+  el('rxLocation').value    = currentInboundLine.location || el('rxLocationDefault').value || 'INBOUND - SOLD';
+  el('rxDescription').value = currentInboundLine.description || '';
+  el('rxSelectedOpen').textContent = currentInboundLine.qty_open || 0;
+  clearRxBreakdown();
+  el('receiveLineBtn').disabled = false;
+  setMsg('rxReceiveMsg', `Selected ${currentInboundLine.item_number} · Open qty: ${currentInboundLine.qty_open}`, 'good');
+}
+
+async function receiveInboundLine(){
+  if(!currentInboundShipment || !currentInboundLine) return;
+  const breakdown = getRxBreakdown();
+  const totalCartons = Number(el('rxTotalCartons')?.textContent||0);
+  const totalPcs     = Number(el('rxSubtotalPcs')?.textContent||0);
+  if(!breakdown.length || totalCartons===0){
+    setMsg('rxReceiveMsg','Enter at least one style with boxes and qty per box in the breakdown.','bad'); return;
+  }
+  // derive legacy boxes / units_per_box from first style for backend compatibility
+  const firstStyle   = breakdown[0];
+  const boxes        = totalCartons;
+  const unitsPerBox  = firstStyle.qty_per_box || (totalPcs > 0 ? Math.round(totalPcs / totalCartons) : 1);
+  setMsg('rxReceiveMsg','Receiving…');
+  try {
+    const data = await api({
+      action:       'receiveLine',
+      purchase_no:  currentInboundShipment,
+      item_number:  currentInboundLine.item_number,
+      qty_received: totalPcs,
+      row_number:   currentInboundLine.sheet_row,
+      boxes,        units_per_box: unitsPerBox,
+      num_pallets:  Number(el('rxPallets').value||0),
+      location:     el('rxLocation').value.trim(),
+      coo:          el('rxCoo').value.trim(),
+      user:         el('rxUser').value.trim(),
+      device:       el('rxDevice').value.trim(),
+      upc:          el('rxUPC').value.trim(),
+      description:  el('rxDescription').value.trim(),
+      breakdown:    breakdown
+    });
+    if(!data.ok) throw new Error(data.error||'Receive failed');
+    setMsg('rxReceiveMsg',
+      `Received ${data.qty_received||totalPcs} units across ${totalCartons} cartons. Open now: ${data.qty_open}. Cartons created: ${(data.cartons&&data.cartons.cartons_created)||0}.`, 'good');
+    clearRxBreakdown();
+    await loadInboundLines(); await loadInboundShipments();
+  } catch(err) { setMsg('rxReceiveMsg', err.message, 'bad'); }
+}
+
+function clearInboundSelection(){
+  currentInboundLine = null;
+  ['rxItemNumber','rxUPC','rxLocation','rxDescription','rxPallets','rxCoo'].forEach(id=>el(id)&&(el(id).value=''));
+  clearRxBreakdown();
+  el('rxSelectedOpen').textContent = '—';
+  el('receiveLineBtn').disabled = true;
+  el('rxLinesBody').querySelectorAll('tr').forEach(r=>r.classList.remove('selectedRow'));
+  setMsg('rxReceiveMsg','Selection cleared.');
+}
+
+async function autoImportPurchasesFromDrive(){
+  // Silently pulls the latest purchases file from Drive — appends only new PO+Item combos.
+  // Non-fatal if file missing or unchanged.
+  try {
+    const data = await api({action:'importPurchasesFromDrive', filename:'Item-Purchases-Export.txt'});
+    if(data.ok && data.rows_imported > 0){
+      setMsg('rxListMsg', `✓ Auto-imported ${data.rows_imported} new PO row(s) from Drive.`, 'good');
+    }
+  } catch(err){
+    console.warn('Auto-import from Drive skipped:', err.message);
+  }
+}
+
+async function forceReimportPurchases(){
+  // Clears PURCHASE_ORDERS sheet entirely, then re-imports fresh from Drive.
+  // Use this whenever rows are stale, quantities are wrong, or Load POs returns nothing.
+  const list = el('inboundList'); if(!list) return;
+  list.innerHTML = '<div class="helper">Clearing sheet and re-importing from Drive…</div>';
+  setMsg('rxListMsg','');
+  try {
+    const setup = await api({action:'setupPurchaseOrdersSheet'});
+    if(setup && setup.ok === false) throw new Error(setup.error || 'Sheet setup failed');
+    const imp = await api({action:'importPurchasesFromDrive', filename:'Item-Purchases-Export.txt'});
+    if(!imp.ok) throw new Error(imp.error || 'Import failed');
+    setMsg('rxListMsg', `✓ Re-imported ${imp.rows_imported} row(s). ${imp.rows_skipped} skipped.`, 'good');
+    await loadInboundShipments();
+  } catch(err){
+    list.innerHTML = `<div class="helper bad">${safe(err.message)}</div>`;
+  }
+}
+
+/* ─── SHIPPING ──────────────────────────────── */
+async function loadOrdersByDate(){
+  const date = el('shipDate').value;
+  if(!date){ setMsg('shipListMsg','Choose a ship date first.','bad'); return; }
+  const list = el('shipInvoiceList');
+  list.innerHTML = '<div class="helper">Loading orders…</div>';
+  setMsg('shipListMsg','');
+  try {
+    const data = await api({action:'getOutboundOrders', ship_date:date});
+    if(!data.ok) throw new Error(data.error||'Load failed');
+    const orders = data.orders || [];
+    el('shipOrdersMetric').textContent = orders.length;
+    if(!orders.length){ list.innerHTML='<div class="helper">No orders found for this date.</div>'; return; }
+    list.innerHTML = orders.map(o=>{
+      const tot = (o.lines||[]).reduce((a,b)=>a+Number(b.qty||0),0);
+      const st  = String(o.status||'').toUpperCase();
+      const tagCls = st==='ALLOCATED'||st==='READY TO PACK'?'tag-good': st==='PRE-ORDERED'?'tag-neutral':'tag-warn';
+      return `<div class="pickItem" data-invoice="${safe(o.edge_inv_no)}">
+        <h4>${safe(o.edge_inv_no)} <span class="badge">${tot} pcs</span></h4>
+        <div class="tiny muted">${safe(o.customer)}</div>
+        <div class="tiny" style="margin-top:4px">
+          <span class="tag ${tagCls}">${safe(o.status||'OPEN')}</span>
+          <span class="muted" style="margin-left:8px">${(o.lines||[]).length} line${(o.lines||[]).length!==1?'s':''}</span>
+        </div>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.pickItem').forEach(n=>n.onclick=()=>selectShipOrder(n.dataset.invoice, orders.find(o=>String(o.edge_inv_no)===n.dataset.invoice), n));
+  } catch(err) { list.innerHTML=`<div class="helper bad">${safe(err.message)}</div>`; }
+}
+
+function selectShipOrder(invNo, order, node){
+  el('shipInvoiceList').querySelectorAll('.pickItem').forEach(n=>n.classList.remove('active'));
+  node.classList.add('active');
+  currentShipOrder = order;
+  const lines = order.lines || [];
+  const tot   = lines.reduce((a,b)=>a+Number(b.qty||0),0);
+  const st    = String(order.status||'OPEN').toUpperCase();
+  el('shipSelectedInvoice').textContent = invNo;
+  el('shipLinesMetric').textContent     = lines.length;
+  el('shipPcsMetric').textContent       = tot;
+  el('shipDetailTag').textContent       = `Invoice ${invNo} selected`;
+  el('sdInvoice').textContent           = invNo;
+  el('sdCustomer').textContent          = order.customer || '—';
+  el('sdShipDate').textContent          = order.ship_date || '—';
+  const stEl = el('sdStatus');
+  stEl.textContent = order.status || 'OPEN';
+  stEl.className   = 'metaVal ' + (st.includes('ALLOC')||st.includes('READY')?'status-allocated': st==='PRE-ORDERED'?'status-pre':'status-open');
+  el('shipAllocationBanner').style.display = 'none';
+  el('shipLinesBody').innerHTML = lines.map(l=>`
+    <tr>
+      <td class="mono">${safe(l.upc)}</td>
+      <td>${safe(l.item_number||l.item_no)}</td>
+      <td>${safe(l.description||l.item_desc)}</td>
+      <td style="text-align:right"><strong>${safe(l.qty)}</strong></td>
+      <td class="tiny mono">${safe((l.allocated_cartons||[]).join(', '))}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="muted">No lines.</td></tr>';
+  el('runAllocBtn').disabled   = false;
+  el('readyPackBtn').disabled  = false;
+  el('shipOrderBtn').disabled  = false;
+  setMsg('shipActionMsg','');
+}
+
+async function runAllocation(){
+  if(!currentShipOrder){ setMsg('shipActionMsg','Select an order first.','bad'); return; }
+  setMsg('shipActionMsg','Running allocation…');
+  el('runAllocBtn').disabled = true;
+  try {
+    const data = await api({action:'allocateOrder', edgeInvNo: String(currentShipOrder.edge_inv_no), user: 'Rikki'});
+    if(!data.ok) throw new Error(data.error||'Allocation failed');
+    const banner = el('shipAllocationBanner');
+    banner.textContent = `Allocation complete: ${data.lines_reserved||data.allocation_rows_written||0} lines reserved from ${data.cartons_used||0} cartons · ${data.short||0} short`;
+    banner.style.display = 'block';
+    setMsg('shipActionMsg', `Rows written: ${data.allocation_rows_written||0}.`, 'good');
+    el('sdStatus').textContent  = 'ALLOCATED';
+    el('sdStatus').className    = 'metaVal status-allocated';
+    el('runAllocBtn').disabled  = false;
+    await reloadSelectedOrder();
+  } catch(err) { setMsg('shipActionMsg', err.message, 'bad'); el('runAllocBtn').disabled=false; }
+}
+
+async function markReadyToPack(){
+  if(!currentShipOrder){ setMsg('shipActionMsg','Select an order first.','bad'); return; }
+  setMsg('shipActionMsg','Marking ready to pack…');
+  try {
+    const data = await api({action:'setOrderStatus', edgeInvNo: String(currentShipOrder.edge_inv_no), status:'READY TO PACK', user:'Rikki'});
+    if(!data.ok) throw new Error(data.error||'Status update failed');
+    el('sdStatus').textContent = 'READY TO PACK';
+    el('sdStatus').className   = 'metaVal status-ready';
+    setMsg('shipActionMsg','Order marked ready to pack.','good');
+  } catch(err) { setMsg('shipActionMsg', err.message, 'bad'); }
+}
+
+async function shipOrder(){
+  if(!currentShipOrder){ setMsg('shipActionMsg','Select an order first.','bad'); return; }
+  setMsg('shipActionMsg','Shipping order…');
+  el('shipOrderBtn').disabled = true;
+  try {
+    const data = await api({action:'shipOrder', edgeInvNo: String(currentShipOrder.edge_inv_no), user:'Rikki', device:'Risona Shipping'});
+    if(!data.ok) throw new Error(data.error||'Ship failed');
+    setMsg('shipActionMsg', `Shipment complete. Cartons closed: ${data.cartons_closed||0}.`, 'good');
+    el('sdStatus').textContent = 'SHIPPED';
+    el('sdStatus').className   = 'metaVal status-allocated';
+    el('shipOrderBtn').disabled = false;
+  } catch(err) { setMsg('shipActionMsg', err.message, 'bad'); el('shipOrderBtn').disabled=false; }
+}
+
+async function reloadSelectedOrder(){
+  if(!currentShipOrder) return;
+  const date = el('shipDate').value;
+  if(!date) return;
+  try {
+    const data = await api({action:'getOutboundOrders', ship_date:date});
+    if(!data.ok) return;
+    const refreshed = (data.orders||[]).find(o=>String(o.edge_inv_no)===String(currentShipOrder.edge_inv_no));
+    if(refreshed){
+      const node = el('shipInvoiceList').querySelector(`.pickItem[data-invoice="${safe(currentShipOrder.edge_inv_no)}"]`);
+      if(node) selectShipOrder(String(refreshed.edge_inv_no), refreshed, node);
+    }
+  } catch(e){}
+}
+
+/* ─── COUNT / PUTAWAY ───────────────────────── */
+function updateCountMetrics(){
+  el('countMetricScans').textContent    = sessionCounts.scans;
+  el('countMetricCreated').textContent  = sessionCounts.created;
+  el('countMetricVerified').textContent = sessionCounts.verified;
+  el('countMetricPutaway').textContent  = sessionCounts.putaway;
+}
+
+async function verifyCarton(){
+  const cartonId = (el('countScanInput').value||'').trim().toUpperCase();
+  if(!cartonId){ setMsg('countVerifyMsg','Scan or type a carton plate first.','bad'); return; }
+  setMsg('countVerifyMsg','Verifying…');
+  try {
+    const data = await api({action:'verifyCarton', carton_id:cartonId, user:el('putawayUser').value||'Rikki', device:'Risona Manager'});
+    if(!data.ok) throw new Error(data.error||'Verify failed');
+    sessionCounts.scans += 1; sessionCounts.verified += 1; updateCountMetrics();
+    const c = data.carton || data;
+    el('countResultCarton').textContent = c.carton_id || cartonId;
+    el('countResultStatus').innerHTML   = `<span class="tag tag-good">${safe(c.status||'VERIFIED')}</span>`;
+    el('countResultUPC').textContent    = c.upc || '—';
+    el('countResultLocation').textContent = c.location || '—';
+    el('putawayCartonId').value = c.carton_id || cartonId;
+    setMsg('countVerifyMsg', `${cartonId} verified.`, 'good');
+  } catch(err) { setMsg('countVerifyMsg', err.message, 'bad'); }
+}
+
+async function putawayCarton(){
+  const cartonId = (el('putawayCartonId').value||'').trim().toUpperCase();
+  const location = (el('putawayLocation').value||'').trim().toUpperCase();
+  if(!cartonId||!location){ setMsg('putawayMsg','Enter carton ID and destination location.','bad'); return; }
+  setMsg('putawayMsg','Moving…');
+  try {
+    const data = await api({action:'putawayCarton', carton_id:cartonId, location, user:el('putawayUser').value||'Rikki', device:el('putawayDevice').value||'Risona'});
+    if(!data.ok) throw new Error(data.error||'Putaway failed');
+    sessionCounts.putaway += 1; updateCountMetrics();
+    el('countResultLocation').textContent = location;
+    setMsg('putawayMsg', `${cartonId} moved to ${location}.`, 'good');
+  } catch(err) { setMsg('putawayMsg', err.message, 'bad'); }
+}
+
+async function createCycleCountCarton(){
+  const payload = {
+    action:'createCycleCountCarton',
+    upc:          (el('newLabelUpc').value||'').trim(),
+    brand:        (el('newLabelBrand').value||'').trim(),
+    item_desc:    (el('newLabelDesc').value||'').trim(),
+    item_number:  (el('newLabelItemNumber').value||'').trim().toUpperCase(),
+    qty:          Number(el('newLabelQty').value||0),
+    location:     (el('newLabelLocation').value||'').trim().toUpperCase(),
+    carton_l_in:  Number(el('newLabelL').value||0),
+    carton_w_in:  Number(el('newLabelW').value||0),
+    carton_h_in:  Number(el('newLabelH').value||0),
+    carton_gross_lb: Number(el('newLabelWeight').value||0),
+    counted_by:   (el('newLabelCountedBy').value||'').trim(),
+    user:         (el('newLabelCountedBy').value||'Rikki').trim(),
+    device:       'Risona Stock Manager'
+  };
+  if(!payload.upc||!payload.brand||!payload.item_desc||!payload.qty||!payload.location){
+    setMsg('newLabelMsg','UPC, brand, description, qty, and location are required.','bad'); return;
+  }
+  setMsg('newLabelMsg','Creating carton…');
+  try {
+    const data = await api(payload);
+    if(!data.ok) throw new Error(data.error||'Create failed');
+    sessionCounts.created += 1; updateCountMetrics();
+    el('lastCreatedCarton').textContent = data.carton_id || '—';
+    el('labelsLastCreated').value       = data.carton_id || '';
+    el('labelsCartonSearch').value      = data.carton_id || '';
+    setMsg('newLabelMsg', `Created ${data.carton_id}. Opening label…`, 'good');
+    const cuft = payload.carton_l_in && payload.carton_w_in && payload.carton_h_in
+      ? Math.round(payload.carton_l_in*payload.carton_w_in*payload.carton_h_in/1728*1000)/1000 : 0;
+    labelCartons = [{
+      carton_id:payload.item_number,  // will be overwritten by real id below
+      ...payload, carton_id:data.carton_id,
+      status:'CYCLE_COUNT', shipment_id:'', carton_cuft:cuft,
+      created_ts: new Date().toISOString()
+    }];
+    renderLabels(labelCartons);
+    setTimeout(()=>switchView('labels'), 200);
+    setMsg('labelsMsg', `Loaded 1 cycle-count label for ${data.carton_id}.`, 'good');
+  } catch(err) { setMsg('newLabelMsg', err.message, 'bad'); }
+}
+
+/* ─── LABELS ────────────────────────────────── */
+function dims(c){ const L=c.carton_l_in||0,W=c.carton_w_in||0,H=c.carton_h_in||0; return (!L&&!W&&!H)?'—':`${L} × ${W} × ${H} in`; }
+function isCycle(c){ return !String(c.shipment_id||'').trim() || String(c.status||'').toUpperCase()==='CYCLE_COUNT'; }
+
+function renderLabels(rows){
+  labelCartons = rows || [];
+  const stage = el('labelsStage');
+  if(!labelCartons.length){ stage.innerHTML='<div class="card"><div class="helper">No labels loaded.</div></div>'; return; }
+  stage.innerHTML = labelCartons.map(c => {
+    const cycle = isCycle(c);
+    return `<div class="printCard printOnly">
+      <div class="labelHead">
+        <div><div class="labelTitle">Risona Carton Label</div><div class="tiny muted">${cycle?'Cycle count':'Shipment'} carton</div></div>
+        <div class="labelMeta"><strong>${cycle?'Source':'Shipment'}</strong><br><span class="mono">${cycle?'CYCLE COUNT':safe(c.shipment_id)}</span></div>
+      </div>
+      <div class="labelBody">
+        <div>
+          <div class="labelDesc">${safe(c.item_desc||'No description')}</div>
+          <div class="labelUpc mono">UPC ${safe(c.upc||'')}</div>
+          <div class="barcodeBox"><svg id="bc-${safe(c.carton_id)}"></svg></div>
+          <div class="metaGrid" style="margin-top:10px">
+            <div><strong>Brand</strong>${safe(c.brand||'')}</div>
+            <div><strong>Location</strong>${safe(c.location||'')}</div>
+            <div><strong>Weight lb</strong>${safe(c.carton_gross_lb||0)}</div>
+            <div><strong>Cube cu ft</strong>${safe(c.carton_cuft||0)}</div>
+            <div><strong>Dimensions</strong>${safe(dims(c))}</div>
+            <div><strong>Counted by</strong>${safe(c.counted_by||'')}</div>
+            <div><strong>Created</strong>${safe(String(c.created_ts||'').slice(0,10))}</div>
+            <div><strong>Carton ID</strong><span class="mono">${safe(c.carton_id||'')}</span></div>
+          </div>
+        </div>
+        <div class="labelSide">
+          <div style="text-align:center">
+            <div class="qtyBig">${safe(c.qty||0)}</div>
+            <div class="tiny">PC / CARTON</div>
+            <div class="statusChip ${cycle?'cycle':''}" style="margin-top:6px">${safe(c.status||'')}</div>
+          </div>
+          <div class="qrBox"><div id="qr-${safe(c.carton_id)}"></div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{
+    labelCartons.forEach(c=>{
+      try{ JsBarcode('#bc-'+CSS.escape(c.carton_id), String(c.upc||''), {format:'CODE128',displayValue:false,margin:0,width:2,height:64}); }catch(e){}
+      try{ const t=el('qr-'+c.carton_id); if(t){ t.innerHTML=''; new QRCode(t,{text:String(c.carton_id),width:96,height:96,correctLevel:QRCode.CorrectLevel.M}); } }catch(e){}
+    });
+  }, 30);
+}
+
+async function loadLabelsByDate(){
+  const date = el('labelsDate').value;
+  if(!date){ setMsg('labelsMsg','Choose a date first.','bad'); return; }
+  setMsg('labelsMsg','Loading labels…');
+  try {
+    const data = await api({action:'getCartons', date});
+    if(!data.ok) throw new Error(data.error||'Load failed');
+    renderLabels(data.cartons||[]);
+    setMsg('labelsMsg', `Loaded ${(data.cartons||[]).length} labels for ${date}.`, 'good');
+  } catch(err) { setMsg('labelsMsg', err.message, 'bad'); }
+}
+
+async function findLabelCarton(){
+  const cartonId = (el('labelsCartonSearch').value||'').trim().toUpperCase();
+  if(!cartonId){ setMsg('labelsMsg','Enter a carton ID.','bad'); return; }
+  setMsg('labelsMsg','Finding carton…');
+  try {
+    const data = await api({action:'getCartons', carton_id:cartonId});
+    if(!data.ok) throw new Error(data.error||'Lookup failed');
+    renderLabels(data.cartons||[]);
+    setMsg('labelsMsg', `Loaded ${(data.cartons||[]).length} label(s).`, 'good');
+  } catch(err) { setMsg('labelsMsg', err.message, 'bad'); }
+}
+
+function printLabels(){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('printing'));
+  el('labels').classList.add('printing');
+  window.print();
+}
+
+/* ─── INIT ──────────────────────────────────── */
+function init(){
+  const saved = localStorage.getItem(ENDPOINT_KEY)||'';
+  if(el('globalEndpoint')) el('globalEndpoint').value = saved;
+  if(el('globalEndpoint')) el('globalEndpoint').addEventListener('change', ()=>localStorage.setItem(ENDPOINT_KEY, el('globalEndpoint').value.trim()));
+
+  setToday('shipDate'); setToday('labelsDate');
+  updateCountMetrics();
+  renderRxBreakdown();
+
+  document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
+
+  el('rxLoadBtn').onclick          = loadInboundShipments;
+  el('rxReimportBtn').onclick      = forceReimportPurchases;
+  el('rxStatusFilter').onchange    = ()=>{};
+  el('receiveLineBtn').onclick      = receiveInboundLine;
+  el('clearReceiveBtn').onclick     = clearInboundSelection;
+
+  el('shipLoadOrdersBtn').onclick   = loadOrdersByDate;
+  el('shipTodayBtn').onclick        = ()=>{ setToday('shipDate'); loadOrdersByDate(); };
+  el('runAllocBtn').onclick         = runAllocation;
+  el('readyPackBtn').onclick        = markReadyToPack;
+  el('shipOrderBtn').onclick        = shipOrder;
+
+  el('countVerifyBtn').onclick      = verifyCarton;
+  el('countClearBtn').onclick       = ()=>{ el('countScanInput').value=''; setMsg('countVerifyMsg',''); ['countResultCarton','countResultUPC','countResultLocation'].forEach(id=>el(id).textContent='—'); el('countResultStatus').textContent='—'; };
+  el('putawayBtn').onclick          = putawayCarton;
+  el('createCountLabelBtn').onclick  = createCycleCountCarton;
+
+  el('labelsLoadDateBtn').onclick    = loadLabelsByDate;
+  el('labelsFindCartonBtn').onclick  = findLabelCarton;
+  el('labelsPrintBtn').onclick       = printLabels;
+  el('labelsOpenCreateBtn').onclick  = ()=>switchView('count');
+
+  el('countScanInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); verifyCarton(); } });
+  el('rxSearch').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); loadInboundShipments(); } });
+}
+window.addEventListener('load', init);
+
+/* ─── COUNT SHEET ─────────────────────────────────────────── */
+(function(){
+  var csItems = [];
+
+  function csEl(id){ return document.getElementById(id); }
+  function csSafe(v){ return v==null?'':String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]); }
+  function csStatus(msg, bad){
+    var s=csEl('csStatus'); s.innerHTML=msg;
+    s.style.background = bad ? '#fde8e8' : '';
+    s.style.color      = bad ? 'var(--error,#a12c7b)' : '';
+  }
+  function csSyncMeta(){
+    csEl('csMZone').textContent    = (csEl('csZone').value||'').trim() || '—';
+    csEl('csMCounter').textContent = (csEl('csCounter').value||'').trim() || '—';
+    csEl('csMDate').textContent    = csEl('csDate').value || '—';
+    csEl('csMSheet').textContent   = (csEl('csSheet').value||'').trim() || '—';
+    csEl('csMItems').textContent   = csItems.length;
+  }
+  function csRender(){
+    var tb = csEl('csTbody'); tb.innerHTML = '';
+    csItems.forEach(function(it,i){
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="num">'+(i+1)+'</td>'+
+        '<td class="loc">'+csSafe(it.location)+'</td>'+
+        '<td class="upc">'+csSafe(it.upc)+'</td>'+
+        '<td>'+csSafe(it.description)+'</td>'+
+        '<td class="sysqtyCol sysqty">'+csSafe(it.system_qty||'')+'</td>'+
+        '<td class="counted"></td><td class="chk"></td><td class="init"></td>'+
+        '<td class="rm"><button data-ci="'+i+'">×</button></td>';
+      tb.appendChild(tr);
+    });
+    csEl('csEmpty').style.display = csItems.length ? 'none' : 'block';
+    csSyncMeta();
+    tb.querySelectorAll('button[data-ci]').forEach(function(b){
+      b.addEventListener('click',function(){ csItems.splice(+b.getAttribute('data-ci'),1); csRender(); });
+    });
+  }
+  function csAddRows(rows){
+    if(!rows||!rows.length){ csStatus('Nothing found for that pull.', true); return; }
+    rows.forEach(function(r){ csItems.push(r); });
+    csRender(); csStatus('Added <b>'+rows.length+'</b> item(s). Total: '+csItems.length+'.');
+  }
+  function csPost(body){
+    var ep=(document.getElementById('endpoint')||{value:''}).value.trim();
+    if(!ep){ csStatus('Set the Apps Script endpoint first.', true); return Promise.reject('no endpoint'); }
+    return fetch(ep + '?cb=' + Date.now(),{method:'POST',body:JSON.stringify(body)}).then(r=>r.json());
+  }
+
+  // set today's date
+  (function(){ var d=new Date(),p=n=>String(n).padStart(2,'0');
+    csEl('csDate').value=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); })();
+
+  ['csZone','csCounter','csDate','csSheet'].forEach(function(id){
+    csEl(id).addEventListener('input', csSyncMeta);
+  });
+
+  csEl('csShowSys').addEventListener('change', function(){
+    csEl('csSheetDoc').classList.toggle('hide-sys', !this.checked);
+  });
+
+  csEl('csPullLocBtn').addEventListener('click', function(){
+    csStatus('Pulling from registry…');
+    csPost({action:'countSheet', source:'registry', location:(csEl('csLoc').value||'').trim()})
+      .then(d=>{ if(d&&d.ok) csAddRows(d.rows); else csStatus('Error: '+((d&&d.error)||'unknown'), true); })
+      .catch(e=>csStatus('Connection failed: '+e, true));
+  });
+
+  csEl('csPullExpBtn').addEventListener('click', function(){
+    csStatus('Pulling expected list…');
+    csPost({action:'countSheet', source:'expected', filter:(csEl('csFilter').value||'').trim()})
+      .then(d=>{ if(d&&d.ok) csAddRows(d.rows); else csStatus('Error: '+((d&&d.error)||'unknown'), true); })
+      .catch(e=>csStatus('Connection failed: '+e, true));
+  });
+
+  csEl('csAddUpcBtn').addEventListener('click', function(){
+    var upc=(csEl('csUpc').value||'').trim();
+    if(!upc){ csStatus('Enter a UPC first.', true); return; }
+    csPost({action:'lookupItem', upc:upc}).then(function(d){
+      var it=(d&&d.ok&&d.item)
+        ? {location:'', upc:upc, description:d.item.description||'', brand:d.item.brand||'', system_qty:''}
+        : {location:'', upc:upc, description:'', brand:'', system_qty:''};
+      csItems.push(it); csRender(); csEl('csUpc').value=''; csEl('csUpc').focus();
+      csStatus(d&&d.ok&&d.item ? 'Added: '+(d.item.description||upc) : 'Added UPC '+upc+' (not in item master — fill description by hand).');
+    }).catch(e=>csStatus('Lookup failed: '+e, true));
+  });
+
+  csEl('csUpc').addEventListener('keydown', function(ev){
+    if(ev.key==='Enter'){ ev.preventDefault(); csEl('csAddUpcBtn').click(); }
+  });
+
+  csEl('csClearBtn').addEventListener('click', function(){
+    csItems=[]; csRender(); csStatus('List cleared.');
+  });
+
+  csEl('csPrintBtn').addEventListener('click', function(){
+    if(!csItems.length){ csStatus('Add at least one item before printing.', true); return; }
+    csSyncMeta(); window.print();
+  });
+
+  csRender();
+})();
+/* ─── END COUNT SHEET ──────────────────────────────────────── */
+
+</script>
+
+  <!-- ── BARCODE SCANNER MODAL ─────────────────────────────── -->
+  <div class="scanModal" id="scanModal" role="dialog" aria-modal="true" aria-label="Barcode scanner">
+    <div class="scanModalBox">
+      <div class="scanModalHeader">
+        <h4>📷 Scan barcode</h4>
+        <button class="scanModalClose" id="scanModalClose" aria-label="Close scanner">✕</button>
+      </div>
+      <video id="scanVideo" autoplay playsinline muted></video>
+      <div class="scanModalStatus" id="scanModalStatus">Initializing camera…</div>
+      <div class="scanManualRow">
+        <input id="scanManualInput" placeholder="Or type barcode manually…" autocomplete="off">
+        <button id="scanManualOk">Use</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
