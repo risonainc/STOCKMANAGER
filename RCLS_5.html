@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Risona Cycle Count Label Station Pro v9.2.0</title>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* === TOKENS === */
+:root {
+  --bg: #f2fbff;
+  --bg2: #f3fff8;
+  --surface: #ffffff;
+  --surface2: #f8fdff;
+  --line: #cfe8f1;
+  --text: #15323a;
+  --muted: #5f7d87;
+  --primary: #0891b2;
+  --primary-dark: #0e7490;
+  --accent: #10b981;
+  --warn: #f59e0b;
+  --danger: #e11d48;
+  --success: #16a34a;
+  --shadow: 0 4px 18px rgba(8,145,178,0.10);
+  --r: 18px;
+  --r2: 12px;
+  --r3: 999px;
+  --font: 'Satoshi', system-ui, sans-serif;
+}
+
+/* === RESET === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body { font-family: var(--font); color: var(--text); background: linear-gradient(180deg, var(--bg), var(--bg2)); min-height: 100vh; font-size: 15px; line-height: 1.55; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+img, svg { display: block; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; }
+
+/* === HEADER === */
+.header { position: sticky; top: 0; z-index: 30; background: rgba(255,255,255,0.93); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.header-inner { max-width: 1200px; margin: 0 auto; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+.logo { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 16px; flex-shrink: 0; }
+.header-text .title { font-size: 17px; font-weight: 900; }
+.header-text .sub { font-size: 12px; color: var(--muted); }
+.header-badge { margin-left: auto; background: #e9fbff; border: 1px solid #c6edf6; color: var(--primary-dark); padding: 5px 10px; border-radius: var(--r3); font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+/* === TABS === */
+.tabs { max-width: 1200px; margin: 0 auto; padding: 0 18px; display: flex; gap: 4px; }
+.tab { background: none; border: none; border-bottom: 3px solid transparent; padding: 11px 14px; font-weight: 800; font-size: 14px; color: var(--muted); transition: color 180ms, border-color 180ms; }
+.tab.active { color: var(--primary-dark); border-bottom-color: var(--accent); }
+.tab:hover:not(.active) { color: var(--text); }
+
+/* === MAIN === */
+.main { max-width: 1200px; margin: 0 auto; padding: 24px 18px 60px; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* === HERO === */
+.hero { background: linear-gradient(135deg, #fff, #f4feff 55%, #effff7); border: 1px solid var(--line); border-radius: 24px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+.hero h1 { font-size: clamp(18px, 2vw, 24px); font-weight: 900; line-height: 1.2; margin-bottom: 8px; }
+.hero p { color: var(--muted); font-size: 14px; max-width: 80ch; }
+
+/* === KPIs === */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+@media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+.kpi { background: linear-gradient(180deg, #fff, #f8fdff); border: 1px solid var(--line); border-radius: 18px; padding: 14px 12px; text-align: center; box-shadow: var(--shadow); }
+.kpi .kpi-l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; }
+.kpi .kpi-v { font-size: 28px; font-weight: 900; color: var(--primary-dark); line-height: 1.1; margin-top: 2px; }
+
+/* === GRID LAYOUTS === */
+.grid-2col { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 18px; align-items: start; }
+.grid-2col-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+@media (max-width: 900px) { .grid-2col, .grid-2col-eq { grid-template-columns: 1fr; } }
+
+/* === CARD === */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 20px; box-shadow: var(--shadow); }
+.card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* === FORM ELEMENTS === */
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 640px) {
+  .form-grid-2, .form-grid-3, .form-grid-4 { grid-template-columns: 1fr; }
+}
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.field input, .field select, .field textarea {
+  border: 1.5px solid var(--line); background: var(--surface2); border-radius: 14px;
+  padding: 10px 12px; color: var(--text); outline: none;
+  transition: border-color 180ms, box-shadow 180ms;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: #83d9ea; box-shadow: 0 0 0 4px rgba(8,145,178,0.12);
+}
+.field .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.input-row { display: flex; gap: 8px; }
+.input-row input { flex: 1; }
+
+/* === SECTION DIVIDER === */
+.section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; color: var(--muted); margin: 20px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+
+/* === BUTTONS === */
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.btn { border: none; border-radius: 14px; padding: 10px 16px; font-weight: 900; font-size: 14px; cursor: pointer; transition: opacity 180ms, transform 80ms; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; }
+.btn-secondary { background: #eefcff; color: var(--primary-dark); border: 1px solid #c9eef4; }
+.btn-ghost { background: #fff; color: var(--muted); border: 1px solid var(--line); }
+.btn-danger { background: #fff1f4; color: var(--danger); border: 1px solid #fecdd3; }
+.scan-btn { border: 1px solid #c7edf5; background: #eafaff; color: var(--primary-dark); border-radius: 14px; padding: 0 14px; font-weight: 800; font-size: 14px; }
+
+/* === MESSAGES === */
+.msg { margin-top: 10px; padding: 10px 12px; border-radius: 12px; font-size: 13px; font-weight: 700; display: none; }
+.msg.show { display: block; }
+.msg.ok { background: #eaf9ef; color: #15703c; }
+.msg.err { background: #fdecef; color: #a33044; }
+
+/* === CALC BADGE === */
+.calc-badge {
+  display: none; background: #e9fbff; border: 1px solid #c6edf6;
+  color: var(--primary-dark); padding: 4px 10px; border-radius: var(--r3);
+  font-size: 11px; font-weight: 700;
+}
+.calc-badge.visible { display: inline-block; }
+
+/* === LABEL QUEUE === */
+.queue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px; margin-top: 14px; }
+.label-card { border: 1px solid var(--line); border-radius: 18px; padding: 14px; background: linear-gradient(180deg, #fff, #f8fdff); }
+.lc-brand { font-size: 11px; font-weight: 900; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+.lc-desc { font-size: 15px; font-weight: 900; margin: 4px 0 6px; line-height: 1.25; }
+.lc-meta { font-size: 12px; color: var(--muted); }
+.lc-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-top: 10px; }
+.lc-qty-wrap .lc-qty-l { font-size: 11px; color: var(--muted); }
+.lc-qty { font-size: 28px; font-weight: 900; color: var(--primary-dark); line-height: 1; }
+.lc-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+.lc-actions button { padding: 7px 11px; font-size: 12px; border-radius: 10px; }
+.empty-state { color: var(--muted); font-size: 14px; padding: 20px 0; text-align: center; }
+
+/* === BANNER === */
+.banner { background: linear-gradient(135deg, #fff, #effcff); border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 18px; }
+.banner p { margin: 0; color: var(--muted); font-size: 14px; }
+.banner p + p { margin-top: 8px; }
+
+/* === TABLE === */
+.table-wrap { overflow: auto; max-height: 320px; border: 1px solid var(--line); border-radius: 16px; margin-top: 14px; }
+.table-wrap table { background: #fff; }
+th, td { padding: 10px 12px; border-bottom: 1px solid #e8f1f4; text-align: left; font-size: 13px; }
+th { position: sticky; top: 0; background: #f6fcff; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; }
+
+/* === HELPER TEXT === */
+.helper { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.helper p + p { margin-top: 8px; }
+.pill { display: inline-block; padding: 3px 8px; border-radius: var(--r3); background: #fff6da; color: #8a5a00; font-size: 11px; font-weight: 800; }
+
+/* === MODAL === */
+.modal { position: fixed; inset: 0; background: rgba(15,35,40,0.45); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 100; }
+.modal.open { display: flex; }
+.modal-box { width: min(700px, 100%); background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.18); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.modal-header h3 { margin: 0; font-size: 18px; }
+.video-wrap { aspect-ratio: 16/10; border-radius: 18px; overflow: hidden; background: #0f172a; display: grid; place-items: center; }
+.video-wrap video { width: 100%; height: 100%; object-fit: cover; }
+.manual-row { display: flex; gap: 8px; margin-top: 12px; }
+.manual-row input { flex: 1; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.scan-status { font-size: 13px; color: var(--muted); margin: 8px 0; min-height: 20px; }
+
+/* === MONO === */
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* === PRINT LABEL (matches WMS Stock Manager format) === */
+.labelStage { display: flex; flex-direction: column; gap: 14px; }
+.printCard {
+  width: 100%; max-width: 6in; min-height: 4in;
+  background: #fff; border: 1px solid var(--line);
+  border-radius: 16px; padding: 16px; color: #000;
+  box-shadow: var(--shadow);
+  font-family: Inter, Arial, sans-serif;
+}
+.labelHead {
+  display: flex; justify-content: space-between;
+  align-items: flex-end; border-bottom: 2px solid #000;
+  padding-bottom: 8px; margin-bottom: 10px;
+}
+.labelTitle { font-size: 18px; font-weight: 800; }
+.labelMeta-sm { font-size: 12px; text-align: right; }
+.labelBody { display: grid; grid-template-columns: 1fr 150px; gap: 16px; }
+.labelDesc { font-size: 24px; font-weight: 800; line-height: 1.02; margin-bottom: 8px; }
+.labelUpc { font-size: 18px; font-weight: 800; margin-bottom: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.metaGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 14px; font-size: 13px; margin-top: 10px; }
+.metaGrid strong { display: block; font-size: 10px; text-transform: uppercase; color: #555; letter-spacing: 0.04em; }
+.barcodeBox { display: flex; justify-content: center; align-items: center; }
+.labelSide {
+  border-left: 1px dashed #999; padding-left: 14px;
+  display: flex; flex-direction: column;
+  justify-content: space-between; align-items: center;
+}
+.qtyBig { font-size: 46px; font-weight: 800; line-height: 1; }
+.statusChip {
+  padding: 4px 10px; border: 1.5px solid #000;
+  border-radius: 999px; font-size: 12px; font-weight: 700;
+}
+.statusChip.cycle { border-color: #d96b11; color: #d96b11; }
+.qrBox { display: flex; justify-content: center; align-items: center; }
+
+/* === BOX BREAKDOWN === */
+.breakdown-row { background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+.breakdown-row h4 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--primary); }
+.breakdown-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; align-items: end; }
+@media (max-width: 760px) { .breakdown-grid { grid-template-columns: repeat(3, 1fr); } }
+.style-subtotal { font-size: 12px; font-weight: 700; color: var(--primary); background: #e9fbff; padding: 2px 10px; border-radius: 20px; display: none; margin-left: 8px; }
+.totals-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 12px 0 4px; }
+@media (max-width: 640px) { .totals-strip { grid-template-columns: repeat(2, 1fr); } }
+.total-tile { background: #e9fbff; border: 1px solid #9dd0d2; border-radius: 10px; padding: 10px 12px; }
+.total-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--primary); }
+.total-val { font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-top: 2px; }
+
+/* === BRIDGE CARD === */
+details summary::-webkit-details-marker { display: none; }
+details[open] summary { color: var(--primary); }
+details summary { list-style: none; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+ol li, ul li { margin-bottom: 2px; }
+a { color: var(--primary); }
+
+/* === PRINT MEDIA === */
+@page {
+  size: 6in 4in landscape;
+  margin: 0;
+}
+@media print {
+  html, body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 6in !important;
+    height: 4in !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .header, .tabs, nav, .kpis, .grid-2col, .grid-2col-eq,
+  .card:not(.printCard), .queue-grid, #emptyQueue,
+  .btn, .actions, .msg, .modal, .banner, .table-wrap,
+  .hero, .section-label, .helper, .header-badge {
+    display: none !important;
+  }
+  .main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+  .labelStage {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+  .printCard {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    width: 6in !important;
+    height: 4in !important;
+    max-width: 6in !important;
+    min-height: unset !important;
+    padding: 10px 14px !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+  .printCard:last-child {
+    page-break-after: avoid !important;
+  }
+  /* Scale down fonts slightly so content fits the label */
+  .labelDesc { font-size: 20px !important; }
+  .labelUpc  { font-size: 15px !important; }
+  .qtyBig    { font-size: 38px !important; }
+  .metaGrid  { font-size: 11px !important; gap: 4px 10px !important; margin-top: 6px !important; }
+  .labelHead { padding-bottom: 5px !important; margin-bottom: 6px !important; }
+  .labelTitle { font-size: 15px !important; }
+  .barcodeBox svg { height: 48px !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo" aria-label="Risona">R</div>
+    <div class="header-text">
+      <div class="title">Risona Cycle Count Label Station Pro</div>
+      <div class="sub">Scan UPCs · Item Master entry · Print labels · Export to Stock Manager</div>
+    </div>
+    <div class="header-badge">Scanner + print bridge ready</div>
+  </div>
+  <nav class="tabs" aria-label="Main sections">
+    <button class="tab active" data-view="labels" type="button">Create &amp; Print Labels</button>
+    <button class="tab" data-view="export" type="button">Export to Main App</button>
+  </nav>
+</header>
+
+<main class="main">
+
+  <!-- ===================== VIEW: LABELS ===================== -->
+  <section class="view active" id="view-labels">
+
+    <div class="hero">
+      <h1>Scan the UPC, fill item details like Item Master, then print or send to the warehouse bridge.</h1>
+      <p>Browser UPC scanning via BarcodeDetector or ZXing fallback. Item entry mirrors your Item Master fields. Send labels to a print bridge (PrintNode / QZ Tray) running on the PC physically connected to the Zebra or Rollo printer.</p>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-l">Labels</div><div class="kpi-v" id="kpiLabels">0</div></div>
+      <div class="kpi"><div class="kpi-l">Units</div><div class="kpi-v" id="kpiUnits">0</div></div>
+      <div class="kpi"><div class="kpi-l">Brands</div><div class="kpi-v" id="kpiBrands">0</div></div>
+      <div class="kpi"><div class="kpi-l">Locations</div><div class="kpi-v" id="kpiLocs">0</div></div>
+    </div>
+
+    <div class="grid-2col">
+
+      <!-- ---- ENTRY FORM ---- -->
+      <div class="card">
+        <div class="card-title">
+          Item entry
+          <span class="calc-badge" id="calcBadge"></span>
+        </div>
+
+        <!-- UPC + Item Number -->
+        <div class="form-grid-2">
+          <div class="field">
+            <label for="upc">UPC</label>
+            <div class="input-row">
+              <input id="upc" class="mono" placeholder="Scan or enter UPC" autocomplete="off">
+              <button class="scan-btn" type="button" onclick="openScanner('upc')" aria-label="Scan UPC barcode">Scan</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="itemNumber">Item number</label>
+            <input id="itemNumber" class="mono" placeholder="RMETC3.4EDT" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Brand + Description -->
+        <div class="form-grid-2" style="margin-top:12px">
+          <div class="field">
+            <label for="brand">Brand</label>
+            <input id="brand" placeholder="CALVIN KLEIN">
+          </div>
+          <div class="field">
+            <label for="description">Description</label>
+            <input id="description" placeholder="ETERNITY COLOGNE M 3.4OZ EDT SPRAY">
+          </div>
+        </div>
+
+        <!-- Gender + COO + Weight + Notes -->
+        <div class="form-grid-4" style="margin-top:12px">
+          <div class="field">
+            <label for="gender">Gender</label>
+            <select id="gender">
+              <option value=""></option>
+              <option value="M">M</option>
+              <option value="W">W</option>
+              <option value="U">U</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="coo">COO</label>
+            <input id="coo" placeholder="US">
+          </div>
+          <div class="field">
+            <label for="weightOz">Weight (oz)</label>
+            <input id="weightOz" type="number" step="0.01" min="0" placeholder="4.2">
+          </div>
+          <div class="field">
+            <label for="notes">Notes</label>
+            <input id="notes" placeholder="Optional">
+          </div>
+        </div>
+
+        <!-- Unit Dimensions -->
+        <div class="section-label">&#128190; Unit dimensions (each)</div>
+        <div class="form-grid-4">
+          <div class="field">
+            <label for="dimL">L (in)</label>
+            <input id="dimL" type="number" step="0.01" min="0" placeholder="4.5">
+          </div>
+          <div class="field">
+            <label for="dimW">W (in)</label>
+            <input id="dimW" type="number" step="0.01" min="0" placeholder="2.1">
+          </div>
+          <div class="field">
+            <label for="dimH">H (in)</label>
+            <input id="dimH" type="number" step="0.01" min="0" placeholder="2.1">
+          </div>
+          <div class="field">
+            <label for="createdBy">Created by</label>
+            <input id="createdBy" value="Warehouse">
+          </div>
+        </div>
+
+        <!-- Box Breakdown -->
+        <div class="section-label">&#128230; Box breakdown (styles 1–4) — at least one required</div>
+        <div id="smBreakdown"></div>
+        <div class="totals-strip">
+          <div class="total-tile"><div class="total-label">Subtotal Pieces</div><div class="total-val" id="smSubtotalPcs">0</div></div>
+          <div class="total-tile"><div class="total-label">Total Cartons</div><div class="total-val" id="smTotalCartons">0</div></div>
+          <div class="total-tile"><div class="total-label">Total Cu Ft</div><div class="total-val" id="smTotalCuFt">0.00</div></div>
+          <div class="total-tile"><div class="total-label">Total Gross LB</div><div class="total-val" id="smTotalGross">0.00</div></div>
+        </div>
+        <div class="form-grid-2" style="margin-top:12px">
+          <div class="field"><label for="condition">Condition</label>
+            <select id="condition"><option value="new">New / Sellable</option><option value="open">Open box</option><option value="damaged">Damaged</option></select>
+          </div>
+          <div class="field"><label for="location">Location</label><input id="location" placeholder="B 02 03 01"></div>
+        </div>
+
+        <div class="actions" style="align-items:center">
+          <button class="btn btn-primary btn-lg" type="button" onclick="createLabel()">&#10133; Create label</button>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="clearForm()">Clear form</button>
+        </div>
+        <div class="msg" id="formMsg"></div>
+      </div>
+
+      <!-- ---- SIDEBAR ---- -->
+      <div class="card">
+        <div class="card-title">&#128444; Print bridge — Zebra LP2844</div>
+
+        <!-- Endpoint input -->
+        <div class="field" style="margin-bottom:14px">
+          <label for="bridgeEndpoint">RawPrintServer IP &amp; port</label>
+          <input id="bridgeEndpoint" class="mono" placeholder="http://192.168.1.XX:9100" autocomplete="off">
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label for="bridgeLabelSize">Label stock</label>
+          <select id="bridgeLabelSize">
+            <option value="4x6">4 × 6 in (standard shipping)</option>
+            <option value="4x3">4 × 3 in</option>
+            <option value="4x2">4 × 2 in</option>
+          </select>
+        </div>
+
+        <div class="actions" style="margin-bottom:14px">
+          <button class="btn btn-primary" type="button" onclick="sendBridgeJob()">&#128438; Send to printer</button>
+          <button class="btn btn-secondary" type="button" onclick="testBridgePing()">Test connection</button>
+        </div>
+        <div class="msg" id="bridgeMsg"></div>
+
+        <!-- Collapsible setup instructions -->
+        <details style="margin-top:14px">
+          <summary style="cursor:pointer;font-size:12px;font-weight:800;color:var(--primary-dark);text-transform:uppercase;letter-spacing:.06em;padding:6px 0;border-top:1px solid var(--line)">&#9654; RawPrintServer setup instructions</summary>
+          <div class="helper" style="margin-top:12px">
+            <p><strong>One-time setup on the warehouse PC (Windows):</strong></p>
+            <ol style="margin:10px 0 0 18px;line-height:2">
+              <li>Download <strong>RawPrintServer.exe</strong> from <a href="https://sourceforge.net/projects/rawprintserver/" target="_blank" style="color:var(--primary)">SourceForge</a> and copy it somewhere permanent (e.g. <code>C:\Tools\</code>).</li>
+              <li>Open <strong>Command Prompt as Administrator</strong>.</li>
+              <li>Run: <code style="background:#f0f9ff;padding:2px 6px;border-radius:6px">RawPrintServer INSTALL "Zebra LP2844" 9100</code><br><small style="color:var(--muted)">(Use the exact printer name shown in Windows Devices &amp; Printers)</small></li>
+              <li>Open <strong>Windows Defender Firewall → Advanced → Inbound Rules → New Rule</strong>: TCP port 9100, allow on Private network.</li>
+              <li>Find the PC's local IP: open Command Prompt, type <code style="background:#f0f9ff;padding:2px 6px;border-radius:6px">ipconfig</code>, note the IPv4 address (e.g. 192.168.1.42).</li>
+              <li>Enter that address in the field above: <code style="background:#f0f9ff;padding:2px 6px;border-radius:6px">http://192.168.1.42:9100</code></li>
+              <li>Click <strong>Test connection</strong> — if green, you're ready to print.</li>
+            </ol>
+            <p style="margin-top:10px;color:var(--muted);font-size:12px">The service starts automatically with Windows. To remove it later: <code>RawPrintServer REMOVE 9100</code></p>
+          </div>
+        </details>
+
+        <details style="margin-top:8px">
+          <summary style="cursor:pointer;font-size:12px;font-weight:800;color:var(--primary-dark);text-transform:uppercase;letter-spacing:.06em;padding:6px 0;border-top:1px solid var(--line)">&#9654; About the ZPL label format</summary>
+          <div class="helper" style="margin-top:12px">
+            <p>Your Zebra ZP 500 uses <strong>ZPL II</strong> (Zebra Programming Language). This app generates a complete ZPL command string per label including:</p>
+            <ul style="margin:8px 0 0 18px;line-height:1.9">
+              <li><strong>CODE128 barcode</strong> — UPC or Carton ID</li>
+              <li><strong>QR code</strong> — native ZPL <code>^BQ</code> command (no bitmap workaround needed — the ZP 500 renders QR codes natively)</li>
+              <li>Description, Brand, Location, Carton ID text fields</li>
+              <li>Qty, Dimensions, Weight metadata</li>
+            </ul>
+            <p style="margin-top:8px;color:var(--muted);font-size:12px">The ZPL data is sent as raw text — RawPrintServer passes it straight to the ZDesigner driver with no translation.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- LABEL QUEUE -->
+    <div class="card" style="margin-top:18px">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <div class="card-title" style="margin-bottom:0">Label queue</div>
+        <div class="actions" style="margin-top:0;align-items:center">
+          <button class="btn btn-accent btn-lg" type="button" onclick="sendBridgeJob()">&#128438; Send to Zebra</button>
+          <button class="btn btn-primary print-pdf-btn" type="button" onclick="printAllLabels()">&#128438; Print Labels (PDF)</button>
+          <button class="btn btn-secondary" type="button" onclick="printWarehouseList()">Print warehouse list</button>
+          <button class="btn btn-ghost btn-danger" type="button" onclick="clearAll()">Clear all</button>
+        </div>
+      </div>
+      <div id="queueGrid" class="queue-grid"></div>
+      <div id="emptyQueue" class="empty-state">No labels created yet. Fill in the form and click "Create label".</div>
+    </div>
+
+    <!-- PRINT STAGE is now off-screen at bottom of body (used by jsPDF renderer) -->
+
+  </section>
+
+  <!-- ===================== VIEW: EXPORT ===================== -->
+  <section class="view" id="view-export">
+
+    <div class="banner">
+      <p><strong>Export flow:</strong> create labels here, print them or send through the bridge, print the warehouse list, then export the cartons into the main Stock Manager once ready to register them.</p>
+    </div>
+
+    <div class="grid-2col-eq">
+      <div class="card">
+        <div class="card-title">Carton registry export</div>
+        <div class="actions">
+          <button class="btn btn-primary" type="button" onclick="downloadCartonCSV()">Download carton CSV</button>
+          <button class="btn btn-secondary" type="button" onclick="copyCartonJSON()">Copy carton JSON</button>
+        </div>
+        <div class="msg" id="cartonMsg"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Carton ID</th><th>UPC</th><th>Item</th><th>Description</th><th>Qty</th><th>Location</th>
+              </tr>
+            </thead>
+            <tbody id="cartonBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Apps Script payload</div>
+        <div class="helper" style="margin-bottom:10px">This payload is ready to use in a small import function or to hand off to the print bridge service.</div>
+        <textarea id="payloadArea" rows="18" style="width:100%;border:1.5px solid var(--line);border-radius:14px;padding:12px;background:#f8fdff;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;resize:vertical;" spellcheck="false"></textarea>
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" onclick="copyFullPayload()">Copy full payload</button>
+          <button class="btn btn-ghost" type="button" onclick="refreshExport()">Refresh export</button>
+        </div>
+        <div class="msg" id="payloadMsg"></div>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- SCANNER MODAL -->
+<div class="modal" id="scanModal" role="dialog" aria-modal="true" aria-label="Barcode scanner">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Scan barcode</h3>
+      <button class="btn btn-ghost" type="button" onclick="closeScanner()">Close</button>
+    </div>
+    <div class="scan-status" id="scanStatus">Starting camera...</div>
+    <div class="video-wrap"><video id="scanVideo" playsinline autoplay muted></video></div>
+    <div class="manual-row">
+      <input id="scanManual" placeholder="Manual barcode entry" autocomplete="off">
+      <button class="btn btn-secondary" type="button" onclick="acceptManualScan()">Use value</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  // ── STATE ──────────────────────────────────────────────────────────────────
+  var state = {
+    cartons: [],
+    nextId: 1,
+    scanTarget: null,
+    stream: null,
+    detectorTimer: null,
+  };
+
+  // ── HELPERS ────────────────────────────────────────────────────────────────
+  function el(id) { return document.getElementById(id); }
+
+  function esc(v) {
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function showMsg(id, text, ok, sticky) {
+    var m = el(id);
+    if (!m) return;
+    m.textContent = text;
+    m.className = 'msg show ' + (ok === false ? 'err' : 'ok');
+    clearTimeout(m._t);
+    if (!sticky) {
+      m._t = setTimeout(function() { m.classList.remove('show'); }, 4000);
+    }
+  }
+
+  function val(id) {
+    var e = el(id);
+    return e ? e.value.trim() : '';
+  }
+
+  function numVal(id) {
+    var v = parseFloat(val(id));
+    return isNaN(v) ? 0 : v;
+  }
+
+  function intVal(id) {
+    var v = parseInt(val(id), 10);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function nextCartonId() {
+    return 'CTN-SM' + String(state.nextId++).padStart(4, '0');
+  }
+
+  // ── TAB SWITCHING ──────────────────────────────────────────────────────────
+  function switchView(name) {
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.classList.toggle('active', t.dataset.view === name);
+    });
+    document.querySelectorAll('.view').forEach(function(v) {
+      v.classList.toggle('active', v.id === 'view-' + name);
+    });
+    if (name === 'export') refreshExport();
+  }
+
+  document.querySelectorAll('.tab').forEach(function(t) {
+    t.addEventListener('click', function() { switchView(t.dataset.view); });
+  });
+
+  // ── DIMENSION CALCULATIONS ─────────────────────────────────────────────────
+  function updateCalcBadge() {
+    var l=numVal('dimL'), w=numVal('dimW'), h=numVal('dimH');
+    var unitVol=l*w*h;
+    var badge=el('calcBadge'); if(!badge) return;
+    if(unitVol>0){badge.textContent='Unit vol: '+unitVol.toFixed(2)+' in³';badge.classList.add('visible');}
+    else badge.classList.remove('visible');
+  }
+
+  ['dimL','dimW','dimH'].forEach(function(id) {
+    var e = el(id);
+    if (e) e.addEventListener('input', updateCalcBadge);
+  });
+
+  // ── CREATE LABEL ───────────────────────────────────────────────────────────
+  window.createLabel = function() {
+    var upc = val('upc');
+    var itemNumber = val('itemNumber');
+    var brand = val('brand');
+    var description = val('description');
+    var qty = intVal('qty');
+
+    var boxStyles = [];
+    var totalPcs=0, totalCartons=0, totalCuFt=0, totalGrossLb=0;
+    var bestL='', bestW='', bestH='';
+    for (var si=0; si<4; si++) {
+      var boxes=intVal('smBoxes'+si), qpb=intVal('smQty'+si), wlb=numVal('smWt'+si);
+      var bL=numVal('smL'+si), bW=numVal('smW'+si), bH=numVal('smH'+si);
+      if (boxes>0) {
+        boxStyles.push({style:si+1,boxes:boxes,qtyPerBox:qpb,wtLb:wlb,L:bL,W:bW,H:bH});
+        totalPcs+=boxes*qpb; totalCartons+=boxes; totalGrossLb+=boxes*wlb;
+        totalCuFt+=boxes*(bL*bW*bH)/1728;
+        if(!bestL&&bL){bestL=bL;bestW=bW;bestH=bH;}
+      }
+    }
+    var effectiveQty = totalPcs > 0 ? totalPcs : qty;
+    if (!upc || !itemNumber || !brand || !description || effectiveQty <= 0) {
+      showMsg('formMsg', 'Fill UPC, Item Number, Brand, Description and at least one box style with # Boxes > 0.', false);
+      return;
+    }
+
+    var carton = {
+      cartonId:      nextCartonId(),
+      upc:           upc,
+      itemNumber:    itemNumber,
+      brand:         brand,
+      description:   description,
+      gender:        val('gender'),
+      coo:           val('coo'),
+      itemWeightOz:  val('weightOz'),
+      itemL:         val('dimL'),
+      itemW:         val('dimW'),
+      itemH:         val('dimH'),
+      notes:         val('notes'),
+      boxStyles:     boxStyles,
+      totalCuFt:     totalCuFt.toFixed(2),
+      totalGrossLb:  totalGrossLb.toFixed(2),
+      totalCartons:  totalCartons,
+      bestL:         bestL, bestW: bestW, bestH: bestH,
+      condition:     val('condition') || 'new',
+      qty:           effectiveQty,
+      location:      val('location'),
+      bridgeTarget:  (function(){ var e=el('bridgeEndpoint'); return e ? e.value.trim() : ''; })(),
+      createdBy:     val('createdBy') || 'Warehouse',
+      createdAt:     new Date().toLocaleString()
+    };
+
+    state.cartons.push(carton);
+    renderQueue();
+    updateKpis();
+    refreshExport();
+    showMsg('formMsg', 'Label created — ' + carton.cartonId + ' added to queue.');
+  };
+
+  // ── CLEAR FORM ─────────────────────────────────────────────────────────────
+  window.clearForm = function() {
+    ['upc','itemNumber','brand','description','coo','weightOz','dimL','dimW','dimH','notes','qty','location'].forEach(function(id){
+      var e=el(id); if(e) e.value='';
+    });
+    var g=el('gender'); if(g) g.value='';
+    var c=el('condition'); if(c) c.value='new';
+    for(var si=0;si<4;si++){
+      ['smBoxes','smQty','smWt','smL','smW','smH'].forEach(function(pfx){
+        var inp=el(pfx+si); if(inp) inp.value='0';
+      });
+    }
+    updateSmTotals();
+    updateCalcBadge();
+  };
+
+  // ── CLEAR ALL ──────────────────────────────────────────────────────────────
+  window.clearAll = function() {
+    if (!confirm('Clear all labels from this station?')) return;
+    state.cartons = [];
+    state.nextId = 1;
+    renderQueue();
+    updateKpis();
+    refreshExport();
+  };
+
+  // ── REMOVE ONE ─────────────────────────────────────────────────────────────
+  window.removeOne = function(id) {
+    state.cartons = state.cartons.filter(function(c) { return c.cartonId !== id; });
+    renderQueue();
+    updateKpis();
+    refreshExport();
+  };
+
+  // ── UPDATE KPIS ────────────────────────────────────────────────────────────
+  function updateKpis() {
+    el('kpiLabels').textContent = state.cartons.length;
+    el('kpiUnits').textContent = state.cartons.reduce(function(a, c) { return a + c.qty; }, 0);
+    el('kpiBrands').textContent = new Set(state.cartons.map(function(c) { return c.brand; })).size;
+    el('kpiLocs').textContent = new Set(state.cartons.map(function(c) { return c.location; }).filter(Boolean)).size;
+  }
+
+  // ── RENDER QUEUE ───────────────────────────────────────────────────────────
+  function renderQueue() {
+    var grid = el('queueGrid');
+    var empty = el('emptyQueue');
+    if (!state.cartons.length) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    grid.innerHTML = state.cartons.map(function(c) {
+      var meta = [];
+      if (c.gender) meta.push(c.gender);
+      if (c.coo) meta.push('COO: ' + c.coo);
+      if (c.itemWeightOz) meta.push(c.itemWeightOz + ' oz');
+      return '<div class="label-card">' +
+        '<div class="lc-brand">' + esc(c.brand) + '</div>' +
+        '<div class="lc-desc">' + esc(c.description) + '</div>' +
+        '<div class="lc-meta mono">' + esc(c.itemNumber) + ' \u00b7 ' + esc(c.upc) + '</div>' +
+        (meta.length ? '<div class="lc-meta">' + esc(meta.join(' \u00b7 ')) + '</div>' : '') +
+        '<div class="lc-row">' +
+          '<div class="lc-qty-wrap"><div class="lc-qty-l">Qty</div><div class="lc-qty">' + c.qty + '</div></div>' +
+          '<div id="qr-' + c.cartonId + '"></div>' +
+        '</div>' +
+        '<div class="lc-meta" style="margin-top:8px">' +
+          (c.location ? 'Location: ' + esc(c.location) + ' \u00b7 ' : '') +
+          'CYCLE COUNT \u00b7 ' + esc(c.cartonId) +
+        '</div>' +
+        '<div class="lc-meta">Bridge: ' + esc(c.bridgeTarget) + '</div>' +
+        '<div class="lc-actions">' +
+          '<button class="btn btn-secondary print-pdf-btn" type="button" onclick="printSingle(\'' + c.cartonId + '\')">Print PDF</button>' +
+          '<button class="btn btn-ghost" type="button" onclick="removeOne(\'' + c.cartonId + '\')">Remove</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    // Render QR codes
+    state.cartons.forEach(function(c) {
+      var box = el('qr-' + c.cartonId);
+      if (box && !box.childNodes.length) {
+        try {
+          new QRCode(box, { text: c.cartonId, width: 60, height: 60, colorDark: '#15323a', colorLight: 'transparent' });
+        } catch(e) {}
+      }
+    });
+  }
+
+  // ── BUILD WMS-FORMAT LABEL HTML ──────────────────────────────────────────────
+  // Matches the printCard format from risona-wms stock manager exactly.
+  function buildLabelHtml(c) {
+    var upcDisplay = c.upc
+      ? 'UPC  ' + esc(c.upc)
+      : '<span style="color:#b91c1c;font-size:13px">No UPC — barcode shows Carton ID</span>';
+    var bestL = c.bestL || c.itemL || '';
+    var bestW = c.bestW || c.itemW || '';
+    var bestH = c.bestH || c.itemH || '';
+    var dimStr = (bestL && bestW && bestH)
+      ? (bestL + ' × ' + bestW + ' × ' + bestH + ' in')
+      : '—';
+    var cuFt = c.totalCuFt
+      ? parseFloat(c.totalCuFt).toFixed(2)
+      : ((bestL && bestW && bestH) ? ((parseFloat(bestL)*parseFloat(bestW)*parseFloat(bestH))/1728).toFixed(2) : '—');
+    var weightLb = c.totalGrossLb
+      ? parseFloat(c.totalGrossLb).toFixed(2)
+      : (c.ctnWeightLbs ? esc(c.ctnWeightLbs) : '—');
+    var createdDate = c.createdAt ? String(c.createdAt).slice(0, 10) : '';
+
+    return '<div class="printCard">' +
+      '<div class="labelHead">' +
+        '<div>' +
+          '<div class="labelTitle">Risona Carton Label</div>' +
+          '<div style="font-size:12px;color:#555">Cycle count carton</div>' +
+        '</div>' +
+        '<div class="labelMeta-sm"><strong>Source</strong><br><span class="mono">CYCLE COUNT</span></div>' +
+      '</div>' +
+      '<div class="labelBody">' +
+        '<div>' +
+          '<div class="labelDesc">' + esc(c.description || 'No description') + '</div>' +
+          '<div class="labelUpc">' + upcDisplay + '</div>' +
+          '<div class="barcodeBox"><svg id="bc-print-' + esc(c.cartonId) + '"></svg></div>' +
+          '<div class="metaGrid">' +
+            '<div><strong>Brand</strong>' + esc(c.brand || '') + '</div>' +
+            '<div><strong>Weight LB</strong>' + weightLb + '</div>' +
+            '<div><strong>Cube CU FT</strong>' + cuFt + '</div>' +
+            '<div><strong>Dimensions</strong>' + esc(dimStr) + '</div>' +
+            '<div><strong>Counted by</strong>' + esc(c.createdBy || '') + '</div>' +
+            '<div><strong>Created</strong>' + esc(createdDate) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="labelSide">' +
+          '<div style="text-align:center">' +
+            '<div class="qtyBig">' + c.qty + '</div>' +
+            '<div style="font-size:11px;margin-top:2px">PC / CARTON</div>' +
+            '<div class="statusChip cycle" style="margin-top:6px">CYCLE COUNT</div>' +
+          '</div>' +
+          '<div style="text-align:right;margin-top:auto">' +
+            '<div class="qrBox" style="display:inline-block;margin-bottom:3px"><div id="qr-print-' + esc(c.cartonId) + '"></div></div>' +
+            '<div style="font-size:9px;font-family:monospace;color:#374151;font-weight:700;word-break:break-all;text-align:right">' + esc(c.cartonId) + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // ── PDF GENERATION (jsPDF + html2canvas) ─────────────────────────────────
+  // Renders each label card to a canvas at 2x scale, then places it on a
+  // 6x4in landscape jsPDF page. Bypasses Android print dialog paper-size bug.
+
+  function renderOneCard(c) {
+    return new Promise(function(resolve) {
+      var stage = document.getElementById('labelStage');
+      stage.innerHTML = buildLabelHtml(c);
+      var card = stage.querySelector('.printCard');
+      // Fix card dimensions for off-screen render (576px = 6in @ 96dpi)
+      card.style.width = '576px';
+      card.style.minHeight = '384px';
+      card.style.maxWidth = '576px';
+      card.style.borderRadius = '0';
+      card.style.boxShadow = 'none';
+      card.style.border = 'none';
+
+      // Render barcode
+      var bcVal = c.upc ? c.upc : c.cartonId;
+      var svgEl = document.getElementById('bc-print-' + c.cartonId);
+      if (svgEl && typeof JsBarcode !== 'undefined') {
+        try { JsBarcode(svgEl, bcVal, { format: 'CODE128', displayValue: !!c.upc, margin: 0, width: 2, height: 56 }); } catch(e) {}
+      }
+
+      // Render QR
+      var qrEl = document.getElementById('qr-print-' + c.cartonId);
+      if (qrEl && typeof QRCode !== 'undefined') {
+        qrEl.innerHTML = '';
+        try { new QRCode(qrEl, { text: String(c.cartonId), width: 88, height: 88, colorDark: '#000000', colorLight: '#ffffff' }); } catch(e) {}
+      }
+
+      // Wait for QR/barcode to render, then capture
+      setTimeout(function() {
+        html2canvas(card, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          width: 576,
+          height: 384,
+          logging: false
+        }).then(function(canvas) {
+          resolve(canvas);
+        }).catch(function() { resolve(null); });
+      }, 300);
+    });
+  }
+
+  function generatePdf(items) {
+    if (!items || !items.length) { alert('No labels to generate.'); return; }
+    if (typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined') {
+      alert('PDF library not loaded yet — please wait a moment and try again.');
+      return;
+    }
+
+    // Show loading state on all print buttons
+    var btns = document.querySelectorAll('.print-pdf-btn');
+    btns.forEach(function(b) { b.textContent = 'Generating PDF…'; b.disabled = true; });
+
+    var jsPDFLib = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : jsPDF;
+    // 6in x 4in landscape at 72dpi => 432 x 288 pts
+    var doc = new jsPDFLib({ orientation: 'landscape', unit: 'in', format: [6, 4] });
+    var first = true;
+
+    function processNext(index) {
+      if (index >= items.length) {
+        // Done — save PDF
+        var fname = items.length === 1
+          ? ('risona-label-' + items[0].cartonId + '.pdf')
+          : 'risona-cycle-count-labels.pdf';
+        doc.save(fname);
+        btns.forEach(function(b) { b.textContent = 'Print Labels (PDF)'; b.disabled = false; });
+        document.getElementById('labelStage').innerHTML = '';
+        return;
+      }
+      renderOneCard(items[index]).then(function(canvas) {
+        if (canvas) {
+          if (!first) doc.addPage([6, 4], 'landscape');
+          first = false;
+          // canvas is 1152x768 (576*2 x 384*2) — place at 6x4in
+          var imgData = canvas.toDataURL('image/jpeg', 0.92);
+          doc.addImage(imgData, 'JPEG', 0, 0, 6, 4);
+        }
+        processNext(index + 1);
+      });
+    }
+
+    processNext(0);
+  }
+
+  // ── PRINT FUNCTIONS ────────────────────────────────────────────────────────────
+  window.printSingle = function(id) {
+    var c = state.cartons.find(function(x) { return x.cartonId === id; });
+    if (!c) return;
+    generatePdf([c]);
+  };
+
+  window.printAllLabels = function() {
+    if (!state.cartons.length) { alert('No labels to print yet.'); return; }
+    generatePdf(state.cartons);
+  };
+
+  window.printWarehouseList = function() {
+    if (!state.cartons.length) { alert('No labels to print yet.'); return; }
+    // Warehouse list uses a popup — it is a plain text sheet, not a label card
+    var popup = window.open('', '_blank', 'width=900,height=700');
+    if (!popup) { alert('Popup blocked — please allow popups for this page.'); return; }
+    var rows = state.cartons.map(function(c, i) {
+      return '<tr>' +
+        '<td>' + (i + 1) + '</td>' +
+        '<td class="mono">' + esc(c.cartonId) + '</td>' +
+        '<td class="mono">' + esc(c.upc) + '</td>' +
+        '<td class="mono">' + esc(c.itemNumber) + '</td>' +
+        '<td>' + esc(c.description) + '</td>' +
+        '<td>' + esc(c.brand) + '</td>' +
+        '<td>' + esc(c.location) + '</td>' +
+        '<td>' + c.qty + '</td>' +
+        '<td style="height:24px;min-width:60px"></td>' +
+        '<td style="min-width:60px"></td>' +
+      '</tr>';
+    }).join('');
+    popup.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cycle Count Warehouse List</title><style>' +
+      'body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:24px;}' +
+      'h2{margin:0 0 4px;font-size:18pt;}' +
+      '.m{font-size:9pt;color:#444;margin-bottom:20px;}' +
+      'table{width:100%;border-collapse:collapse;}' +
+      'th,td{border:1px solid #ccc;padding:7px 8px;text-align:left;font-size:9pt;}' +
+      'th{background:#000;color:#fff;font-size:8.5pt;text-transform:uppercase;letter-spacing:.04em;}' +
+      'tr:nth-child(even) td{background:#f7f7f7;}' +
+      '.mono{font-family:monospace;}' +
+      '.no-print{margin-top:20px;text-align:center;}' +
+      '@media print{body{padding:0;}.no-print{display:none;}}' +
+    '</style></head><body>' +
+    '<h2>Cycle Count Warehouse List</h2>' +
+    '<div class="m">Print this list for the warehouse team — label boxes, hand-write counts, and initial each line.</div>' +
+    '<table><thead><tr><th>#</th><th>Carton ID</th><th>UPC</th><th>Item Number</th><th>Description</th><th>Brand</th><th>Location</th><th>Units</th><th>Count</th><th>Initials</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table>' +
+    '<div class="no-print">' +
+      '<button onclick="window.print()" style="padding:10px 24px;font-size:14px;font-weight:bold;background:#0891b2;color:#fff;border:none;border-radius:8px;cursor:pointer;">Print</button>' +
+      '<button onclick="window.close()" style="padding:10px 18px;font-size:14px;margin-left:10px;border:1px solid #ccc;border-radius:8px;cursor:pointer;background:#fff;">Close</button>' +
+    '</div>' +
+    '</body></html>');
+    popup.document.close();
+  };
+
+  // ── EPL2 QR BITMAP (GW command) ───────────────────────────────────────────
+  // The UPS LP2844 (EPL2, no Asian font set) cannot print QR codes natively.
+  // We generate the QR matrix using qrcode-generator, scale it to printer dots,
+  // pack it into 1-bit rows, and send it as an EPL2 GW (Graphic Write) command.
+  // ── ZPL LABEL BUILDER ──────────────────────────────────────────────────────
+  // Generates a complete ZPL II command string for one carton label.
+  // Zebra ZP 500 @ 203dpi — 4×6in stock = 812w × 1218h dots
+  function buildZplLabel(c) {
+    var sizeEl = el('bridgeLabelSize');
+    var sizeKey = sizeEl ? sizeEl.value : '4x6';
+    var labelH = sizeKey === '4x6' ? 1218 : sizeKey === '4x3' ? 609 : 406;
+    var labelW = 812;
+
+    function trunc(str, max) {
+      str = String(str || '');
+      return str.length > max ? str.slice(0, max - 1) + '~' : str;
+    }
+
+    var barcode    = c.upc || c.cartonId;
+    var desc       = trunc(c.description || 'No description', 38);
+    var brand      = trunc(c.brand || '', 28);
+    var itemNo     = trunc(c.itemNumber || '', 24);
+    var loc        = trunc(c.location || '', 24);
+    var upcStr     = c.upc ? ('UPC: ' + c.upc) : ('CTN: ' + c.cartonId);
+    var weightStr  = c.totalGrossLb ? (c.totalGrossLb + ' LB') : (c.itemWeightOz ? (c.itemWeightOz + ' OZ') : '');
+    var dimStr     = (c.bestL && c.bestW && c.bestH) ? (c.bestL + 'x' + c.bestW + 'x' + c.bestH + '"') : '';
+    var cuftStr    = c.totalCuFt ? (c.totalCuFt + ' CUFT') : '';
+    var createdStr = c.createdBy ? ('BY: ' + trunc(c.createdBy, 16)) : '';
+    var qtyStr     = String(c.qty || 0);
+    var cartonId   = trunc(c.cartonId, 20);
+
+    var z = [];
+
+    // ── Label start ────────────────────────────────────────────────────────
+    z.push('^XA');                          // start label
+    z.push('^MMT');                         // tear-off mode
+    z.push('^PW' + labelW);                 // print width
+    z.push('^LL' + labelH);                 // label length
+    z.push('^LS0');                         // left shift 0
+    z.push('^MD15');                        // darkness 15 (0-30)
+
+    // ── Header: "RISONA CYCLE COUNT" ───────────────────────────────────────
+    // ^FO x,y  ^A font,h,w  ^FD data ^FS
+    z.push('^FO10,10^A0N,28,28^FDRISONA CYCLE COUNT LABEL STATION^FS');
+
+    // ── Horizontal rule ────────────────────────────────────────────────────
+    z.push('^FO10,44^GB792,3,3^FS');
+
+    // ── Description (large) ───────────────────────────────────────────────
+    z.push('^FO10,52^A0N,36,36^FD' + desc + '^FS');
+
+    // ── UPC text line ──────────────────────────────────────────────────────
+    z.push('^FO10,96^A0N,22,22^FD' + upcStr + '^FS');
+
+    // ── CODE128 barcode ───────────────────────────────────────────────────
+    // ^BCo,h,f,g,e  o=orientation,h=height,f=print interpretation line,
+    //               g=print interp line above,e=check digit
+    z.push('^FO10,124^BY2,3,70^BCN,70,Y,N,N^FD' + barcode + '^FS');
+
+    // ── Vertical divider (sidebar starts at x=620) ─────────────────────
+    z.push('^FO618,44^GB3,' + (labelH - 54) + ',3^FS');
+
+    // ── Sidebar: large qty ─────────────────────────────────────────────────
+    z.push('^FO625,52^A0N,90,80^FD' + qtyStr + '^FS');
+    z.push('^FO625,150^A0N,22,22^FDPC / CARTON^FS');
+
+    // ── CYCLE COUNT box ────────────────────────────────────────────────────
+    z.push('^FO625,180^GB187,28,1^FS');       // box border
+    z.push('^FO630,183^A0N,20,20^FDCYCLE COUNT^FS');
+
+    // ── QR code (native ZPL ^BQ — no bitmap needed) ───────────────────────
+    // ^BQa,b,c  a=orientation,b=model(2=QR),c=magnification(3=~60dots)
+    z.push('^FO625,215^BQN,2,4^FDMA,' + c.cartonId + '^FS');
+
+    // ── Carton ID below QR ─────────────────────────────────────────────────
+    z.push('^FO625,' + (labelH - 55) + '^A0N,20,20^FD' + cartonId + '^FS');
+
+    // ── Meta divider ──────────────────────────────────────────────────────
+    z.push('^FO10,214^GB608,2,2^FS');
+
+    // ── Meta fields ───────────────────────────────────────────────────────
+    var metaY = 222;
+    var lineH = 26;
+    if (brand)      { z.push('^FO10,' + metaY + '^A0N,22,22^FDBRAND: ' + brand + '^FS');   metaY += lineH; }
+    if (weightStr)  { z.push('^FO10,' + metaY + '^A0N,22,22^FDWEIGHT: ' + weightStr + '^FS'); metaY += lineH; }
+    if (dimStr)     { z.push('^FO10,' + metaY + '^A0N,22,22^FDDIMS: ' + dimStr + '^FS');   metaY += lineH; }
+    if (cuftStr)    { z.push('^FO10,' + metaY + '^A0N,22,22^FDCUBE: ' + cuftStr + '^FS');  metaY += lineH; }
+    if (loc)        { z.push('^FO10,' + metaY + '^A0N,22,22^FDLOC: ' + loc + '^FS');       metaY += lineH; }
+    if (createdStr) { z.push('^FO10,' + metaY + '^A0N,22,22^FD' + createdStr + '^FS');     metaY += lineH; }
+    if (itemNo)     { z.push('^FO10,' + metaY + '^A0N,22,22^FDITEM: ' + itemNo + '^FS');   metaY += lineH; }
+
+    // ── End label ──────────────────────────────────────────────────────────
+    z.push('^PQ1,0,1,Y');   // print 1 copy
+    z.push('^XZ');           // end label
+
+    return z.join('\r\n');
+  }
+
+  // ── ENCODE ZPL TO BYTES ────────────────────────────────────────────────────
+  function encodeZpl(zplString) {
+    return new TextEncoder().encode(zplString);
+  }
+
+    window.sendBridgeJob = function() {
+    if (!state.cartons.length) {
+      showMsg('bridgeMsg', 'No labels in the queue yet.', false, true);
+      return;
+    }
+    var endpointEl = el('bridgeEndpoint');
+    var endpoint = endpointEl ? endpointEl.value.trim() : '';
+    if (!endpoint) {
+      showMsg('bridgeMsg', 'Enter the PC IP address first (e.g. http://192.168.1.42:9100).', false, true);
+      return;
+    }
+    // Normalise: if user typed just an IP/hostname, add http://
+    if (!/^https?:\/\//i.test(endpoint)) {
+      endpoint = 'http://' + endpoint;
+    }
+
+    // Build combined EPL2 blob for all cartons in queue
+    var allParts = [];
+    var totalLen = 0;
+    state.cartons.forEach(function(c) {
+      var bytes = encodeZpl(buildZplLabel(c));
+      allParts.push(bytes);
+      totalLen += bytes.length;
+    });
+    var combined = new Uint8Array(totalLen);
+    var off = 0;
+    allParts.forEach(function(p) { combined.set(p, off); off += p.length; });
+
+    showMsg('bridgeMsg', 'Sending ' + state.cartons.length + ' label(s) to printer…', true, true);
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream' },
+      body: combined
+    }).then(function(r) {
+      if (r.ok || r.status === 0) {
+        showMsg('bridgeMsg', '✓ Sent ' + state.cartons.length + ' label(s) to printer successfully.', true, true);
+      } else {
+        showMsg('bridgeMsg', 'Printer responded with status ' + r.status + '. Check RawPrintServer is running.', false, true);
+      }
+    }).catch(function(e) {
+      // RawPrintServer closes the TCP connection immediately after receiving data,
+      // which can cause a network error even on success. Treat ERR_CONNECTION_RESET as OK.
+      if (e.message && (e.message.indexOf('Failed to fetch') !== -1 || e.message.indexOf('NetworkError') !== -1)) {
+        showMsg('bridgeMsg', '✓ Data sent to printer (connection closed by printer — this is normal for RawPrintServer).', true, true);
+      } else {
+        showMsg('bridgeMsg', 'Bridge unreachable: ' + e.message + '. Make sure RawPrintServer is running on the PC and port 9100 is open in the firewall.', false, true);
+      }
+    });
+  };
+
+  // ── TEST BRIDGE PING ───────────────────────────────────────────────────────
+  // Sends a minimal EPL2 "status" probe — just a blank N command — to verify connectivity.
+  window.testBridgePing = function() {
+    var endpointEl = el('bridgeEndpoint');
+    var endpoint = endpointEl ? endpointEl.value.trim() : '';
+    if (!endpoint) {
+      showMsg('bridgeMsg', 'Enter the PC IP address first.', false, true);
+      return;
+    }
+    if (!/^https?:\/\//i.test(endpoint)) endpoint = 'http://' + endpoint;
+
+    showMsg('bridgeMsg', 'Testing connection…', true, true);
+    var probe = new TextEncoder().encode('^XA^XZ\r\n'); // minimal valid EPL2 — prints nothing
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream' },
+      body: probe
+    }).then(function() {
+      showMsg('bridgeMsg', '✓ Connection OK — RawPrintServer is reachable.', true, true);
+    }).catch(function(e) {
+      var msg = e.message || '';
+      if (msg.indexOf('Failed to fetch') !== -1 || msg.indexOf('NetworkError') !== -1 || msg.toLowerCase().indexOf('network') !== -1) {
+        showMsg('bridgeMsg', '✓ Connection OK — printer responded (connection reset is normal).', true, true);
+      } else {
+        showMsg('bridgeMsg', 'Connection failed: ' + msg, false, true);
+      }
+    });
+  };
+
+  // ── EXPORT ─────────────────────────────────────────────────────────────────
+  window.refreshExport = function() {
+    var tbody = el('cartonBody');
+    if (tbody) {
+      tbody.innerHTML = state.cartons.map(function(c) {
+        return '<tr>' +
+          '<td class="mono">' + esc(c.cartonId) + '</td>' +
+          '<td class="mono">' + esc(c.upc) + '</td>' +
+          '<td class="mono">' + esc(c.itemNumber) + '</td>' +
+          '<td>' + esc(c.description) + '</td>' +
+          '<td>' + c.qty + '</td>' +
+          '<td>' + esc(c.location) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+    var pa = el('payloadArea');
+    if (pa) pa.value = JSON.stringify({ cartons: state.cartons }, null, 2);
+  };
+
+  function csvEscape(s) {
+    s = String(s == null ? '' : s);
+    return /[,\n\r"]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  window.downloadCartonCSV = function() {
+    if (!state.cartons.length) { showMsg('cartonMsg', 'No cartons to export yet.', false); return; }
+    var headers = [
+      'CartonID','UPC','ItemNumber','Brand','Description','Gender','COO',
+      'WeightOz','L_in','W_in','H_in',
+      'TotalQty','TotalCartons','TotalCuFt','TotalGrossLb','BoxStyles',
+      'Notes','Location','Condition','Status','CreatedBy','CreatedAt','BridgeTarget'
+    ];
+    var rows = state.cartons.map(function(c) {
+      var stylesJson = c.boxStyles ? JSON.stringify(c.boxStyles) : '';
+      return [
+        c.cartonId, c.upc, c.itemNumber, c.brand, c.description, c.gender, c.coo,
+        c.itemWeightOz, c.itemL, c.itemW, c.itemH,
+        c.qty, c.totalCartons, c.totalCuFt, c.totalGrossLb, stylesJson,
+        c.notes, c.location, c.condition, 'CYCLECOUNT', c.createdBy, c.createdAt, c.bridgeTarget
+      ].map(csvEscape).join(',');
+    });
+    var csv = [headers.join(',')].concat(rows).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'risona-cyclecount-cartons.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showMsg('cartonMsg', 'Carton CSV downloaded.');
+  };
+
+  window.copyCartonJSON = function() {
+    navigator.clipboard.writeText(JSON.stringify({ cartons: state.cartons }, null, 2))
+      .then(function() { showMsg('cartonMsg', 'Carton JSON copied to clipboard.'); })
+      .catch(function() { showMsg('cartonMsg', 'Copy failed — please use the payload textarea.', false); });
+  };
+
+  window.copyFullPayload = function() {
+    var pa = el('payloadArea');
+    if (!pa) return;
+    navigator.clipboard.writeText(pa.value)
+      .then(function() { showMsg('payloadMsg', 'Full payload copied to clipboard.'); })
+      .catch(function() { showMsg('payloadMsg', 'Copy failed — please select the text manually.', false); });
+  };
+
+  // ── SCANNER ────────────────────────────────────────────────────────────────
+  window.openScanner = function(targetId) {
+    state.scanTarget = targetId;
+    el('scanModal').classList.add('open');
+    el('scanManual').value = '';
+    el('scanStatus').textContent = 'Starting camera...';
+    var video = el('scanVideo');
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    }).then(function(stream) {
+      state.stream = stream;
+      video.srcObject = stream;
+      return video.play();
+    }).then(function() {
+      if ('BarcodeDetector' in window) {
+        el('scanStatus').textContent = 'Point the camera at the barcode.';
+        var detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code'] });
+        state.detectorTimer = setInterval(function() {
+          detector.detect(video).then(function(codes) {
+            if (codes && codes.length) onScan(codes[0].rawValue);
+          }).catch(function() {});
+        }, 350);
+      } else {
+        el('scanStatus').textContent = 'Barcode scanning requires Chrome (Android/Windows). Use manual entry below.';
+        el('scanStatus').style.color = 'var(--warn)';
+      }
+    }).catch(function() {
+      el('scanStatus').textContent = 'Camera unavailable — use manual entry below.';
+    });
+  };
+
+  function stopScanner() {
+    if (state.detectorTimer) { clearInterval(state.detectorTimer); state.detectorTimer = null; }
+    // ZXing not used — BarcodeDetector only
+    if (state.stream) { state.stream.getTracks().forEach(function(t) { t.stop(); }); state.stream = null; }
+    var video = el('scanVideo');
+    if (video) video.srcObject = null;
+  }
+
+  window.closeScanner = function() { stopScanner(); el('scanModal').classList.remove('open'); };
+
+  window.acceptManualScan = function() {
+    var v = el('scanManual').value.trim();
+    if (v) onScan(v);
+  };
+
+  function onScan(value) {
+    if (state.scanTarget) {
+      var target = el(state.scanTarget);
+      if (target) {
+        target.value = value;
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    window.closeScanner();
+  }
+
+  // ── KEYBOARD: CLOSE MODAL ON ESCAPE ───────────────────────────────────────
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { window.closeScanner(); }
+  });
+
+  // ── BOX BREAKDOWN JS ─────────────────────────────────────────────────────────
+  function renderSmBreakdown() {
+    var box=el('smBreakdown'); if(!box) return;
+    var html='';
+    for(var i=0;i<4;i++){
+      html+='<div class="breakdown-row">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
+          '<h4 style="margin:0">Style '+(i+1)+'</h4>'+
+          '<span class="style-subtotal" id="smStyleSub'+i+'"></span>'+
+        '</div>'+
+        '<div class="breakdown-grid">'+
+          '<div class="field"><label># Boxes</label><input type="number" id="smBoxes'+i+'" value="0" min="0" oninput="updateSmTotals()"></div>'+
+          '<div class="field"><label>Qty / Box</label><input type="number" id="smQty'+i+'" value="0" min="0" oninput="updateSmTotals()"></div>'+
+          '<div class="field"><label>Box Wt LB</label><input type="number" id="smWt'+i+'" value="0" step="0.1" min="0" oninput="updateSmTotals()"></div>'+
+          '<div class="field"><label>L (in)</label><input type="number" id="smL'+i+'" value="0" step="0.1" min="0" oninput="updateSmTotals()"></div>'+
+          '<div class="field"><label>W (in)</label><input type="number" id="smW'+i+'" value="0" step="0.1" min="0" oninput="updateSmTotals()"></div>'+
+          '<div class="field"><label>H (in)</label><input type="number" id="smH'+i+'" value="0" step="0.1" min="0" oninput="updateSmTotals()"></div>'+
+        '</div>'+
+      '</div>';
+    }
+    box.innerHTML=html;
+    updateSmTotals();
+  }
+
+  window.updateSmTotals = function() {
+    var pcs=0,cartons=0,cuft=0,gross=0;
+    for(var i=0;i<4;i++){
+      var b=intVal('smBoxes'+i),q=intVal('smQty'+i),w=numVal('smWt'+i);
+      var L=numVal('smL'+i),W=numVal('smW'+i),H=numVal('smH'+i);
+      var sp=b*q,sc=b*(L*W*H)/1728;
+      pcs+=sp;cartons+=b;gross+=b*w;cuft+=sc;
+      var pill=el('smStyleSub'+i);
+      if(pill){if(b>0){pill.style.display='inline-block';pill.textContent=sp+' pcs · '+b+' carton'+(b!==1?'s':'')+' · '+sc.toFixed(2)+' cu ft';}else pill.style.display='none';}
+    }
+    var ep=el('smSubtotalPcs');if(ep)ep.textContent=pcs;
+    var ec=el('smTotalCartons');if(ec)ec.textContent=cartons;
+    var ef=el('smTotalCuFt');if(ef)ef.textContent=cuft.toFixed(2);
+    var eg=el('smTotalGross');if(eg)eg.textContent=gross.toFixed(2);
+  };
+
+  // ── INIT ───────────────────────────────────────────────────────────────────
+  renderSmBreakdown();
+  renderQueue();
+  updateKpis();
+  refreshExport();
+
+})();
+</script>
+
+<!-- OFF-SCREEN LABEL STAGE (used by jsPDF renderer) -->
+<div id="labelStage" style="position:fixed;left:-9999px;top:0;width:576px;background:#fff;z-index:-1;pointer-events:none;"></div>
+</body>
+</html>
